@@ -10,6 +10,8 @@ Run from an extracted package in Windows PowerShell 5.1. The examples name place
 
 The JSON result identifies the private session directory and incomplete collectors. `-Scope health` skips detailed storage scans. `-ReportMode simple` writes a report without animation; `none` writes JSON/state only and does not delete an older report. An explicit OutDir must be new/empty or already owned by the same audit session.
 
+Read `audit-progress.json` in that directory for the last reported collector, completed count, elapsed time and completion status. `-Quiet` suppresses the console progress display, not this file. A completed audit can still contain partial or unavailable collectors.
+
 ## Plan and execute selected files
 
 ```powershell
@@ -55,6 +57,8 @@ The importer reads both active and archived CSV manifests under `PC-Optimize-Qua
 ```
 
 Only compatible machine/volume identities are compared. Invalid data does not replace a good report. `share-report.html` omits raw paths, names, commands, identifiers, errors and history. Review it before sharing; it is not automatically uploaded. Use `proposals.json` with the bundled schema for advisory rows; legacy CSV is display-only.
+
+When `-QuarantineRoot` is supplied, all loaded sessions/items are embedded in the offline report. Select a session and use the file-page controls; selections persist across pages within that session. Legacy truncated snapshots remain marked as limited. Restore controls prepare a request only and never execute an OS command.
 
 ## Elevation and Restore Point helper
 

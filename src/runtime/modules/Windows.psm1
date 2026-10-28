@@ -1,5 +1,5 @@
 ﻿Set-StrictMode -Version 2
-Import-Module (Join-Path $PSScriptRoot 'IO.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'IO.psm1')
 
 function Test-SyrinAdministrator {
   return ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)

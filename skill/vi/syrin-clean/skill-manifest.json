@@ -26,33 +26,33 @@
     },
     {
       "path": "assets/report-template.html",
-      "sha256": "f90625f91ab9861c8f646a4ee20e9e36a36ef1c7d92908133273a7e98336eb2b",
-      "bytes": 29152
+      "sha256": "372d8d15b0f6868b9d12966bad3f12fce08d0a6a9808a559e2bdedad4c150ea3",
+      "bytes": 32855
     },
     {
       "path": "modules/Audit.psm1",
-      "sha256": "add03f1d40431506936a50db23c3bdfe1a01ebf531a1de155889069ef847211b",
-      "bytes": 20542
+      "sha256": "efb0b7c7dcd4da064027ed97e032d1351b00e265ed7c6f325cafc999f928f852",
+      "bytes": 21617
     },
     {
       "path": "modules/IO.psm1",
-      "sha256": "4bd94c73435a16d52fe63aea84746fb4a2ac930335269b433d0ffc2c875bfb6b",
-      "bytes": 18467
+      "sha256": "54b6b0c2e8010f393f19a7e4e98fb7a6c85d9fe2ea1de6fff7c0d68d4d3416fd",
+      "bytes": 20148
     },
     {
       "path": "modules/Quarantine.psm1",
-      "sha256": "6356db9cd49aae9ea63046df3c3c77e8e1bc759fa7a68e7d7f9b4c09fc3e7e09",
-      "bytes": 24930
+      "sha256": "8d3a3a110b7cfaa60e538e3f3b55a9df3d17bf2fe5428d0d143abad22d1b4cdc",
+      "bytes": 24960
     },
     {
       "path": "modules/Report.psm1",
-      "sha256": "573ec3c42bc625bf558429dce1fb56b7e35a8beca776019cfeb2dfc34838ba49",
-      "bytes": 10273
+      "sha256": "36507bfe9bfe95382beda2e3d7bf5d97873666a0f40f9547fa9fc16ef70c7d9c",
+      "bytes": 10206
     },
     {
       "path": "modules/Windows.psm1",
-      "sha256": "7b94f34f0affaab7b898621e30c5d37943b0675eb47d8b4d39ee3c9e105cc40d",
-      "bytes": 5228
+      "sha256": "b7f316860c1eb6d4abd6c6b16bd5e0dcc17ca881cf5a623d7e3270052b724795",
+      "bytes": 5221
     },
     {
       "path": "references/stage0-audit.md",
@@ -71,38 +71,38 @@
     },
     {
       "path": "references/support.md",
-      "sha256": "97b858370ba977ea69766f5ddb204c8c9d11467f5af49f3ded82fe0b011225f7",
-      "bytes": 4250
+      "sha256": "a1e892b0878e3f34ac10e5dfac16b9f348987443754375eee1c6b92d9886cb86",
+      "bytes": 4397
     },
     {
       "path": "scripts/audit.ps1",
-      "sha256": "3d0fcf48f324e7b281febdb9b7dd5ed0dd2a0a51e019755eb61095b44a1c5b9b",
+      "sha256": "438661c6f7a36eb93faefa73eac6bba81718dd3363a3e2e930e8aa84e32b65a7",
       "bytes": 893
     },
     {
       "path": "scripts/history.ps1",
-      "sha256": "4e0e74e066f140150836cbf0fbc67486c846bfa8556a6c4e9be14ea5b48453df",
-      "bytes": 1269
+      "sha256": "e6b2e005424acef15b381e6bf27e3c4f3f2f15c2c8e4e56b27d8f0c9addc2c9c",
+      "bytes": 1255
     },
     {
       "path": "scripts/make-report.ps1",
-      "sha256": "d6cdd9e85767077b9b7a23404bff5ed187c775c4cb6411209a9fb81870237283",
-      "bytes": 740
+      "sha256": "e58d8c85139f3dd1f7a08520a45a4c7b8f5fe6ddb4a9663798b18be5050d7e20",
+      "bytes": 733
     },
     {
       "path": "scripts/new-restorepoint.ps1",
-      "sha256": "e186a6faecb728a7079d1d039276710bb5f7a9b79a26700d7ac2d91c95986971",
-      "bytes": 611
+      "sha256": "89094f715c2387bb21424614c6ead14fd78f244bc5754905317b6b50509cae99",
+      "bytes": 597
     },
     {
       "path": "scripts/quarantine.ps1",
-      "sha256": "7452ace2ac472b46be886f1477e5f2101f07d7fc51b7434b15af492778f85e24",
-      "bytes": 1573
+      "sha256": "39b459a671f542ce3c5eb6d7dc23d5d3cfbd5e3b0aebfba2e20b285a029b7f07",
+      "bytes": 1566
     },
     {
       "path": "scripts/run-elevated.ps1",
-      "sha256": "3004418e95493bf5e8d0aebc2659003eb9b185959062a001c037ae417d2a072a",
-      "bytes": 726
+      "sha256": "1631c0942db31dae1e29997c7b3177389bc1885ffed2bc1cb6ebcf6ca826e46c",
+      "bytes": 719
     }
   ]
 }

@@ -13,7 +13,7 @@ Xử lý F01–F04 trước các tính năng dọn mới.
 - [x] Khi move/copy/journal thất bại, trả trạng thái thật và giữ đủ thông tin để phục hồi; mã thoát thể hiện lỗi hoặc hoàn thành một phần.
 - [x] Kiểm tra đường dẫn cloud theo quan hệ thư mục thật, tổ tiên/hậu duệ, symlink/junction, file offline và reparse root; provider chưa nhận diện phải được nêu rõ.
 
-Nghiệm thu: file ngoài phạm vi không bị đụng; conflict không mất journal; lỗi sau từng bước không tạo file mồ côi; chạy lại không làm lặp thao tác; QuarantineRoot tùy chọn có cùng nghĩa trong cả ba mode. Các ca xóa thật chỉ chạy với file do test tạo trong môi trường cách ly.
+Nghiệm thu: file ngoài phạm vi không bị đụng; conflict không mất journal; lỗi sau từng bước không tạo file mồ côi; chạy lại không làm lặp thao tác; QuarantineRoot tùy chọn có cùng nghĩa trong cả ba mode. Bộ kiểm thử tự động chỉ xóa file fixture trong môi trường cách ly. Lượt sử dụng thật cần kế hoạch và sự duyệt riêng của chủ máy; bằng chứng riêng không đưa vào repository.
 
 ## 2. Làm đúng dữ liệu và giao tiếp với Windows
 
@@ -26,6 +26,7 @@ Xử lý F05–F10, F13–F14 và hardening Restore Point.
 - [x] Khóa StartupApproved theo hive + nhánh + tên; kiểm tra đồng thời HKCU, HKLM và 32-bit.
 - [x] Sửa truyền tham số qua tiến trình và mã lỗi của elevation helper; kiểm tra chuỗi rỗng, Unicode, khoảng trắng, dấu nháy và dấu backslash cuối.
 - [x] Kiểm tra JSON/schema trước khi tạo report; đầu vào lỗi không ghi đè báo cáo hợp lệ.
+- [x] Sửa lỗi thay báo cáo đã có trên PowerShell 5.1 phát hiện ở lượt dùng thật ngày 29/10; regression tái hiện lỗi trước sửa và xác minh cập nhật/giữ bản cũ khi file khóa sau sửa.
 - [x] Truyền report mode xuyên suốt UI → prompt/skill → script; chế độ không tạo HTML thực sự không ghi HTML.
 - [x] Phân biệt Windows edition/channel và tình trạng hỗ trợ; không suy toàn bộ từ build number.
 - [x] Đã triển khai xác minh Restore Point mới bằng sequence/time và hoàn nguyên registry, kiểm thử bằng giả lập; phần dịch vụ thật trên VM chưa xác minh.

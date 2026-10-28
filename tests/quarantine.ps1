@@ -122,7 +122,10 @@ try {
 
   $target=File 'junction-target\data.txt'
   $link=Join-Path $fixture 'junction'
+  $policy=& $module {New-SyrinSourcePolicy @()}
   New-Item -ItemType Junction -Path $link -Target ([IO.Path]::GetDirectoryName($target)) | Out-Null
+  $rejected=$false;try{& $module {param($Path,$Policy) Assert-SyrinSourcePath $Path -Policy $Policy} $link $policy|Out-Null}catch{$rejected=$true}
+  Assert $rejected 'A policy snapshot cached mutable junction attributes'
   $rejected=$false;try{Plan @{Path=@($link);Root=$root}|Out-Null}catch{$rejected=$true}
   Assert $rejected 'Junction source was followed'
   Assert (Test-Path -LiteralPath $target) 'Junction target changed'
@@ -170,6 +173,23 @@ try {
   [IO.File]::WriteAllText($disk,'later user edit')
   $r=Execute $restore;Assert ($r.ok -and [IO.File]::ReadAllText($disk) -eq 'later user edit') 'Replay overwrote a later edit'
   Pass 'interrupted restore reconciles and replay preserves later edits'
+
+  $proof=File 'integrity\proof.txt';$proofRoot=Join-Path $fixture 'integrity-storage'
+  $p=Plan @{Path=@($proof);Root=$proofRoot};$r=Execute $p;Assert $r.ok 'Integrity fixture did not quarantine'
+  $sessionFolder=Join-Path (Join-Path $proofRoot 'sessions') $p.plan.sessionId
+  $storedPlan=Join-Path $sessionFolder 'plan.json';$planBytes=[IO.File]::ReadAllBytes($storedPlan)
+  [IO.File]::AppendAllText($storedPlan,' ')
+  $history=@(Get-SyrinHistory $proofRoot $p.plan.sessionId)
+  Assert (-not $history[0].ok -and $history[0].error -like '*plan integrity*') 'Changed plan bytes were accepted'
+  [IO.File]::WriteAllBytes($storedPlan,$planBytes)
+  $eventPath=Join-Path $sessionFolder 'events\00000001.json'
+  $event=Get-Content -LiteralPath $eventPath -Raw -Encoding UTF8|ConvertFrom-Json
+  $event.error='Changed after the next event was recorded'
+  [IO.File]::WriteAllText($eventPath,($event|ConvertTo-Json -Compress),(New-Object Text.UTF8Encoding $true))
+  $history=@(Get-SyrinHistory $proofRoot $p.plan.sessionId)
+  Assert (-not $history[0].ok -and $history[0].error -like '*integrity*') 'Changed journal bytes were accepted'
+  Assert ([IO.File]::ReadAllText($p.plan.items[0].stored) -eq 'original') 'History validation changed stored data'
+  Pass 'history verifies raw plan bytes and the journal hash chain'
 
   Write-Output "Quarantine tests: $script:count passed"
 } finally {

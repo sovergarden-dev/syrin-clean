@@ -9,6 +9,8 @@ powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File tests/ru
 
 The suite checks generated parity, hashes and embedded archives, report data semantics, isolated file lifecycles, failure recovery, native quoting, mocked Restore Point behavior, installation/rollback and safe runtime extraction. Temporary profiles and file fixtures are created by the tests and cleaned afterward. System calls with machine-wide effects are mocked; no cleanup is run on personal data.
 
+`tests/scale.ps1` constructs an owned 2,048-file nested tree, plans it within the runtime's existing budget, and verifies that a report retains every item across 12 sessions. It prints planning/history/report durations as observations, not universal performance guarantees. The runtime tests also exercise caller module composition, BOM-aware JSON digests, changed plan/journal bytes and report replacement failures.
+
 `python tools/build.py --check` validates without writing files. Build rejects unexpected package-source files and credential-like content. A separate final source review is still required; a pattern scan is not proof that arbitrary secrets cannot exist.
 
 The GitHub workflow mirrors the local suite on a Windows runner with read-only repository permissions and pinned action revisions. It does not publish, deploy, create a release or run privileged system qualification.

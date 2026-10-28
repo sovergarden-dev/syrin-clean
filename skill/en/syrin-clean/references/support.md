@@ -1,21 +1,21 @@
 # Support and qualification
 
-> updated 2026-10-28 · v3.6
+> updated 2026-10-29 · v3.6
 
 The hardening build is in development, not a stable release or a claim of universal compatibility. The owner explicitly deferred VM qualification because no disposable VM is available. Do not replace that qualification with system changes on a real workstation.
 
 | Area | Implemented behavior | Verification boundary |
 |---|---|---|
-| File plans | Explicit IDs, plan digest, current-user root, immutable session and append-only events | Real fixture files on the current Windows host; automated regression tests |
+| File plans | Explicit IDs, plan digest, current-user root, immutable session and append-only events | Owned fixtures, a large-tree regression and an explicitly approved local file workflow on Windows 10 x64 |
 | File transfer | Same-volume regular files; directories expand to an exact file list; empty directory skeletons remain | Native handle-based no-overwrite rename; fixture recovery, conflicts and journal failure |
-| Purge | Separate irreversible operation, selected stored files only; identity checked on the deletion handle | Real fixture deletion and replacement-race regression; no user data deletion |
+| Purge | Separate irreversible operation, selected stored files only; identity checked on the deletion handle | Fixture deletion/replacement-race regression and an approved local cache workflow; raw machine evidence stays private |
 | Paths | Local NTFS/ReFS identity APIs; network/device/stream paths, protected data, reparse and recall paths blocked | NTFS fixtures and junctions exercised here; ReFS and other device configurations not qualified |
 | Cloud | Registered sync roots, OneDrive environment/accounts, Dropbox path configuration and conventional roots | Synthetic path-boundary tests; actual provider/version behavior and custom locations remain unverified |
 | Restore points | New sequence/time verification and frequency-key rollback | Mocked system-call tests only; real System Restore requires a disposable VM |
-| Elevation | Quoted native arguments, UAC cancellation distinguished from other failures | Non-elevated child process round-trip; real UAC cancellation and alternate-account elevation remain unverified |
+| Elevation | Quoted native arguments, UAC cancellation distinguished from other failures | Native child argument round-trip and a same-account read-only UAC run; real cancellation and alternate-account elevation remain unverified |
 | Installer | Checksums, preparation outside discovery roots, serialized update, retained backups, rollback | Both agent directories and a real failed second commit tested with an isolated profile |
 | Audit/report | Versioned collectors, explicit missing/partial states, volume identity, typed categories, guarded baselines | Fixture/model tests; a full machine audit across Windows versions and hardware remains separate |
-| HTML | Offline reports; standalone bilingual landing pages and embedded runtime | Browser checks on this host; not a claim of universal browser or accessibility conformance |
+| HTML | Offline reports with complete loaded history, session selection, item pagination and bounded animation | Synthetic browser checks and data-model tests; not a claim of universal browser or accessibility conformance |
 | Windows/architecture | Target Windows 10/11 with Windows PowerShell 5.1 | Current-host tests do not qualify all Windows editions, x64/ARM64, Admin/non-Admin or filesystems |
 | Agent integration | `.claude/skills` and `.agents/skills`; standalone runtime extraction | File installation verified; end-to-end behavior of every named agent/version remains unverified |
 

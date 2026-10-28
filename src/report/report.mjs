@@ -48,7 +48,18 @@ const copy={
   vi:{report:'Báo cáo chỉ đọc',pc:'Máy tính này',summary:'Số liệu và mức độ tin cậy',unknown:'Chưa đo được',partial:'Chưa đầy đủ hoặc chưa xác minh',complete:'Đã đo',startup:'Mục khởi động đang bật',events:'Lỗi nghiêm trọng trong 7 ngày',space:'Ổ hệ thống còn trống',estimate:'Dung lượng thu hồi ước tính',measured:'Các nhóm thư mục đã đo',measurementNote:'Kích thước logic của thư mục không phải cam kết dung lượng sẽ giải phóng. Dữ liệu ứng dụng, ổ máy ảo và file cá nhân không phải rác. Số đo chưa đầy đủ chỉ là mức tối thiểu đã thấy.',all:'Tất cả nhóm',category:'Hiển thị nhóm',cache:'Bộ đệm','app-data':'Dữ liệu ứng dụng','user-data':'Dữ liệu cá nhân',vm:'Máy ảo',system:'Dữ liệu hệ thống','unknown-category':'Chưa phân loại',comparison:'Trước và sau',comparisonNote:'Thay đổi dung lượng trống có thể gồm hoạt động ngoài Syrin clean.',before:'Trước',after:'Sau',delta:'Thay đổi quan sát được',proposals:'Đề xuất',proposalNote:'Báo cáo không cấp quyền thay đổi. Xem file, hậu quả và mã kế hoạch; agent chỉ thực thi đúng các mục bạn xác nhận.',empty:'Chưa có dữ liệu.',history:'Lịch sử thao tác file',historyNote:'Chọn mục đang lưu để nhờ agent lập kế hoạch khôi phục mới. Trang này không thực thi lệnh.',restore:'Tạo yêu cầu khôi phục',details:'Chi tiết bộ thu thập',pause:'Tạm dừng 3D',resume:'Bật 3D',scene:'Các nhóm đã đo; xem bảng để biết số chính xác. Dùng phím mũi tên hoặc kéo để xoay.',share:'Tạo yêu cầu xuất bản đã lược thông tin riêng',request:'Yêu cầu gửi agent',copy:'Sao chép yêu cầu',copied:'Đã sao chép.',manual:'Hãy sao chép phần chữ; trình duyệt chưa cho truy cập clipboard.',footer:'Syrin clean tạo báo cáo cục bộ, không tự upload. Agent/nhà cung cấp có thể xử lý đầu ra lệnh ngoài máy. Khôi phục và xóa hẳn có hậu quả khác nhau; hãy xem từng kế hoạch.',incomplete:'Các bộ thu thập chưa đo đầy đủ: ',legacy:'Dữ liệu cũ chưa được xác minh. Lần kiểm tra mới có phân loại và trạng thái đo rõ ràng.',shared:'Bản chỉ gồm số tổng hợp: đã bỏ đường dẫn, lệnh, tên riêng và lịch sử thô. Xem lại trước khi chia sẻ.',limited:'Chỉ hiện các mục đầu tiên. Nhờ agent liệt kê đầy đủ phiên để chọn tiếp.',beforeApproval:'Chỉ lập kế hoạch; chưa thực thi cho đến khi tôi xác nhận đúng kế hoạch và ID.'}
 };
 
-export function formatBytes(value,lang='en') {return number(value)===null ? copy[lang].unknown : (value/2**30).toLocaleString(lang==='vi'?'vi-VN':'en-US',{maximumFractionDigits:2})+' GB';}
+export function formatBytes(value,lang='en') {return number(value)===null ? copy[lang].unknown : (value/2**30).toLocaleString(lang==='vi'?'vi-VN':'en-US',{maximumFractionDigits:2})+' GiB';}
+
+export function historyPage(items,page=0,pageSize=50) {
+  const rows=list(items),size=Number.isInteger(pageSize)&&pageSize>0?pageSize:50;
+  const pages=Math.max(1,Math.ceil(rows.length/size));
+  const current=Math.max(0,Math.min(Number.isInteger(page)?page:0,pages-1));
+  const start=current*size,end=Math.min(start+size,rows.length);
+  return {items:rows.slice(start,end),page:current,pages,total:rows.length,start,end};
+}
+
+Object.assign(copy.en,{chooseSession:'Choose a session',previousPage:'Previous files',nextPage:'Next files',page:'Page',files:'files',selected:'Selected',sessionCount:'Sessions',reducedMotion:'Motion is disabled by your system preference.'});
+Object.assign(copy.vi,{chooseSession:'Chọn phiên',previousPage:'File trước',nextPage:'File tiếp',page:'Trang',files:'file',selected:'Đã chọn',sessionCount:'Số phiên',reducedMotion:'Hiệu ứng chuyển động đang tắt theo tùy chọn hệ thống.'});
 
 Object.assign(copy.en,{memory:'Available memory',defender:'Defender real-time protection',on:'Active',off:'Not active',securityNote:'Defender status only; other security software may be active.'});
 Object.assign(copy.vi,{memory:'Bộ nhớ còn dùng được',defender:'Bảo vệ thời gian thực của Defender',on:'Đang bật',off:'Chưa bật',securityNote:'Đây là trạng thái Defender; có thể đang dùng phần mềm bảo mật khác.'});
@@ -72,19 +83,40 @@ Object.assign(copy.vi,{
 function localDate(value,lang){const date=new Date(value);return Number.isNaN(date.getTime())?String(value||''):date.toLocaleString(lang==='vi'?'vi-VN':'en-US');}
 
 function renderScene(canvas,rows,button,T){
-  const context=canvas.getContext('2d'); if(!context){button.disabled=true;return}
-  const media=matchMedia('(prefers-reduced-motion: reduce)');let enabled=!media.matches,visible=false,frame=0,rotation=.4,drag=false,lastX=0,width=0,height=0;
+  const context=canvas.getContext('2d');if(!context){button.disabled=true;return}
+  const media=matchMedia('(prefers-reduced-motion: reduce)');
+  let enabled=!media.matches,visible=false,frame=0,timer=0,lastTime=0,rotation=.4,drag=false,lastX=0,width=0,height=0;
+  const interval=1000/24;
   const palette={cache:'#5ce0ac','app-data':'#94bfff','user-data':'#ffd17b',vm:'#c8a4ff',system:'#a8b9af',unknown:'#ff9e9e'};
-  const budget=innerWidth<700?500:1000;const sum=rows.reduce((n,x)=>n+x.measuredBytes,0)||1;
+  const budget=innerWidth<700?250:500,sum=rows.reduce((n,x)=>n+x.measuredBytes,0)||1;
   const points=[];let seed=7;const random=()=>{seed=seed*16807%2147483647;return(seed-1)/2147483646};
-  rows.forEach((row,i)=>{const angle=i*2.399963,y=1-2*(i+.5)/Math.max(1,rows.length),radius=Math.sqrt(1-y*y),count=Math.max(8,Math.round(budget*row.measuredBytes/sum));for(let j=0;j<count && points.length<budget;j++){const a=random()*Math.PI*2,r=Math.cbrt(random())*.18;points.push([Math.cos(angle)*radius+r*Math.cos(a),y+r*(random()-.5),Math.sin(angle)*radius+r*Math.sin(a),palette[row.category]])}});
-  function draw(){const dpr=Math.min(devicePixelRatio||1,2);context.setTransform(dpr,0,0,dpr,0,0);context.clearRect(0,0,width,height);const c=Math.cos(rotation),s=Math.sin(rotation);const projected=points.map(([x,y,z,color])=>{const xx=x*c-z*s,zz=x*s+z*c,k=2.8/(2.8+zz);return{x:width/2+xx*Math.min(width,height)*.32*k,y:height/2+y*Math.min(width,height)*.32*k,z:zz,k,color}}).sort((a,b)=>b.z-a.z);for(const p of projected){context.globalAlpha=.35+.6*(1-(p.z+1.3)/2.6);context.fillStyle=p.color;context.fillRect(p.x,p.y,Math.max(1.5,2*p.k),Math.max(1.5,2*p.k))}context.globalAlpha=1}
-  function tick(){frame=0;if(!visible||document.hidden)return;if(enabled&&!drag)rotation+=.003;draw();if(enabled&&!media.matches)frame=requestAnimationFrame(tick)}
-  function update(){button.textContent=enabled?T.pause:T.resume;button.setAttribute('aria-pressed',String(enabled));if(frame){cancelAnimationFrame(frame);frame=0}if(visible&&!document.hidden){draw();if(enabled&&!media.matches)frame=requestAnimationFrame(tick)}}
+  rows.forEach((row,i)=>{const angle=i*2.399963,y=1-2*(i+.5)/Math.max(1,rows.length),radius=Math.sqrt(1-y*y),count=Math.max(8,Math.round(budget*row.measuredBytes/sum));for(let j=0;j<count&&points.length<budget;j++){const a=random()*Math.PI*2,r=Math.cbrt(random())*.18;points.push([Math.cos(angle)*radius+r*Math.cos(a),y+r*(random()-.5),Math.sin(angle)*radius+r*Math.sin(a),palette[row.category]])}});
+  const projected=points.map(()=>({x:0,y:0,z:0,k:0,color:''}));
+  function draw(){
+    const dpr=Math.min(devicePixelRatio||1,2);context.setTransform(dpr,0,0,dpr,0,0);context.clearRect(0,0,width,height);
+    const c=Math.cos(rotation),s=Math.sin(rotation),scale=Math.min(width,height)*.32;
+    for(let i=0;i<points.length;i++){const[x,y,z,color]=points[i],xx=x*c-z*s,zz=x*s+z*c,k=2.8/(2.8+zz),p=projected[i];p.x=width/2+xx*scale*k;p.y=height/2+y*scale*k;p.z=zz;p.k=k;p.color=color}
+    projected.sort((a,b)=>b.z-a.z);
+    for(const p of projected){context.globalAlpha=.35+.6*(1-(p.z+1.3)/2.6);context.fillStyle=p.color;context.fillRect(p.x,p.y,Math.max(1.5,2*p.k),Math.max(1.5,2*p.k))}
+    context.globalAlpha=1;
+  }
+  function cancel(){if(frame)cancelAnimationFrame(frame);if(timer)clearTimeout(timer);frame=0;timer=0}
+  function active(){return visible&&!document.hidden&&enabled&&!media.matches&&!drag}
+  function schedule(){if(active())timer=setTimeout(()=>{timer=0;frame=requestAnimationFrame(tick)},interval)}
+  function tick(now){frame=0;if(!active())return;if(lastTime)rotation+=Math.min((now-lastTime)/1000,.1)*.18;lastTime=now;draw();schedule()}
+  function paint(){if(!frame&&visible&&!document.hidden)frame=requestAnimationFrame(()=>{frame=0;draw()})}
+  function update(){
+    cancel();lastTime=0;button.disabled=media.matches;button.title=media.matches?T.reducedMotion:'';button.textContent=enabled?T.pause:T.resume;button.setAttribute('aria-pressed',String(enabled));
+    if(visible&&!document.hidden){draw();schedule()}
+  }
   function resize(){width=canvas.clientWidth;height=canvas.clientHeight;const dpr=Math.min(devicePixelRatio||1,2);canvas.width=width*dpr;canvas.height=height*dpr;update()}
   new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;update()}).observe(canvas);
   button.addEventListener('click',()=>{enabled=!enabled;update()});document.addEventListener('visibilitychange',update);media.addEventListener('change',()=>{enabled=!media.matches;update()});window.addEventListener('resize',resize);
-  canvas.addEventListener('pointerdown',e=>{drag=true;lastX=e.clientX;canvas.setPointerCapture(e.pointerId)});canvas.addEventListener('pointermove',e=>{if(drag){rotation+=(e.clientX-lastX)*.008;lastX=e.clientX;draw()}});canvas.addEventListener('pointerup',()=>{drag=false});canvas.addEventListener('pointercancel',()=>{drag=false});canvas.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();rotation+=(e.key==='ArrowLeft'?-.12:.12);draw()}});resize();
+  canvas.addEventListener('pointerdown',e=>{drag=true;lastX=e.clientX;cancel();canvas.setPointerCapture(e.pointerId)});
+  canvas.addEventListener('pointermove',e=>{if(drag){rotation+=(e.clientX-lastX)*.008;lastX=e.clientX;paint()}});
+  canvas.addEventListener('pointerup',()=>{drag=false;update()});canvas.addEventListener('pointercancel',()=>{drag=false;update()});
+  canvas.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();rotation+=(e.key==='ArrowLeft'?-.12:.12);draw()}});
+  resize();
 }
 
 function renderReport(payload){
@@ -110,19 +142,43 @@ function renderReport(payload){
   $('proposals').innerHTML=table(proposalRows);
   $('details').innerHTML=Object.entries(view.audit.collectors).map(([name,c])=>'<details><summary>'+esc(T.collectorNames[name]||name)+' · '+esc(T.qualities[c.status]||c.status)+'</summary><p class="errors">'+esc(list(c.errors).join('\n'))+'</p>'+table(list(c.data))+'</details>').join('');
   function request(action){$('request').value=T.beforeApproval+'\n'+JSON.stringify(action,null,2);$('request-section').hidden=false;$('request').focus();$('request-status').textContent=''}
+  const sessions=list(payload.history),selections=new Map();
   $('sessions').textContent='';
-  for(const session of list(payload.history)){
-    const box=document.createElement('div');box.className='session';const heading=document.createElement('h3');heading.textContent=localDate(session.createdUtc,lang)||session.sessionId;box.appendChild(heading);
-    const identity=document.createElement('code');identity.textContent=session.sessionId.slice(0,12);identity.title=session.sessionId;box.appendChild(identity);
-    if(!session.ok){const error=document.createElement('p');error.textContent=session.error;box.appendChild(error);$('sessions').appendChild(box);continue}
-    const selected=[];
-    for(const item of list(session.items)){
-      const label=document.createElement('label');label.className='selection';const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.disabled=!['quarantined','conflict','failed'].includes(item.state);checkbox.addEventListener('change',()=>{const n=selected.indexOf(item.id);if(checkbox.checked&&n<0)selected.push(item.id);else if(n>=0)selected.splice(n,1)});const text=document.createElement('span');text.textContent=(item.code?item.code+' · ':'')+(item.original||item.id)+' · '+(T.states[item.state]||item.state);label.append(checkbox,text);box.appendChild(label);
+  if(sessions.length){
+    const toolbar=document.createElement('div');toolbar.className='toolbar';
+    const label=document.createElement('label');label.htmlFor='history-session';label.textContent=T.chooseSession+' ('+sessions.length+')';
+    const picker=document.createElement('select');picker.id='history-session';
+    sessions.forEach((session,index)=>{const option=document.createElement('option');option.value=String(index);option.textContent=(index+1)+'. '+localDate(session.createdUtc,lang)+' · '+String(session.sessionId).slice(0,12);picker.appendChild(option)});
+    const body=document.createElement('div');toolbar.append(label,picker);$('sessions').append(toolbar,body);
+    let activeSession=0,pageIndex=0;
+    function showSession(){
+      body.textContent='';const session=sessions[activeSession],box=document.createElement('div');box.className='session';
+      const identity=document.createElement('code');identity.textContent=session.sessionId;box.appendChild(identity);
+      if(!session.ok){const error=document.createElement('p');error.className='errors';error.textContent=session.error;box.appendChild(error);body.appendChild(box);return}
+      if(!selections.has(session.sessionId))selections.set(session.sessionId,new Set());
+      const selected=selections.get(session.sessionId),page=historyPage(session.items,pageIndex);pageIndex=page.page;
+      const status=document.createElement('p');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+      status.textContent=T.page+' '+(page.page+1)+'/'+page.pages+' · '+(page.total?page.start+1:0)+'–'+page.end+'/'+page.total+' '+T.files;box.appendChild(status);
+      const selectedStatus=document.createElement('p'),restore=document.createElement('button');restore.type='button';restore.textContent=T.restore;
+      function updateSelection(){selectedStatus.textContent=T.selected+': '+selected.size+' '+T.files;restore.disabled=selected.size===0}
+      for(const item of page.items){
+        const row=document.createElement('label');row.className='selection';const checkbox=document.createElement('input');checkbox.type='checkbox';
+        checkbox.disabled=!['quarantined','conflict','failed'].includes(item.state)||!/^[a-f0-9]{32}$/.test(item.id||'');checkbox.checked=selected.has(item.id);
+        checkbox.addEventListener('change',()=>{if(checkbox.checked)selected.add(item.id);else selected.delete(item.id);updateSelection()});
+        const text=document.createElement('span');text.textContent=(item.code?item.code+' · ':'')+(item.original||item.id)+' · '+(T.states[item.state]||item.state);row.append(checkbox,text);box.appendChild(row);
+      }
+      const navigation=document.createElement('div');navigation.className='toolbar';
+      for(const[direction,text,id,disabled]of [[-1,T.previousPage,'history-prev',page.page===0],[1,T.nextPage,'history-next',page.page+1>=page.pages]]){
+        const button=document.createElement('button');button.id=id;button.type='button';button.textContent=text;button.disabled=disabled;
+        button.addEventListener('click',()=>{pageIndex+=direction;showSession();const focus=$(id);if(!focus.disabled)focus.focus();else picker.focus()});navigation.appendChild(button);
+      }
+      box.appendChild(navigation);
+      if(session.totalItems>page.total){const warning=document.createElement('p');warning.textContent=T.limited;box.appendChild(warning)}
+      restore.addEventListener('click',()=>{if(selected.size)request({operation:'restore',root:payload.historyRoot,sessionId:session.sessionId,itemIds:[...selected]})});
+      updateSelection();box.append(selectedStatus,restore);body.appendChild(box);
     }
-    if(session.totalItems>list(session.items).length){const warning=document.createElement('p');warning.textContent=T.limited;box.appendChild(warning)}
-    const button=document.createElement('button');button.type='button';button.textContent=T.restore;button.addEventListener('click',()=>{if(selected.length)request({operation:'restore',root:payload.historyRoot,sessionId:session.sessionId,itemIds:selected})});box.appendChild(button);$('sessions').appendChild(box);
-  }
-  if(!list(payload.history).length)$('sessions').textContent=T.empty;
+    picker.addEventListener('change',()=>{activeSession=Number(picker.value);pageIndex=0;showSession()});showSession();
+  }else{$('sessions').textContent=T.empty}
   $('share').hidden=Boolean(payload.shared);$('share').addEventListener('click',()=>request({operation:'share-report',auditSessionId:view.audit.meta.sessionId,upload:false}));
   $('copy-request').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('request').value);$('request-status').textContent=T.copied}catch{$('request').select();$('request-status').textContent=T.manual}});
 }

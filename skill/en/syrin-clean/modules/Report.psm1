@@ -1,5 +1,5 @@
 ﻿Set-StrictMode -Version 2
-Import-Module (Join-Path $PSScriptRoot 'IO.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'IO.psm1')
 
 function Test-SyrinNumber($Value) {
   return ($Value -is [int] -or $Value -is [long] -or $Value -is [double] -or $Value -is [decimal]) -and -not [double]::IsNaN([double]$Value) -and -not [double]::IsInfinity([double]$Value) -and $Value -ge 0
@@ -109,10 +109,10 @@ function New-SyrinReport {
   $proposals=Read-SyrinProposals $folder $sessionId
   $history=@()
   if($QuarantineRoot){
-    Import-Module (Join-Path $PSScriptRoot 'Quarantine.psm1') -Force
-    $history=@(Get-SyrinHistory $QuarantineRoot | Sort-Object createdUtc -Descending | Select-Object -First 10 | ForEach-Object {
+    Import-Module (Join-Path $PSScriptRoot 'Quarantine.psm1')
+    $history=@(Get-SyrinHistory $QuarantineRoot | Sort-Object createdUtc -Descending | ForEach-Object {
       if(-not $_.ok){return [PSCustomObject]@{ok=$false;sessionId=$_.sessionId;error=$_.error;items=@()}}
-      [PSCustomObject]@{ok=$true;sessionId=$_.sessionId;createdUtc=$_.createdUtc;totalItems=@($_.items).Count;items=@($_.items | Select-Object -First 100)}
+      [PSCustomObject]@{ok=$true;sessionId=$_.sessionId;createdUtc=$_.createdUtc;totalItems=@($_.items).Count;items=@($_.items)}
     })
   }
   if($Share){$audit=Get-SyrinShareAudit $audit;$base=$null;$proposals=$null;$history=@();$QuarantineRoot='';$Mode='simple'}

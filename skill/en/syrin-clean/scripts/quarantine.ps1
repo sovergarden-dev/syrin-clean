@@ -8,7 +8,7 @@ param(
 )
 $ErrorActionPreference='Stop'
 try {
-  Import-Module (Join-Path $PSScriptRoot '..\modules\Quarantine.psm1') -Force
+  Import-Module (Join-Path $PSScriptRoot '..\modules\Quarantine.psm1')
   if ($History) { $result=[PSCustomObject]@{ok=$true;sessions=@(Get-SyrinHistory $QuarantineRoot $SessionId)} }
   elseif ($Execute) { $result=Invoke-SyrinFilePlan -PlanFile $PlanFile -Approval $Approval -ItemId $ItemId }
   else { $result=New-SyrinFilePlan -Operation $Operation -Path $Path -Root $QuarantineRoot -SessionId $SessionId -ItemId $ItemId -Conflict $Conflict -RestoreDirectory $RestoreDirectory -LegacyRoot $LegacyRoot -PlanFile $PlanFile }

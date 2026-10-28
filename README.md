@@ -14,6 +14,7 @@ Syrin clean is a bilingual Agent Skill and standalone prompt with a shared Windo
 - Plans exact files before quarantine, restore or purge. Execution requires the reviewed plan digest and explicit item IDs; people can approve short plan-local codes through the agent.
 - Keeps an owned journal, file identity checks, conflict states and recovery history. Purge deletes only the selected stored files, never a directory tree or unlisted data.
 - Builds offline bilingual reports, compatible before/after comparisons and aggregate exports that omit raw private fields.
+- Shows audit progress and provides paginated access to every loaded history item; decorative animation has a bounded draw rate.
 
 Automatic mutation is limited to the file lifecycle implemented by the runtime. System tuning, repair, uninstall and hardware suggestions remain advisory until a tested adapter/procedure is available. Quarantine is not a backup and does not free space; purge is separate and irreversible. Read the [support and qualification boundaries](docs/feat/support.md).
 

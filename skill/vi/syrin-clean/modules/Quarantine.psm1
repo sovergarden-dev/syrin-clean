@@ -1,5 +1,5 @@
 ﻿Set-StrictMode -Version 2
-Import-Module (Join-Path $PSScriptRoot 'IO.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'IO.psm1')
 
 function Get-SyrinRootPath([string]$Root) {
   if (-not $Root) { $Root = Join-Path $env:LOCALAPPDATA 'SyrinClean\Quarantine' }
@@ -50,10 +50,9 @@ function Read-SyrinSession([string]$Root,[string]$SessionId) {
   $folder = Get-SyrinSessionPath $Root $SessionId
   $header = Read-SyrinJson (Join-Path $folder 'session.json')
   if ($header.schemaVersion -ne 1 -or $header.ownerSid -ne (Get-SyrinOwner) -or $header.rootId -ne $marker.rootId -or $header.sessionId -ne $SessionId) { throw 'Invalid session identity.' }
-  $planPath = Assert-SyrinLocalPath (Join-Path $folder 'plan.json')
-  $digest = Get-SyrinDigest ([IO.File]::ReadAllBytes($planPath))
-  if ($digest -ne $header.planDigest) { throw 'Session plan integrity check failed.' }
-  $plan = Read-SyrinJson $planPath
+  $document=Read-SyrinJsonDocument (Join-Path $folder 'plan.json')
+  if ($document.digest -ne $header.planDigest) { throw 'Session plan integrity check failed.' }
+  $plan=$document.value
   $items = @{}
   foreach ($item in @($plan.items)) {
     if ($item.id -notmatch '^[a-f0-9]{32}$' -or $items.ContainsKey($item.id)) { throw 'Invalid item identity.' }
@@ -62,14 +61,14 @@ function Read-SyrinSession([string]$Root,[string]$SessionId) {
   $sequence=0; $previous=''
   $eventsPath = Assert-SyrinLocalPath (Join-Path $folder 'events')
   foreach ($file in @(Get-ChildItem -LiteralPath $eventsPath -File -Filter '*.json' -ErrorAction Stop | Sort-Object Name)) {
-    [void](Assert-SyrinLocalPath $file.FullName)
-    $event = Read-SyrinJson $file.FullName
+    $document=Read-SyrinJsonDocument $file.FullName
+    $event=$document.value
     $sequence++
     if ($file.Name -ne ('{0:D8}.json' -f $sequence) -or $event.sequence -ne $sequence -or $event.previous -ne $previous -or -not $items.ContainsKey($event.itemId)) { throw 'Journal sequence or integrity check failed.' }
     if ($event.state -notin @('planned','moving','quarantined','restoring','restored','conflict','failed','purging','purged')) { throw 'Unknown journal state.' }
     $item = $items[$event.itemId]
     $item.state=$event.state; $item.error=$event.error; $item.restoredPath=$event.restoredPath
-    $previous = Get-SyrinDigest ([IO.File]::ReadAllBytes($file.FullName))
+    $previous=$document.digest
   }
   return [PSCustomObject]@{folder=$folder;header=$header;plan=$plan;items=$items;sequence=$sequence;digest=$previous}
 }
@@ -105,14 +104,15 @@ function New-SyrinFilePlan {
   if (Test-Path -LiteralPath (Join-Path $rootPath '.syrin-clean-root.json')) { $rootId=(Read-SyrinRoot $rootPath).rootId }
   elseif ((Test-Path -LiteralPath $rootPath) -and @(Get-ChildItem -LiteralPath $rootPath -Force).Count) { throw 'Choose an empty owned quarantine root.' }
   $cloud=@(Get-SyrinCloudRoots)
+  $policy=New-SyrinSourcePolicy $cloud
   $planId=[guid]::NewGuid().ToString('N')
   $items=New-Object 'System.Collections.Generic.List[object]'
   if ($Operation -in @('quarantine','import')) { $SessionId=$planId }
   $sessionFolder=Get-SyrinSessionPath $rootPath $SessionId
   if ($Operation -eq 'quarantine') {
     if (-not $Path.Count) { throw 'Select at least one file or directory.' }
-    foreach($selection in $Path){$selection=Assert-SyrinSourcePath $selection $cloud;if((Test-SyrinWithin $selection $rootPath) -or (Test-SyrinWithin $rootPath $selection)){throw 'Source selection and quarantine storage cannot overlap.'}}
-    foreach ($file in @(Get-SyrinFiles $Path $cloud)) {
+    foreach($selection in $Path){$selection=Assert-SyrinSourcePath $selection $cloud -Policy $policy;if((Test-SyrinWithin $selection $rootPath) -or (Test-SyrinWithin $rootPath $selection)){throw 'Source selection and quarantine storage cannot overlap.'}}
+    foreach ($file in @(Get-SyrinFiles $Path $cloud -Policy $policy)) {
       if ((Test-SyrinWithin $file.Path $rootPath) -or (Test-SyrinWithin $rootPath $file.Path)) { throw 'Source and quarantine storage cannot overlap.' }
       if ([IO.Path]::GetPathRoot($file.Path) -ne [IO.Path]::GetPathRoot($rootPath)) { throw 'Choose a quarantine root on the same volume. Cross-volume copy-and-delete is unsupported.' }
       $id=[guid]::NewGuid().ToString('N')
@@ -217,6 +217,7 @@ function Invoke-SyrinFilePlan {
     $receipt=Join-Path (Join-Path $session.folder 'approvals') ([guid]::NewGuid().ToString('N')+'.json')
     Write-SyrinAtomicJson $receipt ([ordered]@{plan=$plan;digest=$digest;selected=$ItemId;timeUtc=[DateTime]::UtcNow.ToString('o')}) -CreateOnly
     $cloud=@(Get-SyrinCloudRoots)
+    $policy=New-SyrinSourcePolicy $cloud
     foreach ($requested in $selected) {
       if (-not $session.items.ContainsKey($requested.id)) { throw 'Selected item is not part of the source session.' }
       $item=$session.items[$requested.id]
@@ -228,7 +229,7 @@ function Invoke-SyrinFilePlan {
           if (-not (Test-SyrinFingerprint $stored $item.fingerprint)) { throw 'Legacy file identity changed.' }
           Add-SyrinEvent $session $item.id 'quarantined'
         } elseif ($plan.operation -eq 'quarantine') {
-          [void](Assert-SyrinSourcePath $item.original $cloud)
+          [void](Assert-SyrinSourcePath $item.original $cloud -Policy $policy)
           if ((Test-SyrinWithin $item.original $root) -or (Test-SyrinWithin $root $item.original)) { throw 'Source overlaps storage.' }
           if ([IO.Path]::GetPathRoot($stored) -ne [IO.Path]::GetPathRoot($item.original)) { throw 'Cross-volume transfers are unsupported.' }
           if ($item.state -eq 'quarantined' -and (Test-SyrinFingerprint $stored $item.fingerprint)) { $outcomes.Add([PSCustomObject]@{id=$item.id;state='quarantined';error='';unchanged=$true}); continue }
@@ -245,12 +246,12 @@ function Invoke-SyrinFilePlan {
         } elseif ($plan.operation -eq 'restore') {
           if ($item.state -eq 'restored' -and $item.restoredPath -eq $requested.destination -and -not (Test-Path -LiteralPath $stored)) { $outcomes.Add([PSCustomObject]@{id=$item.id;state='restored';error='';unchanged=$true}); continue }
           if (-not (Test-SyrinFingerprint $stored $item.fingerprint)) { throw 'Stored file changed or is missing.' }
-          $destination=Assert-SyrinSourcePath $requested.destination $cloud
+          $destination=Assert-SyrinSourcePath $requested.destination $cloud -Policy $policy
           if (Test-SyrinWithin $destination $root) { throw 'Restore destination overlaps storage.' }
           if ([IO.Path]::GetPathRoot($destination) -ne [IO.Path]::GetPathRoot($stored)) { throw 'Cross-volume restore is unsupported.' }
           if (Test-Path -LiteralPath $destination) { Add-SyrinEvent $session $item.id 'conflict' 'Destination already exists.'; $outcomes.Add([PSCustomObject]@{id=$item.id;state='conflict';error='Destination already exists.'}); continue }
           [void][IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($destination))
-          [void](Assert-SyrinSourcePath $destination $cloud)
+          [void](Assert-SyrinSourcePath $destination $cloud -Policy $policy)
           Add-SyrinEvent $session $item.id 'restoring' '' $destination
           if(-not (Test-SyrinFingerprint $stored $item.fingerprint)){throw 'Stored file changed while preparing restore.'}
           Move-SyrinCheckedFile $stored $destination $item.fingerprint

@@ -1,10 +1,10 @@
 ﻿param([string]$OutDir='',[ValidateSet('3d','simple','none')][string]$ReportMode='3d',[ValidateSet('full','health','speed','cleanup')][string]$Scope='full',[ValidateRange(20,900)][int]$MaxSeconds=180,[ValidateSet('en','vi')][string]$Lang='vi',[switch]$Quiet)
 $ErrorActionPreference='Stop'
 try {
-  Import-Module (Join-Path $PSScriptRoot '..\modules\Audit.psm1') -Force
-  $result=Invoke-SyrinAudit -OutDir $OutDir -ReportMode $ReportMode -Scope $Scope -MaxSeconds $MaxSeconds
+  Import-Module (Join-Path $PSScriptRoot '..\modules\Audit.psm1')
+  $result=Invoke-SyrinAudit -OutDir $OutDir -ReportMode $ReportMode -Scope $Scope -MaxSeconds $MaxSeconds -Quiet:$Quiet
   if($ReportMode -ne 'none'){
-    Import-Module (Join-Path $PSScriptRoot '..\modules\Report.psm1') -Force
+    Import-Module (Join-Path $PSScriptRoot '..\modules\Report.psm1')
     $report=New-SyrinReport -OutDir $result.outDir -Lang $Lang -Mode $ReportMode
     $result|Add-Member -NotePropertyName report -NotePropertyValue $report.path
   }

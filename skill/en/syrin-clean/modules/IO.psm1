@@ -21,7 +21,7 @@ function Get-SyrinPath([string]$Path) {
   $full=Get-SyrinLexicalPath $Path
   Initialize-SyrinNative
   $existing=$full;$suffix=New-Object 'System.Collections.Generic.List[string]'
-  while(-not(Test-Path -LiteralPath $existing -ErrorAction Stop)){$suffix.Insert(0,[IO.Path]::GetFileName($existing));$existing=[IO.Path]::GetDirectoryName($existing);if(-not $existing){throw 'No local parent directory exists.'}}
+  while([Syrin.NativeFiles]::Attributes($existing) -lt 0){$suffix.Insert(0,[IO.Path]::GetFileName($existing));$existing=[IO.Path]::GetDirectoryName($existing);if(-not $existing){throw 'No local parent directory exists.'}}
   $full=[Syrin.NativeFiles]::LongPath($existing)
   foreach($part in $suffix){$full=Join-Path $full $part}
   if ($full.Length -gt 3) { $full = $full.TrimEnd('\') }
@@ -34,12 +34,11 @@ function Test-SyrinWithin([string]$Child, [string]$Parent) {
 
 function Assert-SyrinLocalPath([string]$Path) {
   $full = Get-SyrinLexicalPath $Path
+  Initialize-SyrinNative
   $cursor = $full
   while ($cursor) {
-    try {
-      $entry = Get-Item -LiteralPath $cursor -Force -ErrorAction Stop
-      if (([int]$entry.Attributes -band 0x441400) -ne 0) { throw "Reparse, offline or recall path is blocked: $cursor" }
-    } catch { if($_.CategoryInfo.Category -ne [Management.Automation.ErrorCategory]::ObjectNotFound){throw} }
+    $attributes=[Syrin.NativeFiles]::Attributes($cursor)
+    if ($attributes -ge 0 -and ($attributes -band 0x441400) -ne 0) { throw "Reparse, offline or recall path is blocked: $cursor" }
     $parent = [IO.Path]::GetDirectoryName($cursor)
     if ($parent -eq $cursor) { break }
     $cursor = $parent
@@ -83,25 +82,34 @@ function Get-SyrinCloudRoots {
   return @($roots | Select-Object -Unique)
 }
 
-function Assert-SyrinSourcePath([string]$Path, [string[]]$CloudRoots = @()) {
-  $full = Assert-SyrinLocalPath $Path
-  if ($full -eq [IO.Path]::GetPathRoot($full)) { throw 'A drive root cannot be selected.' }
-  $format=(New-Object IO.DriveInfo ([IO.Path]::GetPathRoot($full))).DriveFormat
-  if($format -notin @('NTFS','ReFS')){throw 'File operations require NTFS or ReFS with stable file identity and access controls.'}
+function New-SyrinSourcePolicy([string[]]$CloudRoots=@()) {
   $protected = @($env:windir, $env:ProgramFiles, ${env:ProgramFiles(x86)}, $env:ProgramData)
   foreach ($base in @($env:USERPROFILE)) {
     foreach ($name in @('.ssh','.gnupg','.aws','.azure','.kube','.docker')) { $protected += Join-Path $base $name }
   }
-  $profile = [Environment]::GetFolderPath('UserProfile')
+  $profile = Get-SyrinPath ([Environment]::GetFolderPath('UserProfile'))
+  return [PSCustomObject]@{profile=$profile;protected=@($protected|Where-Object {$_}|ForEach-Object {Get-SyrinPath $_}|Select-Object -Unique);cloud=@($CloudRoots|ForEach-Object {Get-SyrinPath $_}|Select-Object -Unique);formats=@{}}
+}
+
+function Assert-SyrinSourcePath([string]$Path, [string[]]$CloudRoots = @(), $Policy=$null) {
+  if($null -eq $Policy){$Policy=New-SyrinSourcePolicy $CloudRoots}
+  $full = Assert-SyrinLocalPath $Path
+  $driveRoot=[IO.Path]::GetPathRoot($full)
+  if ($full -eq $driveRoot) { throw 'A drive root cannot be selected.' }
+  if(-not $Policy.formats.ContainsKey($driveRoot)){
+    $format=(New-Object IO.DriveInfo $driveRoot).DriveFormat
+    if($format -notin @('NTFS','ReFS')){throw 'File operations require NTFS or ReFS with stable file identity and access controls.'}
+    $Policy.formats[$driveRoot]=$format
+  }
+  $profile=$Policy.profile
   if ($profile -and (Test-SyrinWithin $full ([IO.Path]::GetDirectoryName($profile))) -and -not (Test-SyrinWithin $full $profile)) { throw 'Other Windows profiles are blocked.' }
-  foreach ($p in $protected) {
-    if ($p -and ((Test-SyrinWithin $full (Get-SyrinPath $p)) -or (Test-SyrinWithin (Get-SyrinPath $p) $full))) { throw "Protected path is blocked: $full" }
+  foreach ($protectedPath in $Policy.protected) {
+    if ((Test-SyrinWithin $full $protectedPath) -or (Test-SyrinWithin $protectedPath $full)) { throw "Protected path is blocked: $full" }
   }
   foreach ($segment in $full.Split('\')) {
     if ($segment -match '^(\.git|\.env(?:\..*)?|Cookies|Login Data|History|Bookmarks|Extensions)$') { throw "Protected data is blocked: $full" }
   }
-  foreach ($cloud in $CloudRoots) {
-    $cloud = Get-SyrinPath $cloud
+  foreach ($cloud in $Policy.cloud) {
     if ((Test-SyrinWithin $full $cloud) -or (Test-SyrinWithin $cloud $full)) { throw "Cloud path or its ancestor is blocked: $full" }
   }
   return $full
@@ -129,13 +137,22 @@ namespace Syrin {
     [DllImport("kernel32.dll", SetLastError=true)] static extern bool GetFileInformationByHandle(SafeFileHandle handle, out Info info);
     [DllImport("kernel32.dll", SetLastError=true)] static extern bool GetFileInformationByHandleEx(SafeFileHandle handle, int kind, out FileIdInfo info, uint size);
     [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)] static extern uint GetLongPathName(string path, StringBuilder buffer, uint count);
+    [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)] static extern uint GetFileAttributes(string path);
     [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)] static extern uint GetFinalPathNameByHandle(SafeFileHandle handle, StringBuilder buffer, uint count, uint flags);
     [DllImport("kernel32.dll", SetLastError=true)] static extern bool SetFileInformationByHandle(SafeFileHandle handle, int kind, ref byte info, uint size);
     [DllImport("kernel32.dll", SetLastError=true)] static extern bool SetFileInformationByHandle(SafeFileHandle handle, int kind, IntPtr info, uint size);
     static string Id(SafeFileHandle handle) { FileIdInfo info; if (!GetFileInformationByHandleEx(handle, 18, out info, 24)) throw new Win32Exception(Marshal.GetLastWin32Error()); return info.Volume.ToString("X16") + ":" + BitConverter.ToString(info.FileId).Replace("-", ""); }
+    public static long Attributes(string path) {
+      uint attributes = GetFileAttributes(path);
+      if (attributes != UInt32.MaxValue) return attributes;
+      int error = Marshal.GetLastWin32Error();
+      if (error == 2 || error == 3) return -1;
+      throw new Win32Exception(error);
+    }
     public static string LongPath(string path) {
-      var buffer = new StringBuilder(32768);
+      var buffer = new StringBuilder(512);
       uint size = GetLongPathName(path, buffer, (uint)buffer.Capacity);
+      if (size >= buffer.Capacity && size < 32768) { buffer = new StringBuilder((int)size + 1); size = GetLongPathName(path, buffer, (uint)buffer.Capacity); }
       if (size == 0 || size >= buffer.Capacity) throw new Win32Exception(Marshal.GetLastWin32Error());
       return buffer.ToString();
     }
@@ -156,8 +173,9 @@ namespace Syrin {
       }
     }
     static string FinalPath(SafeFileHandle handle) {
-      var buffer = new StringBuilder(32768);
+      var buffer = new StringBuilder(512);
       uint size = GetFinalPathNameByHandle(handle, buffer, (uint)buffer.Capacity, 0);
+      if (size >= buffer.Capacity && size < 32768) { buffer = new StringBuilder((int)size + 1); size = GetFinalPathNameByHandle(handle, buffer, (uint)buffer.Capacity, 0); }
       if (size == 0 || size >= buffer.Capacity) throw new Win32Exception(Marshal.GetLastWin32Error());
       string value = buffer.ToString();
       return value.StartsWith(@"\\?\", StringComparison.Ordinal) ? value.Substring(4) : value;
@@ -233,12 +251,20 @@ function Get-SyrinDigest([byte[]]$Bytes) {
   finally { $sha.Dispose() }
 }
 
-function Read-SyrinJson([string]$Path) {
+function Read-SyrinJsonDocument([string]$Path) {
   $full=Assert-SyrinLocalPath $Path
-  $text = [IO.File]::ReadAllText($full, [Text.Encoding]::UTF8).TrimStart([char]0xFEFF)
+  $bytes=[IO.File]::ReadAllBytes($full)
+  $memory=[IO.MemoryStream]::new($bytes,$false)
+  $reader=[IO.StreamReader]::new($memory,[Text.Encoding]::UTF8,$true)
+  try{$text=$reader.ReadToEnd().TrimStart([char]0xFEFF)}finally{$reader.Dispose();$memory.Dispose()}
   if ([string]::IsNullOrWhiteSpace($text)) { throw "Empty JSON: $Path" }
-  try { return ConvertFrom-Json -InputObject $text -ErrorAction Stop }
+  try { $value=ConvertFrom-Json -InputObject $text -ErrorAction Stop }
   catch { throw "Invalid JSON in $Path. Check the file format; input content is not echoed." }
+  return [PSCustomObject]@{value=$value;digest=(Get-SyrinDigest $bytes)}
+}
+
+function Read-SyrinJson([string]$Path) {
+  return (Read-SyrinJsonDocument $Path).value
 }
 
 function Write-SyrinAtomicJson([string]$Path, $Value, [switch]$CreateOnly) {
@@ -258,7 +284,7 @@ function Write-SyrinAtomicText([string]$Path, [string]$Text, [switch]$CreateOnly
     $stream.Write($bytes,0,$bytes.Length); $stream.Flush($true); $stream.Dispose(); $stream=$null
     if (Test-Path -LiteralPath $full) {
       if ($CreateOnly) { throw "Output already exists: $full" }
-      [IO.File]::Replace($temp,$full,$null)
+      [IO.File]::Replace($temp,$full,[NullString]::Value)
     } else { [IO.File]::Move($temp,$full) }
   } finally {
     if ($stream) { $stream.Dispose() }
@@ -266,15 +292,16 @@ function Write-SyrinAtomicText([string]$Path, [string]$Text, [switch]$CreateOnly
   }
 }
 
-function Get-SyrinFiles([string[]]$Path, [string[]]$CloudRoots, [int]$MaxFiles=10000, [int]$Seconds=120) {
+function Get-SyrinFiles([string[]]$Path, [string[]]$CloudRoots, [int]$MaxFiles=10000, [int]$Seconds=120, $Policy=$null) {
   $timer = [Diagnostics.Stopwatch]::StartNew()
+  if($null -eq $Policy){$Policy=New-SyrinSourcePolicy $CloudRoots}
   $stack = New-Object 'System.Collections.Generic.Stack[string]'
-  foreach ($p in $Path) { $stack.Push((Assert-SyrinSourcePath $p $CloudRoots)) }
+  foreach ($p in $Path) { $stack.Push((Assert-SyrinSourcePath $p $CloudRoots -Policy $Policy)) }
   $seen = New-Object 'System.Collections.Generic.HashSet[string]'
   $files = New-Object 'System.Collections.Generic.List[object]'
   while ($stack.Count) {
     if ($timer.Elapsed.TotalSeconds -gt $Seconds) { throw 'Planning scan timed out; no executable plan was produced.' }
-    $p = Assert-SyrinSourcePath $stack.Pop() $CloudRoots
+    $p = Assert-SyrinSourcePath $stack.Pop() $CloudRoots -Policy $Policy
     $entry = Get-Item -LiteralPath $p -Force -ErrorAction Stop
     if ($entry -is [IO.DirectoryInfo]) {
       foreach ($child in $entry.EnumerateFileSystemInfos()) {
@@ -300,4 +327,4 @@ function ConvertTo-SyrinCommandArgument([string]$Value) {
   return '"' + $value + '"'
 }
 
-Export-ModuleMember -Function Get-SyrinOwner,Get-SyrinPath,Test-SyrinWithin,Assert-SyrinLocalPath,Get-SyrinCloudRoots,Assert-SyrinSourcePath,Get-SyrinFingerprint,Test-SyrinFingerprint,Remove-SyrinCheckedFile,Move-SyrinCheckedFile,Get-SyrinDigest,Read-SyrinJson,Write-SyrinAtomicJson,Write-SyrinAtomicText,Get-SyrinFiles,ConvertTo-SyrinCommandArgument
+Export-ModuleMember -Function Get-SyrinOwner,Get-SyrinPath,Test-SyrinWithin,Assert-SyrinLocalPath,Get-SyrinCloudRoots,New-SyrinSourcePolicy,Assert-SyrinSourcePath,Get-SyrinFingerprint,Test-SyrinFingerprint,Remove-SyrinCheckedFile,Move-SyrinCheckedFile,Get-SyrinDigest,Read-SyrinJson,Read-SyrinJsonDocument,Write-SyrinAtomicJson,Write-SyrinAtomicText,Get-SyrinFiles,ConvertTo-SyrinCommandArgument

@@ -45,6 +45,9 @@ try {
   } | ConvertFrom-Json
   Assert ($auditResult.ok -and (Test-Path -LiteralPath (Join-Path $auditOut 'audit.json'))) 'Audit entry point failed'
   Assert (@(Get-ChildItem -LiteralPath $auditOut -Filter '*.html').Count -eq 0) 'None mode wrote HTML'
+  $progress=Get-Content -LiteralPath $auditResult.progressFile -Raw -Encoding UTF8|ConvertFrom-Json
+  $measured=Get-Content -LiteralPath (Join-Path $auditOut 'audit.json') -Raw -Encoding UTF8|ConvertFrom-Json
+  Assert ($progress.status -eq 'completed' -and $null -eq $progress.activeCollector -and $progress.completedCount -eq @($measured.collectors.PSObject.Properties).Count -and $progress.sessionId -eq $auditResult.sessionId) 'Audit progress does not describe the completed session'
   Write-Output 'PASS collector process errors are explicit and the audit CLI honors none mode (fixture collectors)'
 
   $out=Join-Path $fixture 'reports';[void][IO.Directory]::CreateDirectory($out)
@@ -62,6 +65,35 @@ try {
   $shared=[IO.File]::ReadAllText($share.path)
   Assert (-not $shared.Contains('PRIVATE_') -and -not $shared.Contains(('b'*64))) 'Private data leaked into aggregate export'
   Write-Output 'PASS reports render and aggregate export omits private fields'
+  $proposals=@{schemaVersion=1;kind='syrin-proposals';sessionId=('a'*32);items=@(@{id='A';title='Updated cache proposal';evidence='Fixture';benefit='Reviewed';loss='None';risk='low';undo='reversible'})}
+  Json (Join-Path $out 'proposals.json') $proposals
+  $result=New-SyrinReport -OutDir $out -Lang en
+  Assert ([IO.File]::ReadAllText($result.path).Contains('Updated cache proposal')) 'Existing report was not replaced with updated proposals'
+  $updated=[IO.File]::ReadAllBytes($result.path)
+  $lock=New-Object IO.FileStream($result.path,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::Read)
+  try{
+    $rejected=$false;try{New-SyrinReport -OutDir $out|Out-Null}catch{$rejected=$true}
+    Assert $rejected 'Locked report replacement was not rejected'
+  }finally{$lock.Dispose()}
+  Assert ([Convert]::ToBase64String($updated) -eq [Convert]::ToBase64String([IO.File]::ReadAllBytes($result.path))) 'Failed replacement changed the existing report'
+  Assert (@(Get-ChildItem -LiteralPath $out -Filter '.syrin-write-*').Count -eq 0) 'Atomic write left temporary files'
+  Write-Output 'PASS report regeneration replaces existing output and preserves it after a locked-file failure'
+  Import-Module (Join-Path $Runtime 'modules\IO.psm1') -Force
+  $nested=& (Join-Path $Runtime 'scripts\make-report.ps1') -OutDir $out -Lang vi -NoOpen | ConvertFrom-Json
+  Assert $nested.ok 'Nested report entry point failed'
+  Assert ([bool](Get-Command Write-SyrinAtomicJson -ErrorAction SilentlyContinue)) 'Nested entry point removed a caller IO command'
+  $callerOutput=Join-Path $fixture 'caller-output.json'
+  Write-SyrinAtomicJson $callerOutput ([ordered]@{caller='preserved'}) -CreateOnly
+  Assert ((Read-SyrinJson $callerOutput).caller -eq 'preserved') 'Caller cannot use IO after a nested entry point'
+  Write-Output 'PASS nested entry points preserve caller IO commands'
+  $encodedPath=Join-Path $fixture 'encoded.json'
+  [IO.File]::WriteAllText($encodedPath,'{"label":"đường dẫn","count":7}',[Text.Encoding]::Unicode)
+  $document=Read-SyrinJsonDocument $encodedPath
+  Assert ($document.value.label -ceq 'đường dẫn' -and $document.value.count -eq 7) 'BOM-aware JSON decoding changed'
+  $hash=[Security.Cryptography.SHA256]::Create()
+  try{$expectedDigest=([BitConverter]::ToString($hash.ComputeHash([IO.File]::ReadAllBytes($encodedPath)))).Replace('-','').ToLowerInvariant()}finally{$hash.Dispose()}
+  Assert ($document.digest -ceq $expectedDigest) 'Document digest was not computed from the original bytes'
+  Write-Output 'PASS JSON documents retain BOM decoding and raw-byte integrity'
   $before=[IO.File]::ReadAllBytes($result.path)
   [IO.File]::WriteAllText((Join-Path $out 'audit.json'),'not JSON')
   $rejected=$false;try{New-SyrinReport -OutDir $out|Out-Null}catch{$rejected=$true}

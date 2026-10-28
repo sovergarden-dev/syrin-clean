@@ -5,6 +5,7 @@ All notable changes to this project. Dates are 2026.
 ## [Unreleased]
 
 ### Added
+- Add durable audit progress, large-tree/history regression coverage and offline history pagination with persistent item selection.
 - Add reviewed file plans with explicit item selection, owned storage, append-only journals, conflict recovery, reconciliation and explicit legacy CSV import.
 - Add native handle-based file identity checks for same-volume rename and selected-file purge.
 - Add versioned audit/proposal schemas, session history, guarded comparisons and aggregate-only report exports.
@@ -12,6 +13,9 @@ All notable changes to this project. Dates are 2026.
 - Add package manifests, deterministic artifact checksums and safe standalone runtime extraction.
 
 ### Changed
+- Resolve trusted path-policy references per operation while continuing live ancestor and native handle checks; parse and hash journal documents from the same read.
+- Include all loaded report history and cap decorative rendering at 24 frames per second with 250/500 points.
+- Give storage scans a share of the requested audit budget and retain explicit partial coverage.
 - Rename the project to Syrin clean and keep the imported 3.6 artifact version while hardening remains unreleased.
 - Generate both language packages, prompts and pages from canonical runtime, policy, report and web sources.
 - Stage installation outside skill-discovery folders, serialize updates and retain previous versions for rollback.
@@ -20,6 +24,8 @@ All notable changes to this project. Dates are 2026.
 - Group advanced page options, prioritize the introduction on mobile and add controllable report animation.
 
 ### Fixed
+- Preserve caller IO commands across nested runtime entry points instead of force-reloading shared modules.
+- Pass a true null backup path to .NET when replacing reports/state in Windows PowerShell 5.1; cover report regeneration and locked-file preservation with regression tests.
 - Prevent whole-root purge, dropped restore conflicts, unjournaled transfers, cloud-prefix mistakes and unsafe plan/root overlap.
 - Preserve unknown/partial collector states, typed storage categories, system-volume identity and separate StartupApproved identities.
 - Preserve native PowerShell arguments with Unicode, quotes, empty values and trailing backslashes; distinguish UAC cancellation from other failures.

@@ -13,6 +13,7 @@
 - Lập kế hoạch theo từng file trước khi cách ly, khôi phục hoặc xóa hẳn. Người dùng duyệt mã ngắn; agent giữ ánh xạ ID và mã băm của đúng kế hoạch.
 - Nhật ký bền vững, kiểm tra định danh file, xử lý trùng tên, tiếp tục sau gián đoạn và lịch sử phiên.
 - Báo cáo offline EN/VI, so sánh cùng máy và bản xuất tổng hợp đã lược bỏ thông tin riêng thô.
+- Có tiến độ kiểm tra, chọn phiên và phân trang để xem đủ lịch sử đã tải; hiệu ứng báo cáo được giới hạn số lần vẽ.
 
 Thao tác tự động hiện giới hạn ở vòng đời file mà runtime hỗ trợ. Chỉnh hệ thống, sửa Windows, gỡ app và phần cứng giữ ở dạng tư vấn tới khi có hỗ trợ đã kiểm chứng. Cách ly không thay sao lưu và không giải phóng dung lượng; xóa hẳn là bước riêng, không hoàn tác được.
 

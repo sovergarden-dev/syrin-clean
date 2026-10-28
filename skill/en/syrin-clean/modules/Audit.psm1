@@ -1,5 +1,5 @@
 ﻿Set-StrictMode -Version 2
-Import-Module (Join-Path $PSScriptRoot 'IO.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'IO.psm1')
 
 function Get-SyrinValue($Object,[string]$Name,$Default=$null) {
   if ($null -eq $Object) { return $Default }
@@ -100,7 +100,8 @@ function Get-SyrinRadar {
     if(-not $entry.Value -or -not(Test-Path -LiteralPath $entry.Value)){continue}
     $category='unknown';foreach($key in $categories.Keys){if($entry.Key -in $categories[$key]){$category=$key;break}}
     try {
-      $scan=Get-SyrinScan -Path $entry.Value -Seconds ([math]::Max(1,[math]::Min(10,$Seconds-$timer.Elapsed.TotalSeconds)))
+      $locationBudget=[math]::Max(10,[int]($Seconds/4))
+      $scan=Get-SyrinScan -Path $entry.Value -Seconds ([math]::Max(1,[math]::Min($locationBudget,$Seconds-$timer.Elapsed.TotalSeconds)))
       $data.Add([PSCustomObject]@{id=([regex]::Replace($entry.Key.ToLowerInvariant(),'[^a-z0-9]+','-').Trim('-'));label=$entry.Key;path=$scan.path;category=$category;measuredBytes=$scan.measuredBytes;cloudBytes=$scan.cloudBytes;estimatedReclaimableBytes=$null;status=$(if($scan.complete){'complete'}else{'partial'});errors=$scan.errors})
       foreach($errorText in $scan.errors){$errors.Add($errorText)}
     } catch {$errors.Add($_.Exception.Message)}
@@ -169,7 +170,7 @@ function Invoke-SyrinCollector {
 function Invoke-SyrinCollectorJob([string]$Name,[int]$Seconds) {
   $job=$null
   try {
-    $job=Start-Job -ScriptBlock {param($ModulePath,$Collector,$Budget) $env:PSModulePath=Join-Path $PSHOME 'Modules';Import-Module $ModulePath -Force;Invoke-SyrinCollector -Name $Collector -Seconds ([math]::Max(1,$Budget-2))} -ArgumentList @((Join-Path $PSScriptRoot 'Audit.psm1'),$Name,$Seconds)
+    $job=Start-Job -ScriptBlock {param($ModulePath,$Collector,$Budget) $env:PSModulePath=Join-Path $PSHOME 'Modules';Import-Module $ModulePath;Invoke-SyrinCollector -Name $Collector -Seconds ([math]::Max(1,$Budget-2))} -ArgumentList @((Join-Path $PSScriptRoot 'Audit.psm1'),$Name,$Seconds)
     if(-not(Wait-Job -Job $job -Timeout $Seconds)) {Stop-Job $job;return [PSCustomObject]@{status='unavailable';data=@();errors=@('Collector timed out.');durationMs=($Seconds*1000)}}
     $result=Receive-Job -Job $job -ErrorAction Stop
     if(-not $result -or -not $result.PSObject.Properties['status']){throw 'Collector returned no structured result.'}
@@ -179,7 +180,7 @@ function Invoke-SyrinCollectorJob([string]$Name,[int]$Seconds) {
 }
 
 function Invoke-SyrinAudit {
-  param([string]$OutDir='',[ValidateSet('3d','simple','none')][string]$ReportMode='3d',[ValidateSet('full','health','speed','cleanup')][string]$Scope='full',[int]$MaxSeconds=180)
+  param([string]$OutDir='',[ValidateSet('3d','simple','none')][string]$ReportMode='3d',[ValidateSet('full','health','speed','cleanup')][string]$Scope='full',[int]$MaxSeconds=180,[switch]$Quiet)
   $ReportMode=$ReportMode.ToLowerInvariant();$Scope=$Scope.ToLowerInvariant()
   if(-not $OutDir){$OutDir=Join-Path (Join-Path $env:LOCALAPPDATA 'SyrinClean\Sessions') ([DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss')+'-'+[guid]::NewGuid().ToString('N').Substring(0,8))}
   $full=Assert-SyrinLocalPath $OutDir
@@ -193,17 +194,24 @@ function Invoke-SyrinAudit {
     Write-SyrinAtomicJson $markerPath $session -CreateOnly
   }
   $timer=[Diagnostics.Stopwatch]::StartNew();$collectors=[ordered]@{}
-  foreach($name in @('system','volumes','memory','startup','events','security','cpu','gpu','ram','disks','diskHealth','power','battery','restorePoints','processes','tasks','services','apps','radar','largeFiles')){
+  $names=@('system','volumes','memory','startup','events','security','cpu','gpu','ram','disks','diskHealth','power','battery','restorePoints','processes','tasks','services','apps','radar','largeFiles')
+  $progressPath=Join-Path $full 'audit-progress.json'
+  foreach($name in $names){
     $remaining=[int]($MaxSeconds-$timer.Elapsed.TotalSeconds)
     if($remaining -le 0 -or ($name -in @('radar','largeFiles') -and $Scope -in @('health','speed'))){$collectors[$name]=[PSCustomObject]@{status='unavailable';data=@();errors=@('Not requested or total audit budget exhausted.');durationMs=0};continue}
-    $budget=[math]::Min($remaining,$(if($name -in @('radar','largeFiles')){45}else{20}))
+    Write-SyrinAtomicJson $progressPath ([ordered]@{schemaVersion=1;kind='syrin-audit-progress';sessionId=$session.sessionId;status='running';activeCollector=$name;completedCount=$collectors.Count;totalCount=$names.Count;elapsedMs=$timer.ElapsedMilliseconds;updatedUtc=[DateTime]::UtcNow.ToString('o')})
+    if(-not $Quiet){Write-Progress -Activity 'Syrin clean audit' -Status $name -PercentComplete (100*$collectors.Count/$names.Count)}
+    $budget=[math]::Min($remaining,$(if($name -in @('radar','largeFiles')){[math]::Max(45,[int]($MaxSeconds/3))}else{20}))
     $collectors[$name]=Invoke-SyrinCollectorJob $name $budget
   }
   $system=@($collectors.system.data) | Select-Object -First 1
   $audit=[ordered]@{schemaVersion=1;kind='syrin-audit';meta=[ordered]@{sessionId=$session.sessionId;generatedUtc=[DateTime]::UtcNow.ToString('o');machineId=(Get-SyrinValue $system 'machineId');systemDrive=(Get-SyrinValue $system 'systemDrive');reportMode=$ReportMode;scope=$Scope;warnings=@();warningCodes=@('agent-privacy','support-unverified')};collectors=$collectors}
   Write-SyrinAtomicJson (Join-Path $full 'audit.json') $audit
   Write-SyrinAtomicJson (Join-Path $full 'state.json') ([ordered]@{schemaVersion=1;kind='syrin-state';sessionId=$session.sessionId;phase='audited';updatedUtc=[DateTime]::UtcNow.ToString('o');approvedItemIds=@();completed=@();failed=@()})
-  return [PSCustomObject]@{ok=$true;outDir=$full;sessionId=$session.sessionId;incomplete=@($collectors.Keys | Where-Object {$collectors[$_].status -ne 'complete'});reportMode=$ReportMode}
+  $incomplete=@($collectors.Keys | Where-Object {$collectors[$_].status -ne 'complete'})
+  Write-SyrinAtomicJson $progressPath ([ordered]@{schemaVersion=1;kind='syrin-audit-progress';sessionId=$session.sessionId;status='completed';activeCollector=$null;completedCount=$collectors.Count;totalCount=$names.Count;incomplete=$incomplete;elapsedMs=$timer.ElapsedMilliseconds;updatedUtc=[DateTime]::UtcNow.ToString('o')})
+  if(-not $Quiet){Write-Progress -Activity 'Syrin clean audit' -Completed}
+  return [PSCustomObject]@{ok=$true;outDir=$full;sessionId=$session.sessionId;incomplete=$incomplete;reportMode=$ReportMode;progressFile=$progressPath}
 }
 
 Export-ModuleMember -Function Get-SyrinValue,Get-SyrinScan,Get-SyrinStartup,Invoke-SyrinCollector,Invoke-SyrinAudit

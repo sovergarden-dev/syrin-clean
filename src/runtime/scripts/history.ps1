@@ -1,8 +1,8 @@
 ﻿param([string]$Root='',[string]$SessionId='',[string]$AuditRoot='')
 $ErrorActionPreference='Stop'
 try {
-  Import-Module (Join-Path $PSScriptRoot '..\modules\Quarantine.psm1') -Force
-  Import-Module (Join-Path $PSScriptRoot '..\modules\IO.psm1') -Force
+  Import-Module (Join-Path $PSScriptRoot '..\modules\Quarantine.psm1')
+  Import-Module (Join-Path $PSScriptRoot '..\modules\IO.psm1')
   if(-not $AuditRoot){$AuditRoot=Join-Path $env:LOCALAPPDATA 'SyrinClean\Sessions'}
   $audits=@()
   if(Test-Path -LiteralPath $AuditRoot){
