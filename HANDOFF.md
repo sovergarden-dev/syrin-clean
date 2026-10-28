@@ -73,9 +73,12 @@ Kiểm chứng khi đổi tên, ngày 28/10/2026, trên Windows:
 - Cài từng ZIP vào hồ sơ người dùng tạm, kiểm tra đủ 10 file khớp từng byte trong mỗi thư mục `.claude/skills/syrin-clean` và `.agents/skills/syrin-clean`.
 - Chạy `make-report.ps1 -NoOpen` cho EN/VI bằng dữ liệu thử, có baseline và CSV tiếng Việt; kiểm tra dữ liệu nhúng, ngôn ngữ, thoát chuỗi đóng thẻ script và cú pháp JavaScript.
 - Đối chiếu ZIP nhúng trong trang với file `dist/`, ba phụ lục với nguồn, liên kết nội bộ và ID HTML. Kiểm tra logic tạo hồ sơ, đặt lại và tải ZIP/Markdown/PowerShell bằng Node với DOM giả lập.
+- Clone repo public về thư mục mới rồi build lại: cả sáu thành phẩm giữ nguyên từng byte, Git không phát sinh thay đổi. Hai liên kết tải ZIP trên GitHub trả HTTP 200 không cần đăng nhập và khớp file local.
 - Chưa kiểm chứng hiển thị trong trình duyệt: trình duyệt tích hợp chặn URL `file://`. Kiểm tra Node không chứng minh bố cục hay WebGL.
 
 Các kiểm tra này không chạy dọn máy, tạo Restore Point, nâng quyền hay cài skill vào hồ sơ người dùng thật. Ma trận Windows và kiểm thử thực thi bên dưới vẫn còn mở.
+
+Mã nguồn: [sovergarden-dev/syrin-clean](https://github.com/sovergarden-dev/syrin-clean), public, nhánh mặc định `main`. Đã bật báo cáo lỗ hổng riêng tư theo `SECURITY.md`. Repo chưa có workflow CI; các kiểm tra trên được chạy tại máy làm việc.
 
 Đã làm trước khi bàn giao (trong sandbox không có Windows và trình duyệt):
 

@@ -7,6 +7,7 @@ All notable changes to this project. Dates are 2026.
 - Rename the project to Syrin clean and the skill identifier to `syrin-clean`; keep the imported 3.6 version.
 - Rename both language editions, installers, downloadable artifacts, report branding and default working folders; rebuild embedded downloads from the renamed sources.
 - Add GitHub download links and document the source-to-artifact build flow.
+- Normalize checkout line endings so a fresh Git clone rebuilds identical packaged artifacts.
 
 ## [3.6] - 2026-10-28
 ### Added
