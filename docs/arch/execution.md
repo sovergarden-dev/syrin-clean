@@ -2,6 +2,8 @@
 
 > updated 2026-10-29 · v3.6
 
+The shared native path helper performs lexical validation, mapped-drive rejection, live ancestor-attribute checks and long-name resolution in one call. It does not cache mutable filesystem state. Missing destination suffixes are resolved without creating directories; mutation still verifies the final handle and file identity.
+
 The hardening work is unreleased. Runtime sources live in `src/runtime/`; language packages and downloadable files are generated. Commands support Windows PowerShell 5.1. Tests operate on owned fixtures only.
 
 ## File operations

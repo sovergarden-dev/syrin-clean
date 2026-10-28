@@ -52,8 +52,8 @@
     },
     {
       "path": "syrin-clean/modules/IO.psm1",
-      "sha256": "54b6b0c2e8010f393f19a7e4e98fb7a6c85d9fe2ea1de6fff7c0d68d4d3416fd",
-      "bytes": 20148
+      "sha256": "6d5d2051ec1f7eec788ced818826a7e9c729b9ecef3dcae0271f9d8dfae8e061",
+      "bytes": 20511
     },
     {
       "path": "syrin-clean/modules/Quarantine.psm1",
@@ -122,7 +122,7 @@
     },
     {
       "path": "syrin-clean/skill-manifest.json",
-      "sha256": "a8dce35799bd5b5f3f895f8badec003f4d4ed00e0b6775abf89713cfcef27945",
+      "sha256": "2c4d2763e86da788dc074bd5020b46c5bed04ac63c279a37ce66a3e770b72288",
       "bytes": 3256
     }
   ]

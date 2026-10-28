@@ -94,6 +94,15 @@ try {
   try{$expectedDigest=([BitConverter]::ToString($hash.ComputeHash([IO.File]::ReadAllBytes($encodedPath)))).Replace('-','').ToLowerInvariant()}finally{$hash.Dispose()}
   Assert ($document.digest -ceq $expectedDigest) 'Document digest was not computed from the original bytes'
   Write-Output 'PASS JSON documents retain BOM decoding and raw-byte integrity'
+  $missing=Join-Path $fixture 'missing\nested\future.json'
+  Assert ((Assert-SyrinLocalPath $missing).EndsWith('\missing\nested\future.json')) 'Missing path suffix changed during normalization'
+  Assert (-not(Test-Path -LiteralPath (Join-Path $fixture 'missing'))) 'Path normalization created directories'
+  Assert ((Assert-SyrinLocalPath $encodedPath) -ceq (Get-SyrinPath $encodedPath)) 'Checked and canonical paths disagree'
+  foreach($unsafePath in @('\\server\share\file.json','\\?\C:\file.json',($encodedPath+':stream'))){
+    $rejected=$false;try{Assert-SyrinLocalPath $unsafePath|Out-Null}catch{$rejected=$true}
+    Assert $rejected 'An unsupported path form was accepted'
+  }
+  Write-Output 'PASS native path normalization preserves missing tails and rejects unsafe forms'
   $before=[IO.File]::ReadAllBytes($result.path)
   [IO.File]::WriteAllText((Join-Path $out 'audit.json'),'not JSON')
   $rejected=$false;try{New-SyrinReport -OutDir $out|Out-Null}catch{$rejected=$true}

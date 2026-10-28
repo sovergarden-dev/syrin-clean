@@ -39,6 +39,8 @@ Các số liệu trên thuộc đợt triển khai ban đầu. Đợt ngày 29/1
 
 ## Khi tiếp tục
 
+Đợt tối ưu path tiếp theo chuyển chuẩn hóa và vòng kiểm tra tổ tiên vào helper native dùng chung, giữ kiểm tra động và định danh handle. Bộ cục bộ đạt 16 ca quarantine, 11 nhóm runtime, model/scale và 7 ca đóng gói. Bản cài được kiểm checksum rồi tạo báo cáo từ nhật ký thật đầy đủ; audit và baseline gốc không đổi. Kết quả CI của revision mới nhất nằm trên PR.
+
 Dùng [lệnh runtime](docs/ref/commands.md), [kiến trúc](docs/arch/project.md) và [hợp đồng thực thi](docs/arch/execution.md). Báo cáo audit gốc được giữ nguyên theo baseline trong `docs/research/audit-safety.md`; không sửa lại lịch sử để giả vờ lỗi chưa từng tồn tại.
 
 Các cổng VM/phần cứng/agent chưa thử phải giữ mở. Khi có VM dùng một lần và snapshot, mới kiểm chứng dịch vụ System Restore, rollback registry, lỗi quyền, file khóa, cloud placeholders và ma trận được quảng bá. Không tạo tag, release hoặc tuyên bố bản ổn định khi các cổng đó chưa đạt.

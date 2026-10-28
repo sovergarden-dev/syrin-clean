@@ -5,27 +5,9 @@ function Get-SyrinOwner {
   return [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
 }
 
-function Get-SyrinLexicalPath([string]$Path) {
-  if ([string]::IsNullOrWhiteSpace($Path) -or $Path.StartsWith('\\')) { throw 'A local absolute drive path is required.' }
-  $full = [IO.Path]::GetFullPath($Path)
-  if ($full -notmatch '^[A-Za-z]:\\' -or $full.Substring(2).Contains(':')) { throw 'Network, device and alternate-stream paths are not supported.' }
-  foreach ($part in $full.Substring(3).Split('\')) {
-    if ($part.EndsWith('.') -or $part.EndsWith(' ')) { throw 'Ambiguous path segments are not supported.' }
-  }
-  $drive = New-Object IO.DriveInfo ([IO.Path]::GetPathRoot($full))
-  if ($drive.DriveType -eq [IO.DriveType]::Network) { throw 'Mapped network drives are not supported.' }
-  return $full
-}
-
 function Get-SyrinPath([string]$Path) {
-  $full=Get-SyrinLexicalPath $Path
   Initialize-SyrinNative
-  $existing=$full;$suffix=New-Object 'System.Collections.Generic.List[string]'
-  while([Syrin.NativeFiles]::Attributes($existing) -lt 0){$suffix.Insert(0,[IO.Path]::GetFileName($existing));$existing=[IO.Path]::GetDirectoryName($existing);if(-not $existing){throw 'No local parent directory exists.'}}
-  $full=[Syrin.NativeFiles]::LongPath($existing)
-  foreach($part in $suffix){$full=Join-Path $full $part}
-  if ($full.Length -gt 3) { $full = $full.TrimEnd('\') }
-  return $full
+  return [Syrin.NativeFiles]::LocalPath($Path,$false)
 }
 
 function Test-SyrinWithin([string]$Child, [string]$Parent) {
@@ -33,17 +15,8 @@ function Test-SyrinWithin([string]$Child, [string]$Parent) {
 }
 
 function Assert-SyrinLocalPath([string]$Path) {
-  $full = Get-SyrinLexicalPath $Path
   Initialize-SyrinNative
-  $cursor = $full
-  while ($cursor) {
-    $attributes=[Syrin.NativeFiles]::Attributes($cursor)
-    if ($attributes -ge 0 -and ($attributes -band 0x441400) -ne 0) { throw "Reparse, offline or recall path is blocked: $cursor" }
-    $parent = [IO.Path]::GetDirectoryName($cursor)
-    if ($parent -eq $cursor) { break }
-    $cursor = $parent
-  }
-  return Get-SyrinPath $full
+  return [Syrin.NativeFiles]::LocalPath($Path,$true)
 }
 
 function Get-SyrinCloudRoots {
@@ -119,7 +92,9 @@ function Initialize-SyrinNative {
   if ('Syrin.NativeFiles' -as [type]) { return }
   Add-Type -TypeDefinition @'
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Win32.SafeHandles;
@@ -148,6 +123,31 @@ namespace Syrin {
       int error = Marshal.GetLastWin32Error();
       if (error == 2 || error == 3) return -1;
       throw new Win32Exception(error);
+    }
+    public static string LocalPath(string path, bool checkAncestors) {
+      if (String.IsNullOrWhiteSpace(path) || path.StartsWith(@"\\", StringComparison.Ordinal)) throw new ArgumentException("A local absolute drive path is required.");
+      string full = Path.GetFullPath(path);
+      bool driveLetter = full.Length > 0 && ((full[0] >= 'A' && full[0] <= 'Z') || (full[0] >= 'a' && full[0] <= 'z'));
+      if (full.Length < 3 || !driveLetter || full[1] != ':' || full[2] != '\\' || full.IndexOf(':', 2) >= 0) throw new ArgumentException("Network, device and alternate-stream paths are not supported.");
+      foreach (string part in full.Substring(3).Split('\\')) {
+        if (part.EndsWith(".", StringComparison.Ordinal) || part.EndsWith(" ", StringComparison.Ordinal)) throw new ArgumentException("Ambiguous path segments are not supported.");
+      }
+      if (new DriveInfo(Path.GetPathRoot(full)).DriveType == DriveType.Network) throw new ArgumentException("Mapped network drives are not supported.");
+      if (checkAncestors) {
+        for (string cursor = full; !String.IsNullOrEmpty(cursor); cursor = Path.GetDirectoryName(cursor)) {
+          long attributes = Attributes(cursor);
+          if (attributes >= 0 && (attributes & 0x441400) != 0) throw new IOException("Reparse, offline or recall path is blocked: " + cursor);
+        }
+      }
+      string existing = full;
+      var suffix = new Stack<string>();
+      while (Attributes(existing) < 0) {
+        suffix.Push(Path.GetFileName(existing)); existing = Path.GetDirectoryName(existing);
+        if (String.IsNullOrEmpty(existing)) throw new IOException("No local parent directory exists.");
+      }
+      full = LongPath(existing);
+      while (suffix.Count > 0) full = Path.Combine(full, suffix.Pop());
+      return full.Length > 3 ? full.TrimEnd('\\') : full;
     }
     public static string LongPath(string path) {
       var buffer = new StringBuilder(512);

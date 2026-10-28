@@ -14,6 +14,7 @@ All notable changes to this project. Dates are 2026.
 
 ### Changed
 - Resolve trusted path-policy references per operation while continuing live ancestor and native handle checks; parse and hash journal documents from the same read.
+- Run path normalization and live ancestor checks within the existing native helper to reduce PowerShell overhead in long histories.
 - Include all loaded report history and cap decorative rendering at 24 frames per second with 250/500 points.
 - Give storage scans a share of the requested audit budget and retain explicit partial coverage.
 - Rename the project to Syrin clean and keep the imported 3.6 artifact version while hardening remains unreleased.

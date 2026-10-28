@@ -1,5 +1,7 @@
 # Validation
 
+Path normalization tests exercise missing destination tails without creating directories and reject network, device and alternate-stream forms through the public path API. The native ancestor walk is also exercised by the existing real-junction, access, lock and mutation-identity cases.
+
 Use Python 3.10+ and Node.js 22+ for packaging; Windows PowerShell 5.1 is required for native runtime tests. There are no npm or Python package dependencies.
 
 ```powershell
