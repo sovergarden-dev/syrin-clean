@@ -1,6 +1,6 @@
 # Syrin clean: bàn giao hardening
 
-Trạng thái: đang hoàn thiện bản phát triển trên nhánh `codex/hardening`, chưa phát hành ổn định. Baseline audit là `a0752aa`; phiên bản tên file 3.6 được giữ, thay đổi ghi ở Unreleased.
+Trạng thái: đã triển khai và đạt kiểm thử cục bộ/CI; bản phát triển ở [PR nháp #1](https://github.com/sovergarden-dev/syrin-clean/pull/1), nhánh `codex/hardening`, chưa phát hành ổn định. Baseline audit là `a0752aa`; phiên bản tên file 3.6 được giữ, thay đổi ghi ở Unreleased.
 
 ## Phạm vi và quyết định đã chốt
 
@@ -32,6 +32,8 @@ Các regression test hiện có dùng file/profile fixture riêng, Windows Power
 Lệnh chuẩn: `python -B -X utf8 tools/build.py`, rồi `powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File tests/run.ps1`. CI Windows chạy cùng bộ kiểm tra với quyền repo chỉ đọc; không tự deploy/release.
 
 Kết quả nghiệm thu cuối cùng và các giới hạn nằm trong [kế hoạch](docs/plan/hardening.md), [ma trận hỗ trợ](docs/feat/support.md) và [hướng dẫn kiểm chứng](docs/ref/validation.md). Không suy ra Windows 10/11, ARM64, provider cloud, UAC thật hoặc mọi agent đều đã đạt từ các test fixture.
+
+[Bằng chứng thực nghiệm](docs/research/hardening-validation.md) ghi 15 ca quarantine, 7 nhóm runtime, mô hình báo cáo, 7 ca đóng gói/cài đặt, 61 đầu ra build và các kiểm tra trình duyệt. Hai workflow GitHub trên commit triển khai `4680f1e` đều đạt, gồm kiểm tra checkout sạch sau chạy test.
 
 ## Khi tiếp tục
 

@@ -1,5 +1,7 @@
 # Hardening implementation and validation
 
+Status: amended 2026-10-28.
+
 ## Start time
 
 2026-10-28, Asia/Bangkok. Baseline `a0752aa`; implementation branch `codex/hardening`. The owner approved the full hardening plan and later explicitly deferred VM qualification because no disposable VM is available.
@@ -61,3 +63,8 @@ Browser viewport overrides were reset, the temporary tab was closed and the owne
 Implementation is ready for source review as an unreleased development build. The [hardening plan](../plan/hardening.md), [support matrix](../feat/support.md) and [validation guide](../ref/validation.md) define the remaining qualification gates. No passing mock/fixture check is used as evidence that the real Windows service, every device or every agent integration is qualified.
 
 Keep unsupported system-changing suggestions advisory. Reopen stable-release qualification only when the requested disposable VM/hardware/provider environments and independent user-flow checks are available.
+
+## Amendments
+
+- 2026-10-28 · Automated checks: implementation commit `4680f1ecb27eeb63b4448f9629d2e0d1cef5e9df` passed both the [push workflow](https://github.com/sovergarden-dev/syrin-clean/actions/runs/40725783228) and [pull-request workflow](https://github.com/sovergarden-dev/syrin-clean/actions/runs/40725786814) on the hosted `windows-2022` runner with Python 3.12 and Node.js 24. Both ran the complete fixture suite and repository-residue check successfully. This adds a clean-checkout CI result, not real System Restore/UAC or product qualification on Windows Server.
+- 2026-10-28 · Decision: the implementation is public for review in [draft PR #1](https://github.com/sovergarden-dev/syrin-clean/pull/1). The stable-release gates remain open; no merge, tag, GitHub Release or website deployment was performed.

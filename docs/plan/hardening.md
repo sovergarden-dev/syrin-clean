@@ -1,6 +1,6 @@
 # Kế hoạch tăng độ tin cậy cho Syrin clean
 
-Trạng thái: **đã triển khai và đạt kiểm thử cục bộ; đang kiểm tra CI, các cổng nghiệm thu môi trường vẫn mở**. Baseline `a0752aa`, ngày 2026-10-28; nhánh `codex/hardening`. Nguồn: [báo cáo kiểm tra](../research/audit-safety.md) và [bằng chứng](../research/audit-evidence.json). Đích: thao tác đúng phạm vi, có đường phục hồi được kiểm chứng và báo cáo không biến dữ liệu thiếu thành kết luận tốt.
+Trạng thái: **đã triển khai, đạt kiểm thử cục bộ và CI; các cổng nghiệm thu môi trường vẫn mở**. Baseline `a0752aa`, ngày 2026-10-28; nhánh `codex/hardening`, [PR nháp #1](https://github.com/sovergarden-dev/syrin-clean/pull/1). Nguồn: [báo cáo kiểm tra](../research/audit-safety.md) và [bằng chứng](../research/audit-evidence.json). Đích: thao tác đúng phạm vi, có đường phục hồi được kiểm chứng và báo cáo không biến dữ liệu thiếu thành kết luận tốt.
 
 ## 1. Khép kín vòng đời file
 
@@ -65,7 +65,7 @@ Nghiệm thu: người dùng biết cái gì chưa đo được, có thể duy�
 - [ ] Đã thử Windows 10/11, x64/ARM64 và các edition được tuyên bố hỗ trợ; nhánh chưa thử phải ghi là chưa xác minh.
 - [ ] Luồng agent từ kiểm tra đến duyệt, dry run, thực thi, dừng và hoàn tác đã được chạy trên VM có snapshot và dữ liệu fixture.
 - [ ] Đã kiểm tra filesystem/cloud với thư mục chuyển hướng, junction, đường dẫn dài/Unicode và cloud placeholders mà không tải hoặc xóa ngoài ý muốn.
-- [ ] Gói phát hành, nguồn, tài liệu, checksum và kết quả CI khớp nhau.
+- [x] Gói phát triển, nguồn, tài liệu và checksum khớp nhau; CI trên Windows đạt ở commit triển khai `4680f1e`. Đây chưa phải gói phát hành ổn định.
 
 Chưa lên lịch triển khai desktop wrapper, backend, tài khoản, telemetry hoặc tự động dọn định kỳ. Chỉ mở các hạng mục này khi có nhu cầu cụ thể sau khi đạt các cổng an toàn; không dùng chúng để thay thế việc sửa lỗi hiện có.
 
