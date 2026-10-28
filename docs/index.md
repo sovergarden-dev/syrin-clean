@@ -9,7 +9,7 @@
 - [Safety audit and upgrade recommendations](research/audit-safety.md).
 - [Hardening implementation validation](research/hardening-validation.md).
 - [Proposed hardening plan](plan/hardening.md).
-- [Runtime scale and composition](plan/runtime-scale.md).
+- [Completed runtime scale and composition](plan/done/runtime-scale.md).
 
 - [Execution and data contracts](arch/execution.md).
 

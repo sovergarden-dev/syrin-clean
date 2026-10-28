@@ -1,6 +1,6 @@
 # Runtime scale and composition
 
-Status: implementation and local validation complete, 2026-10-29; hosted validation remains pending for the new commit. Automatic file-operation and system-tuning permissions are unchanged.
+Status: completed, 2026-10-29. Implementation commit `f990623` passed local checks and both hosted Windows workflows. Automatic file-operation and system-tuning permissions are unchanged; the separate stable-release qualification gates remain open.
 
 - [x] Preserve caller commands when entry points import shared modules; reproduce the failure through a public script and verify the fix.
 - [x] Reduce repeated path-provider calls while retaining dynamic ancestor checks and native file identity checks at mutation time.
@@ -9,6 +9,8 @@ Status: implementation and local validation complete, 2026-10-29; hosted validat
 - [x] Bound animation work and retain pause, visibility and reduced-motion controls.
 - [x] Verify representative large fixture trees, report regeneration, corruption detection, caller composition and the existing failure-recovery suite.
 - [x] Update architecture, support boundaries, handoff and changelog. Keep private machine reports outside source and public validation.
-- [ ] Update the existing draft pull request and confirm CI for its final head. Keep the unverified VM, platform, provider and accessibility gates explicit.
+- [x] Update the existing draft pull request and confirm both CI workflows for implementation commit `f990623`. Keep the unverified VM, platform, provider and accessibility gates explicit; current-head results are recorded on the pull request.
 
 Acceptance: existing safety regressions stay green; a large fixture plan finishes within its existing budget; all loaded history is reachable through report controls; caller imports remain usable; benchmarks state their workload and environment rather than implying universal timings.
+
+Evidence: [validation record](../../research/hardening-validation.md), [push workflow](https://github.com/sovergarden-dev/syrin-clean/actions/runs/40781127959), [pull-request workflow](https://github.com/sovergarden-dev/syrin-clean/actions/runs/40781134491).

@@ -35,7 +35,7 @@ Kết quả nghiệm thu cuối cùng và các giới hạn nằm trong [kế ho
 
 [Bằng chứng thực nghiệm](docs/research/hardening-validation.md) ghi 15 ca quarantine, 7 nhóm runtime, mô hình báo cáo, 7 ca đóng gói/cài đặt, 61 đầu ra build và các kiểm tra trình duyệt. Hai workflow GitHub trên commit triển khai `4680f1e` đều đạt, gồm kiểm tra checkout sạch sau chạy test.
 
-Các số liệu trên thuộc đợt triển khai ban đầu. Đợt ngày 29/10 đạt 16 ca quarantine, 10 nhóm runtime, mô hình báo cáo, bài thử cây 2.048 file/12 phiên và 7 ca đóng gói; 61 đầu ra khớp nguồn. Giao diện báo cáo EN/VI được thử với 37 phiên giả lập, chọn file qua nhiều trang, chặn chọn file đã xóa và hiển thị lỗi nhật ký; bố cục 390/1366 px không tràn ngang. [Kế hoạch mở rộng runtime](docs/plan/runtime-scale.md) theo dõi kiểm tra thuộc tính native, policy tham chiếu trong từng thao tác, lịch sử đầy đủ, tiến độ audit và hiệu ứng nhẹ hơn. Nhật ký chạy thật chứa thông tin riêng được giữ ngoài repository; kết quả của một máy không thay thế nghiệm thu VM hoặc mọi cấu hình hỗ trợ.
+Các số liệu trên thuộc đợt triển khai ban đầu. Đợt ngày 29/10 đạt 16 ca quarantine, 10 nhóm runtime, mô hình báo cáo, bài thử cây 2.048 file/12 phiên và 7 ca đóng gói; 61 đầu ra khớp nguồn. Giao diện báo cáo EN/VI được thử với 37 phiên giả lập, chọn file qua nhiều trang, chặn chọn file đã xóa và hiển thị lỗi nhật ký; bố cục 390/1366 px không tràn ngang. [Kế hoạch mở rộng runtime](docs/plan/done/runtime-scale.md) đã hoàn tất; commit `f990623` đạt cả hai workflow Windows. Nhật ký chạy thật chứa thông tin riêng được giữ ngoài repository; kết quả của một máy không thay thế nghiệm thu VM hoặc mọi cấu hình hỗ trợ.
 
 ## Khi tiếp tục
 
