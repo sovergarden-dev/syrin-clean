@@ -1,0 +1,22 @@
+﻿CÀI SKILL "syrin-clean" (Universal v3.6)
+==============================================
+
+CÁCH 1 - Nhờ agent tự cài (dễ nhất, bạn không phải gõ lệnh):
+  Nhắn cho agent của bạn:
+  "Hãy cài skill từ file zip này: <đường dẫn tới file .zip>. Giải nén ra một thư mục tạm rồi chạy install.ps1 bên trong bằng: powershell -NoProfile -ExecutionPolicy Bypass -File install.ps1. Xong thì báo tôi."
+
+CÁCH 2 - Tự chép thư mục:
+  Giải nén file zip, chép nguyên thư mục "syrin-clean" vào:
+    - Claude Code:                         %USERPROFILE%\.claude\skills\
+    - Codex, GitHub Copilot, Cursor,
+      Gemini CLI, OpenCode và các agent khác: %USERPROFILE%\.agents\skills\
+
+SAU KHI CÀI:
+  1. Mở PHIÊN MỚI của agent (skill chỉ được nạp khi bắt đầu phiên).
+  2. Cho phép agent tự chạy lệnh terminal. Laptop nên cắm sạc.
+  3. Gửi câu mở đầu, ví dụ: "Dùng skill syrin-clean để kiểm tra, tối ưu và dọn dẹp máy này."
+     (Trang HTML có nút tạo câu mở đầu theo hồ sơ của bạn.)
+  4. Đọc báo cáo, duyệt bằng lời thường hoặc gõ "Duyệt gói khuyến nghị", rồi gõ "XÁC NHẬN".
+
+Kiểm tra đã cài: hỏi agent "bạn có những skill nào?".
+Agent không hỗ trợ skill? Dùng file prompt .md tải từ trang HTML.

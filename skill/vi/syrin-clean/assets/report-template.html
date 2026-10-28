@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="vi" id="root">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Syrin clean</title>
+<style>
+:root { --g: #0b0f0e; --g2: #121816; --g3: #1b2421; --g4: #24302c; --ink: #eef2ee; --ink2: #aab6b0; --acc: #34d399; --red: #ff6060; --amb: #f5b83d; --ease: cubic-bezier(.2,.7,.2,1);
+  --f: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif; --fd: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--g); color: var(--ink); font-family: var(--f); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+.frame { max-width: 1400px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 48px); }
+h1, h2, h3 { font-family: var(--fd); letter-spacing: -.02em; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(1.9rem, 4.4vw, 3.4rem); font-weight: 700; }
+h2 { font-size: clamp(1.3rem, 2.4vw, 1.9rem); font-weight: 700; margin-bottom: 14px; }
+.top { padding: clamp(28px, 5vw, 56px) 0 20px; }
+.top p { color: var(--ink2); margin: 8px 0 0; }
+.scene { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(16px, 3vw, 40px); align-items: start; }
+.cw { position: relative; height: min(68vh, 640px); min-height: 320px; background: var(--g2); border-radius: 18px; overflow: hidden; }
+.cw canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: pan-y; }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--g); padding: 8px 12px; border-radius: 10px; font-size: 14px; font-weight: 600; opacity: 0; transform: translate(-50%, -120%); transition: opacity .15s; max-width: 260px; }
+.tip small { display: block; font-weight: 500; opacity: .75; overflow-wrap: anywhere; }
+.key { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; font-size: 14px; color: var(--ink2); }
+.key i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+.legend .total { font-family: var(--fd); font-size: clamp(2.2rem, 4vw, 3.2rem); font-weight: 700; line-height: 1; color: var(--acc); margin: 4px 0 6px; font-variant-numeric: tabular-nums; }
+.rl { list-style: none; margin: 18px 0 0; padding: 0; max-height: min(52vh, 520px); overflow: auto; }
+.rl li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 9px 10px; border-radius: 10px; cursor: default; transition: background-color .2s; }
+.rl li:hover, .rl li.hl { background: var(--g3); }
+.rl .n { font-weight: 600; overflow-wrap: anywhere; }
+.rl .v { font-variant-numeric: tabular-nums; font-weight: 700; }
+.rl .b { grid-column: 1 / -1; height: 6px; background: var(--g3); border-radius: 3px; overflow: hidden; }
+.rl .b i { display: block; height: 100%; border-radius: 3px; }
+section { margin-top: clamp(40px, 6vw, 72px); }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.fact { background: var(--g2); border-radius: 14px; padding: 14px 16px; }
+.fact b { display: block; font-size: 13px; font-weight: 600; color: var(--ink2); }
+.fact span { font-size: 18px; font-weight: 700; overflow-wrap: anywhere; }
+.fact.warn span { color: var(--amb); } .fact.bad span { color: var(--red); } .fact.ok span { color: var(--acc); }
+.cmp { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.cmp div { background: var(--g2); border-radius: 14px; padding: 16px; }
+.cmp b { display: block; color: var(--ink2); font-size: 13px; }
+.cmp span { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ts { overflow-x: auto; border-radius: 14px; background: var(--g2); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--g4); vertical-align: top; }
+th { background: var(--g3); font-weight: 700; white-space: nowrap; }
+td { overflow-wrap: anywhere; } tr:last-child td { border-bottom: 0; }
+td.r { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+details { background: var(--g2); border-radius: 14px; margin-top: 10px; }
+details > summary { cursor: pointer; padding: 14px 18px; font-weight: 700; }
+details > div { padding: 0 12px 14px; }
+footer { margin: 64px 0 32px; color: var(--ink2); font-size: 14px; }
+.empty { color: var(--ink2); }
+@media (max-width: 860px) { .scene { grid-template-columns: minmax(0, 1fr); } .cw { height: 52vh; } .rl { max-height: none; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="frame">
+  <header class="top"><h1 id="machine" data-t="title"></h1><p id="sub"></p></header>
+  <div class="scene">
+    <div><div class="cw" id="cw"><canvas id="c"></canvas><div class="tip" id="tip"></div></div>
+      <div class="key"><span><i style="background:var(--ink)"></i><b data-t="k1"></b></span><span><i style="background:var(--red)"></i><b data-t="k2"></b></span><span><i style="background:var(--amb)"></i><b data-t="k3"></b></span><span data-t="k4"></span></div></div>
+    <aside class="legend"><h2 data-t="where"></h2><div class="total" id="rt">0 GB</div><div id="rtn" class="empty"></div><ol class="rl" id="rl"></ol></aside>
+  </div>
+  <section><h2 data-t="state"></h2><div class="facts" id="facts"></div></section>
+  <section id="cmpS" hidden><h2 data-t="ba"></h2><div class="cmp" id="cmp"></div></section>
+  <section id="propS" hidden><h2 data-t="props"></h2><div class="ts" id="prop"></div></section>
+  <section><h2 data-t="details"></h2><div id="det"></div></section>
+  <footer data-t="foot"></footer>
+</div>
+<script>
+var LANG = /*__LANG__*/'vi';
+var L = {
+  vi: { title: 'Báo cáo máy', none: 'Chưa có dữ liệu kiểm tra', none2: 'Hãy chạy audit.ps1 trước rồi tạo lại báo cáo.', pc: 'Máy tính này', ram: 'GB RAM', at: 'Kiểm tra lúc',
+    k1: 'Dữ liệu khác trên ổ hệ thống', k2: 'Rác, bộ đệm có thể dọn', k3: 'Dữ liệu cá nhân, chỉ liệt kê', k4: 'Kéo để xoay, rê chuột để xem tên',
+    where: 'Những chỗ đang chiếm chỗ', state: 'Tình trạng máy', ba: 'Trước và sau', props: 'Đề xuất', details: 'Chi tiết',
+    foot: 'Tạo bởi skill syrin-clean từ dữ liệu chỉ-đọc trên chính máy này. Không có dữ liệu nào được gửi ra ngoài.',
+    found: 'Rác và bộ đệm tìm thấy (chưa tính dữ liệu cá nhân). Đây là dung lượng đo được, không phải tất cả đều nên xóa.', nothing: 'Không tìm thấy nhóm nào từ 0,1 GB trở lên.',
+    drive: 'Ổ {d}: còn trống', commit: 'Bộ nhớ đang cam kết', free: 'còn trống', startup: 'App tự mở khi bật máy', items: 'mục', errors: 'Lỗi nghiêm trọng 7 ngày', times: 'lần',
+    defOn: 'Đang bật', defOff: 'Không bật thời gian thực', reboot: 'Chờ khởi động lại', yes: 'Có', no: 'Không', bin: 'Thùng rác', rp: 'Restore Point gần nhất', rpNone: 'Chưa thấy', up: 'Máy đã chạy liên tục', hours: 'giờ',
+    freed: 'Đã giải phóng', left: 'Rác còn lại', apps: 'App tự mở', empty: 'Không có dữ liệu.',
+    dVol: 'Các ổ đĩa', dHealth: 'Sức khỏe ổ vật lý', dLarge: 'File lớn nhất trong thư mục của bạn', dStart: 'App tự mở khi bật máy', dApps: 'Phần mềm nặng nhất', dEv: 'Lỗi trong nhật ký 7 ngày', dAll: 'Tất cả vị trí đã đo',
+    cDrive: 'Ổ', cName: 'Tên', cFs: 'Hệ tệp', cSize: 'Tổng GB', cFree: 'Trống GB', cPct: 'Trống %', cMod: 'Sửa lần cuối', cPath: 'Đường dẫn', cOn: 'Đang bật', cHive: 'Phạm vi', cCmd: 'Lệnh', cPub: 'Nhà phát hành', cInst: 'Ngày cài', cCount: 'Số lần', cSrc: 'Nguồn, mã', cItem: 'Mục', cCloud: 'Chỉ trên cloud', cDone: 'Đo xong', dec: ',' , locale: 'vi-VN' },
+  en: { title: 'PC report', none: 'No audit data yet', none2: 'Run audit.ps1 first, then build the report again.', pc: 'This PC', ram: 'GB RAM', at: 'Checked at',
+    k1: 'Other data on the system drive', k2: 'Junk and caches you can clean', k3: 'Personal data, listed only', k4: 'Drag to rotate, hover to see names',
+    where: 'What is taking up space', state: 'Machine status', ba: 'Before and after', props: 'Proposals', details: 'Details',
+    foot: 'Made by the syrin-clean skill from read-only data on this machine. Nothing was sent anywhere.',
+    found: 'Junk and caches found (personal data not included). This is measured size; not all of it should be deleted.', nothing: 'No group of 0.1 GB or more was found.',
+    drive: 'Drive {d}: free', commit: 'Committed memory', free: 'free', startup: 'Apps that start with Windows', items: 'items', errors: 'Critical errors, 7 days', times: 'times',
+    defOn: 'On', defOff: 'Real-time protection off', reboot: 'Restart pending', yes: 'Yes', no: 'No', bin: 'Recycle Bin', rp: 'Latest Restore Point', rpNone: 'None found', up: 'Running continuously', hours: 'hours',
+    freed: 'Freed', left: 'Junk left', apps: 'Startup apps', empty: 'No data.',
+    dVol: 'Drives', dHealth: 'Physical disk health', dLarge: 'Largest files in your folders', dStart: 'Apps that start with Windows', dApps: 'Largest programs', dEv: 'Errors in the 7-day log', dAll: 'Every location measured',
+    cDrive: 'Drive', cName: 'Name', cFs: 'File system', cSize: 'Size GB', cFree: 'Free GB', cPct: 'Free %', cMod: 'Last modified', cPath: 'Path', cOn: 'Enabled', cHive: 'Scope', cCmd: 'Command', cPub: 'Publisher', cInst: 'Installed', cCount: 'Count', cSrc: 'Source, ID', cItem: 'Item', cCloud: 'Cloud only', cDone: 'Complete', dec: '.', locale: 'en-US' }
+};
+var T = L[LANG] || L.vi;
+document.getElementById('root').lang = LANG === 'en' ? 'en' : 'vi';
+Array.prototype.forEach.call(document.querySelectorAll('[data-t]'), function (e) { e.textContent = T[e.getAttribute('data-t')] || ''; });
+var A = /*__AUDIT__*/null;
+var BASE = /*__BASELINE__*/null;
+var PR = /*__PROPOSALS__*/null;
+(function () {
+  function $(id) { return document.getElementById(id); }
+  function arr(x) { return Array.isArray(x) ? x : (x == null ? [] : [x]); }
+  function first(x) { return arr(x)[0] || {}; }
+  function num(v) { var n = parseFloat(v); return isFinite(n) ? n : 0; }
+  function gb(v) { var n = num(v); return (n >= 100 ? n.toFixed(0) : n.toFixed(1)).replace('.', T.dec) + ' GB'; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function dt(v) { if (v == null) return ''; var m = /Date\((-?\d+)/.exec(String(v)); var d = m ? new Date(+m[1]) : new Date(v); return isNaN(d) ? String(v) : d.toLocaleString(T.locale); }
+  if (!A) { $('machine').textContent = T.none; $('sub').textContent = T.none2; return; }
+  var sys = first(A.system), meta = first(A.meta), mem = first(A.memory);
+  $('machine').textContent = (sys.MakerModel || T.pc).trim();
+  $('sub').textContent = [sys.Windows, sys.Version, sys.Edition, sys.Arch, sys.RAM_GB ? String(sys.RAM_GB).replace('.', T.dec) + ' ' + T.ram : '', meta.GeneratedAt ? T.at + ' ' + dt(meta.GeneratedAt) : ''].filter(Boolean).join(' · ');
+  var vols = arr(A.volumes), sd = (meta.OutDir || '').slice(0, 1).toUpperCase();
+  var sv = vols.filter(function (v) { return String(v.DriveLetter).toUpperCase() === 'C'; })[0] || vols[0] || {};
+  var radar = arr(A.radar).filter(function (r) { return num(r.GB) >= 0.1; }).sort(function (a, b) { return num(b.GB) - num(a.GB); });
+  function personal(r) { return /CA NHAN|CHI LIET KE|iPhone|Captures/i.test(r.Item || ''); }
+  var total = radar.reduce(function (s, r) { return s + (personal(r) ? 0 : num(r.GB)); }, 0);
+  $('rt').textContent = gb(total);
+  $('rtn').textContent = radar.length ? T.found : T.nothing;
+  var maxGB = radar.length ? num(radar[0].GB) : 1;
+  var rl = $('rl');
+  radar.forEach(function (r, i) {
+    var li = document.createElement('li'); li.setAttribute('data-i', i);
+    var col = personal(r) ? 'var(--amb)' : 'rgb(255,' + Math.round(88 + 70 * (radar.length > 1 ? i / (radar.length - 1) : 0)) + ',' + Math.round(96 - 20 * (radar.length > 1 ? i / (radar.length - 1) : 0)) + ')';
+    li.innerHTML = '<span class="n">' + esc(r.Item) + '</span><span class="v">' + gb(r.GB) + '</span><span class="b"><i style="width:' + Math.max(2, num(r.GB) / maxGB * 100).toFixed(1) + '%;background:' + col + '"></i></span>';
+    li.title = r.Path || '';
+    li.addEventListener('mouseenter', function () { hl = i; kick(); });
+    li.addEventListener('mouseleave', function () { hl = -1; kick(); });
+    rl.appendChild(li);
+  });
+  /* facts */
+  var fx = [], ev = arr(A.events).reduce(function (s, e) { return s + num(e.Count); }, 0), st = arr(A.startup_run), def = first(A.defender), rb = first(A.recycle_bin), rp = arr(A.restore_points);
+  if (sv.DriveLetter) fx.push([T.drive.replace('{d}', sv.DriveLetter), gb(sv.FreeGB) + ' (' + String(sv.FreePct).replace('.', T.dec) + '%)', num(sv.FreePct) < 10 ? 'bad' : num(sv.FreePct) < 20 ? 'warn' : 'ok']);
+  if (mem.CommitPct != null) fx.push([T.commit, mem.CommitPct + '% · ' + T.free + ' ' + gb(mem.Available_GB), num(mem.CommitPct) > 85 ? 'bad' : num(mem.CommitPct) > 70 ? 'warn' : 'ok']);
+  fx.push([T.startup, st.filter(function (s) { return s.Enabled !== false; }).length + ' ' + T.items, st.length > 12 ? 'warn' : 'ok']);
+  fx.push([T.errors, ev + ' ' + T.times, ev > 50 ? 'warn' : 'ok']);
+  if (def.RealTimeProtectionEnabled != null) fx.push(['Microsoft Defender', def.RealTimeProtectionEnabled ? T.defOn : T.defOff, def.RealTimeProtectionEnabled ? 'ok' : 'warn']);
+  if (sys.PendingReboot != null) fx.push([T.reboot, sys.PendingReboot ? T.yes : T.no, sys.PendingReboot ? 'warn' : 'ok']);
+  if (rb.GB != null) fx.push([T.bin, gb(rb.GB) + ' · ' + (rb.Items || 0) + ' ' + T.items, '']);
+  fx.push([T.rp, rp.length ? dt(rp[rp.length - 1].Created) : T.rpNone, rp.length ? 'ok' : 'warn']);
+  if (sys.Uptime_h != null) fx.push([T.up, String(sys.Uptime_h).replace('.', T.dec) + ' ' + T.hours, num(sys.Uptime_h) > 168 ? 'warn' : '']);
+  $('facts').innerHTML = fx.map(function (f) { return '<div class="fact ' + f[2] + '"><b>' + esc(f[0]) + '</b><span>' + esc(f[1]) + '</span></div>'; }).join('');
+  /* before / after */
+  if (BASE) {
+    var bv = arr(BASE.volumes).filter(function (v) { return String(v.DriveLetter).toUpperCase() === String(sv.DriveLetter).toUpperCase(); })[0] || {};
+    var br = arr(BASE.radar).reduce(function (s, r) { return s + (personal(r) ? 0 : num(r.GB)); }, 0);
+    var items = [[T.drive.replace('{d}', sv.DriveLetter || ''), gb(bv.FreeGB) + ' → ' + gb(sv.FreeGB)], [T.freed, gb(Math.max(0, num(sv.FreeGB) - num(bv.FreeGB)))], [T.left, gb(br) + ' → ' + gb(total)], [T.apps, arr(BASE.startup_run).length + ' → ' + st.length]];
+    $('cmp').innerHTML = items.map(function (x) { return '<div><b>' + esc(x[0]) + '</b><span>' + esc(x[1]) + '</span></div>'; }).join('');
+    $('cmpS').hidden = false;
+  }
+  /* tables */
+  function table(rows, cols, max) {
+    rows = arr(rows); if (!rows.length) return '<p class="empty" style="padding:4px 6px">' + T.empty + '</p>';
+    cols = (cols || Object.keys(rows[0])).map(function (c) { return Array.isArray(c) ? c : [c, c]; });
+    var h = '<div class="ts"><table><thead><tr>' + cols.map(function (c) { return '<th>' + esc(c[1]) + '</th>'; }).join('') + '</tr></thead><tbody>';
+    rows.slice(0, max || 30).forEach(function (r) { h += '<tr>' + cols.map(function (c) { var k = c[0], v = r[k]; var isN = typeof v === 'number'; return '<td' + (isN ? ' class="r"' : '') + '>' + esc(/Date\(/.test(String(v)) ? dt(v) : (isN ? String(v).replace('.', T.dec) : v)) + '</td>'; }).join('') + '</tr>'; });
+    return h + '</tbody></table></div>';
+  }
+  if (PR && arr(PR).length) { $('prop').outerHTML = table(PR, null, 200); $('propS').hidden = false; }
+  var D = [
+    [T.dVol, table(vols, [['DriveLetter', T.cDrive], ['FileSystemLabel', T.cName], ['FileSystem', T.cFs], ['SizeGB', T.cSize], ['FreeGB', T.cFree], ['FreePct', T.cPct]])],
+    [T.dHealth, table(A.disks) + table(A.disk_health)],
+    [T.dLarge, table(A.large_files, [['GB', 'GB'], ['LastWriteTime', T.cMod], ['FullName', T.cPath]])],
+    [T.dStart, table(A.startup_run, [['Name', T.cName], ['Enabled', T.cOn], ['Hive', T.cHive], ['Command', T.cCmd]])],
+    [T.dApps, table(A.apps, [['DisplayName', T.cName], ['EstimatedGB', 'GB'], ['Publisher', T.cPub], ['InstallDate', T.cInst]])],
+    [T.dEv, table(A.events, [['Count', T.cCount], ['Name', T.cSrc]])],
+    [T.dAll, table(A.radar, [['Item', T.cItem], ['GB', 'GB'], ['CloudOnlyGB', T.cCloud], ['Complete', T.cDone], ['Path', T.cPath]], 100)]
+  ];
+  $('det').innerHTML = D.map(function (d) { return '<details><summary>' + esc(d[0]) + '</summary><div>' + d[1] + '</div></details>'; }).join('');
+  /* 3D scene built from the real measurements */
+  var cv = $('c'), ctx = cv.getContext && cv.getContext('2d'), tip = $('tip'), wrap = $('cw');
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var seed = 7; function rnd() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+  function inS(r) { var x, y, z; do { x = rnd() * 2 - 1; y = rnd() * 2 - 1; z = rnd() * 2 - 1; } while (x * x + y * y + z * z > 1); return [x * r, y * r, z * r]; }
+  var pts = [], cl = [], hl = -1, budget = 4200;
+  var used = Math.max(0, num(sv.SizeGB) - num(sv.FreeGB)), other = Math.max(0, used - total);
+  var nOther = Math.min(1800, Math.max(200, Math.round(Math.sqrt(other) * 90)));
+  for (var i = 0; i < nOther; i++) { var q = inS(0.42); pts.push([q[0], q[1], q[2], -1, 0.01 + rnd() * 0.012]); }
+  var gold = 2.399963;
+  radar.forEach(function (r, k) {
+    var t = radar.length > 1 ? k / (radar.length - 1) : 0.5, yy = 1 - 2 * t, rr = Math.sqrt(1 - yy * yy), th = gold * k;
+    var rad = 0.06 + 0.16 * Math.sqrt(num(r.GB) / maxGB), dist = Math.max(1.12, 0.42 + rad + 0.3), c = [Math.cos(th) * rr * dist, yy * dist * 0.82, Math.sin(th) * rr * dist];
+    var hue = radar.length > 1 ? k / (radar.length - 1) : 0; cl.push({ c: c, r: rad, p: personal(r), item: r, col: personal(r) ? '255,196,64' : '255,' + Math.round(88 + 70 * hue) + ',' + Math.round(96 - 20 * hue) });
+    var n = Math.min(700, Math.max(24, Math.round(Math.sqrt(num(r.GB)) * 70)));
+    for (var j = 0; j < n && pts.length < budget + nOther; j++) { var q2 = inS(rad); pts.push([c[0] + q2[0], c[1] + q2[1], c[2] + q2[2], k, 0.011 + rnd() * 0.014]); }
+  });
+  var W = 0, H = 0, dpr = 1, ry = 0.5, rx = 0.32, vel = 0, drag = false, lx = 0, mx = -1, my = -1, raf = 0, proj = [];
+  function size() { dpr = Math.min(window.devicePixelRatio || 1, 2); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; }
+  function P(x, y, z) { var cy = Math.cos(ry), sy = Math.sin(ry), cx = Math.cos(rx), sx = Math.sin(rx); var x1 = x * cy - z * sy, z1 = x * sy + z * cy, y1 = y * cx - z1 * sx, z2 = y * sx + z1 * cx, k = 2.8 / (2.8 + z2), S = Math.min(W, H) * 0.3; return [W / 2 + x1 * S * k, H / 2 - y1 * S * k, z2, k, S]; }
+  function draw() {
+    if (!ctx || !W) return;
+    var out = pts.map(function (p, i) { var q = P(p[0], p[1], p[2]); return [q[0], q[1], q[2], q[3] * q[4] * p[4], p[3]]; });
+    out.sort(function (a, b) { return b[2] - a[2]; });
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+    out.forEach(function (o) {
+      var a = Math.max(0.15, Math.min(1, 0.25 + 0.75 * (1 - (o[2] + 1.3) / 2.6)));
+      var c = o[4] < 0 ? '226,234,229' : cl[o[4]].col;
+      var s = Math.max(1.2, o[3] * (o[4] === hl ? 1.8 : 1));
+      if (hl >= 0 && o[4] !== hl) a *= 0.35;
+      ctx.fillStyle = 'rgba(' + c + ',' + a.toFixed(3) + ')'; ctx.fillRect(o[0] - s / 2, o[1] - s / 2, s, s);
+    });
+    proj = cl.map(function (c) { return P(c.c[0], c.c[1], c.c[2]); });
+    var show = hl;
+    if (show < 0 && mx >= 0) { var bd = 46; proj.forEach(function (q, i) { var d = Math.hypot(q[0] - mx, q[1] - my); if (d < bd) { bd = d; show = i; } }); }
+    if (show >= 0 && cl[show]) { var q = proj[show], it = cl[show].item; tip.innerHTML = esc(it.Item) + ' · ' + gb(it.GB) + '<small>' + esc(it.Path || '') + '</small>'; tip.style.left = q[0] + 'px'; tip.style.top = q[1] + 'px'; tip.style.opacity = 1; } else tip.style.opacity = 0;
+    Array.prototype.forEach.call(rl.children, function (li, i) { li.classList.toggle('hl', i === show); });
+  }
+  function tick() { raf = 0; if (!reduce && !drag) ry += 0.0025; ry += vel; vel *= 0.92; draw(); if (!reduce || Math.abs(vel) > 0.0005 || drag) raf = requestAnimationFrame(tick); }
+  function kick() { if (!raf) raf = requestAnimationFrame(tick); }
+  if (ctx) {
+    size(); window.addEventListener('resize', function () { size(); kick(); });
+    cv.addEventListener('pointerdown', function (e) { drag = true; lx = e.clientX; try { cv.setPointerCapture(e.pointerId); } catch (x) {} kick(); });
+    cv.addEventListener('pointermove', function (e) { var r = cv.getBoundingClientRect(); mx = e.clientX - r.left; my = e.clientY - r.top; if (drag) { vel += (e.clientX - lx) * 0.002; lx = e.clientX; } kick(); });
+    cv.addEventListener('pointerup', function () { drag = false; }); cv.addEventListener('pointercancel', function () { drag = false; });
+    cv.addEventListener('pointerleave', function () { mx = -1; kick(); });
+    kick();
+  }
+})();
+</script>
+</body>
+</html>

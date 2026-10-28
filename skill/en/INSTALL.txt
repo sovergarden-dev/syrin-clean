@@ -1,0 +1,23 @@
+﻿INSTALL THE "syrin-clean" SKILL (Universal v3.6, English instructions)
+==========================================================================
+
+OPTION 1 - Let your agent install it (easiest, no typing commands):
+  Send your agent:
+  "Install the skill from this zip: <path to the .zip>. Extract it to a temporary folder, then run install.ps1 inside it with: powershell -NoProfile -ExecutionPolicy Bypass -File install.ps1. Tell me when done."
+
+OPTION 2 - Copy the folder yourself:
+  Extract the zip and copy the whole "syrin-clean" folder into:
+    - Claude Code:                                 %USERPROFILE%\.claude\skills\
+    - Codex, GitHub Copilot, Cursor, Gemini CLI,
+      OpenCode and other Agent Skills agents:      %USERPROFILE%\.agents\skills\
+
+AFTER INSTALLING:
+  1. Start a NEW agent session (skills load when a session starts).
+  2. Allow the agent to run terminal commands. Plug in your laptop.
+  3. Send an opening message, for example: "Use the syrin-clean skill to check, optimise and clean this PC."
+     (The web page builds an opening message from your profile.)
+  4. Read the report, approve in plain words or type "Approve recommended", then type "CONFIRM".
+
+The skill replies in the language you write in, Vietnamese included.
+Check the install: ask your agent "which skills do you have?".
+Your agent has no skill support? Use the .md prompt from the web page.

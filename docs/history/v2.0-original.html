@@ -1,0 +1,843 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Siêu Prompt Tối Ưu & Dọn Dẹp Windows (Universal Edition v2.0)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #f4f6f9;
+        --surface: #ffffff;
+        --surface-2: #eef1f6;
+        --surface-3: #e3e8f0;
+        --ink: #16202e;
+        --ink-soft: #47566b;
+        --line: #d7dee9;
+        --accent: #0067c0;
+        --accent-soft: #e0f0ff;
+        --accent-ink: #ffffff;
+        --code-bg: #0d1522;
+        --code-ink: #dbe7f5;
+        --safe: #1a7f4b;
+        --safe-bg: #e3f4ea;
+        --caution: #9a6200;
+        --caution-bg: #fdf0d3;
+        --never: #b3261e;
+        --never-bg: #fbe7e5;
+        --info: #005fb8;
+        --info-bg: #e5f1fb;
+        --radius: 12px;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0b1119;
+          --surface: #131c29;
+          --surface-2: #1a2637;
+          --surface-3: #223247;
+          --ink: #e6edf6;
+          --ink-soft: #9db0c6;
+          --line: #2a3a50;
+          --accent: #4cc2ff;
+          --accent-soft: #0f2c44;
+          --accent-ink: #06283f;
+          --code-bg: #060b13;
+          --code-ink: #cfe2f5;
+          --safe: #5fd598;
+          --safe-bg: #123524;
+          --caution: #f2c14e;
+          --caution-bg: #3d2f08;
+          --never: #ff8a80;
+          --never-bg: #3d1714;
+          --info: #69b8ff;
+          --info-bg: #102a42;
+        }
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+        font-size: 16px;
+        line-height: 1.65;
+      }
+      .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px 80px; }
+      h1 { font-size: clamp(1.75rem, 4.2vw, 2.55rem); line-height: 1.2; font-weight: 800; margin: 0 0 14px; letter-spacing: -0.015em; }
+      h2 { font-size: 1.38rem; font-weight: 700; margin: 0 0 10px; letter-spacing: -0.01em; }
+      h3 { font-size: 1.05rem; font-weight: 700; margin: 0 0 6px; }
+      p { margin: 0 0 12px; }
+      a { color: var(--accent); text-decoration: none; }
+      a:hover { text-decoration: underline; }
+      .lead { font-size: 1.06rem; color: var(--ink-soft); max-width: 52em; }
+      header.hero { padding: 40px 0 8px; }
+      .badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+      .machine-chip {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: var(--surface-2); border: 1px solid var(--line);
+        border-radius: 999px; padding: 5px 14px; font-size: 0.84rem; font-weight: 600; color: var(--ink-soft);
+      }
+      .machine-chip.primary {
+        background: var(--accent-soft); border-color: var(--accent); color: var(--accent);
+      }
+      .toc {
+        display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; padding: 12px 14px;
+        background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+      }
+      .toc a {
+        font-size: 0.86rem; font-weight: 600; padding: 4px 10px; border-radius: 6px;
+        background: var(--surface-2); color: var(--ink);
+      }
+      .toc a:hover { background: var(--accent); color: var(--accent-ink); text-decoration: none; }
+      section { margin-top: 46px; }
+      .section-note { color: var(--ink-soft); font-size: 0.95rem; max-width: 58em; }
+      
+      /* Principles */
+      .principles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 22px; }
+      .principle { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+      .principle .num { font-family: "JetBrains Mono", monospace; font-size: 0.78rem; color: var(--accent); font-weight: 600; }
+      .principle h3 { margin-top: 6px; font-size: 1rem; }
+      .principle p { color: var(--ink-soft); font-size: 0.9rem; margin: 0; }
+
+      /* Customizer Panel */
+      .customizer {
+        background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+        padding: 18px 20px; margin-top: 18px; margin-bottom: 16px;
+      }
+      .customizer-title { font-weight: 700; font-size: 0.96rem; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+      .customizer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+      .field-group label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--ink-soft); margin-bottom: 5px; }
+      .field-group select, .field-group input {
+        width: 100%; padding: 8px 11px; border-radius: 8px; border: 1px solid var(--line);
+        background: var(--surface-2); color: var(--ink); font-family: inherit; font-size: 0.9rem;
+      }
+
+      /* Prompt box */
+      .prompt-toolbar {
+        display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between;
+        background: var(--surface); border: 1px solid var(--line); border-bottom: none;
+        border-radius: var(--radius) var(--radius) 0 0; padding: 12px 16px;
+      }
+      .prompt-toolbar .label { font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+      .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+      .copy-btn {
+        appearance: none; border: none; cursor: pointer; border-radius: 8px;
+        background: var(--accent); color: var(--accent-ink);
+        font-family: inherit; font-weight: 600; font-size: 0.9rem; padding: 9px 16px;
+        transition: opacity 0.15s ease, transform 0.1s ease;
+      }
+      .copy-btn.secondary {
+        background: var(--surface-2); color: var(--ink); border: 1px solid var(--line);
+      }
+      .copy-btn:hover { opacity: 0.92; }
+      .copy-btn:active { transform: translateY(1px); }
+      .copy-btn.copied { background: var(--safe); color: #fff; border-color: var(--safe); }
+      pre.prompt, pre.code {
+        margin: 0; background: var(--code-bg); color: var(--code-ink);
+        font-family: "JetBrains Mono", Consolas, monospace; font-size: 0.82rem; line-height: 1.62;
+        padding: 20px; overflow-x: auto; white-space: pre-wrap; word-break: break-word;
+      }
+      pre.prompt { border-radius: 0 0 var(--radius) var(--radius); border: 1px solid var(--line); border-top: none; }
+      .code-wrap { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-top: 14px; }
+      .code-wrap pre.code { padding: 16px 18px; }
+      .code-head {
+        display: flex; justify-content: space-between; align-items: center; gap: 10px;
+        background: var(--surface); border-bottom: 1px solid var(--line); padding: 10px 14px; font-size: 0.88rem; font-weight: 600;
+      }
+      .copy-btn.small { padding: 6px 14px; font-size: 0.84rem; }
+
+      /* Tables */
+      .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); margin-top: 14px; }
+      table { border-collapse: collapse; width: 100%; font-size: 0.91rem; }
+      th, td { text-align: left; padding: 11px 14px; vertical-align: top; border-bottom: 1px solid var(--line); }
+      th { background: var(--surface-2); font-weight: 700; white-space: nowrap; }
+      tr:last-child td { border-bottom: none; }
+      td.num, th.num { text-align: right; white-space: nowrap; }
+      .tag { display: inline-block; border-radius: 6px; padding: 2px 9px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
+      .tag.safe { background: var(--safe-bg); color: var(--safe); }
+      .tag.caution { background: var(--caution-bg); color: var(--caution); }
+      .tag.never { background: var(--never-bg); color: var(--never); }
+      .tag.info { background: var(--info-bg); color: var(--info); }
+      .gain-high { color: var(--safe); font-weight: 700; }
+      .gain-none { color: var(--never); font-weight: 700; }
+
+      /* Lists & Callouts */
+      ol.steps { padding-left: 1.3em; margin: 10px 0 0; }
+      ol.steps li { margin-bottom: 9px; }
+      ul.tight { padding-left: 1.3em; margin: 8px 0 0; }
+      ul.tight li { margin-bottom: 7px; }
+      .callout { border: 1px solid var(--line); border-left: 4px solid var(--caution); background: var(--surface); border-radius: 8px; padding: 14px 18px; margin-top: 16px; }
+      .callout.info { border-left-color: var(--accent); }
+      .callout.safe { border-left-color: var(--safe); }
+      .callout p:last-child { margin-bottom: 0; }
+      code.inline { font-family: "JetBrains Mono", monospace; font-size: 0.85em; background: var(--surface-2); border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; }
+      .sources { font-size: 0.89rem; }
+      .sources li { margin-bottom: 6px; word-break: break-word; }
+      footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--ink-soft); font-size: 0.88rem; }
+
+      @media (max-width: 860px) {
+        .principles { grid-template-columns: repeat(2, 1fr); }
+      }
+      @media (max-width: 640px) {
+        .principles { grid-template-columns: 1fr; }
+        th, td { padding: 9px 10px; }
+        .wrap { padding: 0 14px 56px; }
+        .table-scroll { overflow-x: visible; }
+        .table-scroll table, .table-scroll tbody, .table-scroll tr, .table-scroll td { display: block; width: 100%; }
+        .table-scroll thead { display: none; }
+        .table-scroll tr { padding: 10px 12px; border-bottom: 1px solid var(--line); }
+        .table-scroll tr:last-child { border-bottom: none; }
+        .table-scroll td { border-bottom: none; padding: 3px 0; }
+        .table-scroll td.num { text-align: left; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="hero">
+        <div class="badge-row">
+          <span class="machine-chip primary">✦ Universal Edition v2.0 — Tương thích mọi cấu hình Windows 10 &amp; 11</span>
+          <span class="machine-chip">Desktop &amp; Laptop</span>
+          <span class="machine-chip">Intel · AMD · NVIDIA · ARM</span>
+          <span class="machine-chip">NVMe · SATA SSD · HDD</span>
+          <span class="machine-chip">RAM 4 GB → 128 GB+</span>
+        </div>
+        <h1>Siêu Prompt Kiểm Tra, Tối Ưu &amp; Dọn Dẹp Windows — Chuẩn An Toàn Đa Cấu Hình</h1>
+        <p class="lead">
+          Tài liệu và bộ prompt chuyên sâu dành cho AI Agent chạy trực tiếp trên máy tính Windows của bạn
+          (Claude Code, Cursor, Windsurf, Copilot, OpenCode, Gemini CLI, hoặc agent trong terminal).
+          Phiên bản <strong>Universal v2.0</strong> tự động nhận diện loại máy (PC/Laptop, SSD/HDD, mức RAM, CPU/GPU, tác vụ Dev/Game/Văn phòng),
+          <strong>kiểm toán chỉ-đọc chống treo (anti-timeout)</strong>, truy quét cả các ổ rác ngầm hàng chục GB (WSL2/Docker, bộ đệm Dev/AI, Zalo/Telegram/Adobe, Crash Dump)
+          và <strong>chỉ thực thi đúng các mục bạn duyệt đi kèm script hoàn tác tự động</strong>.
+        </p>
+
+        <nav class="toc" aria-label="Mục lục nhanh">
+          <a href="#prompt">1. Siêu Prompt (Copy)</a>
+          <a href="#matrix">2. Ma trận Thích ứng Phần cứng</a>
+          <a href="#deep-bloat">3. Radar Rác Ngầm Khổng Lồ</a>
+          <a href="#causes">4. Xếp hạng Nguyên nhân Máy chậm</a>
+          <a href="#classes">5. Phân loại An toàn / Thận trọng / Cấm</a>
+          <a href="#myths">6. Giải mã Huyền thoại</a>
+          <a href="#commands">7. Bộ lệnh PowerShell v2.0</a>
+          <a href="#sources">8. Nguồn Tham khảo</a>
+        </nav>
+
+        <div class="principles">
+          <div class="principle">
+            <span class="num">NGUYÊN TẮC 01</span>
+            <h3>Tự nhận diện &amp; Thích ứng</h3>
+            <p>Không áp đặt một công thức cứng. Agent tự đo Form Factor (Laptop/PC), mức RAM, bus RAM (XMP/EXPO), loại ổ đĩa và hãng CPU/GPU để đưa ra khuyến nghị chuẩn xác cho đúng phần cứng đó.</p>
+          </div>
+          <div class="principle">
+            <span class="num">NGUYÊN TẮC 02</span>
+            <h3>Đo thật, chống treo Agent</h3>
+            <p>Quét dung lượng thông minh bỏ qua Symlink/Junction và không đệ quy mù quáng vào WinSxS — tránh làm treo terminal mà vẫn bắt trọn 100% ổ rác lớn.</p>
+          </div>
+          <div class="principle">
+            <span class="num">NGUYÊN TẮC 03</span>
+            <h3>Bạn duyệt mới được chạm</h3>
+            <p>Mọi thao tác xóa file, gỡ app, tắt dịch vụ/startup hay chỉnh hệ thống đều nằm trong bảng chờ bạn gõ mã duyệt (VD: <code class="inline">Duyệt: A1, B1-B4</code>). Không có nút "dọn tất cả" mù quáng.</p>
+          </div>
+          <div class="principle">
+            <span class="num">NGUYÊN TẮC 04</span>
+            <h3>Luôn có Script Hoàn tác</h3>
+            <p>Vượt qua giới hạn 24h của Windows để ép tạo System Restore Point mới, xuất bản sao lưu Registry và tự sinh file <code class="inline">Undo-Optimization.ps1</code> để khôi phục 1-click.</p>
+          </div>
+        </div>
+      </header>
+
+      <section id="prompt">
+        <h2>1. Siêu Prompt Universal v2.0 — Sao chép và gửi cho AI Agent trên máy</h2>
+        <p class="section-note">
+          Bạn có thể để nguyên cấu hình <strong>"Tự động phát hiện 100%"</strong> bên dưới (khuyên dùng cho mọi máy), hoặc chọn nhanh hồ sơ ưu tiên để tự động gắn thêm chỉ dẫn riêng vào đầu prompt trước khi bấm <strong>Sao chép prompt</strong>.
+        </p>
+
+        <div class="customizer">
+          <div class="customizer-title">
+            <span>⚙️ Tuỳ chọn ngữ cảnh nhanh (Tùy chọn — Tự động cập nhật vào Prompt bên dưới)</span>
+            <button class="copy-btn secondary small" id="resetCustom" type="button">Đặt lại mặc định</button>
+          </div>
+          <div class="customizer-grid">
+            <div class="field-group">
+              <label for="optRole">Nhu cầu sử dụng chính của máy:</label>
+              <select id="optRole">
+                <option value="auto" selected>Tự động suy luận từ phần mềm đã cài (Mặc định)</option>
+                <option value="gaming">Chơi Game &amp; Giải trí (Ưu tiên FPS, độ trễ thấp, giữ Shader/Save game)</option>
+                <option value="dev">Lập trình, AI &amp; Máy ảo (Kiểm tra kỹ WSL2/Docker, npm/pip/HuggingFace cache)</option>
+                <option value="creator">Đồ họa, Dựng phim &amp; Sáng tạo (Kiểm tra Adobe/CapCut/DaVinci Media Cache)</option>
+                <option value="office">Văn phòng &amp; Học tập (Kiểm tra Zalo/Telegram/Teams/Trình duyệt, ưu tiên ổn định)</option>
+                <option value="lowspec">Máy cấu hình yếu / Laptop cần pin (Ưu tiên giải phóng RAM &amp; tiết kiệm pin)</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="optAggressiveness">Mức độ gợi ý dọn dẹp ổ đĩa:</label>
+              <select id="optAggressiveness">
+                <option value="balanced" selected>Cân bằng — Quét toàn diện, phân tầng An toàn &amp; Thận trọng rõ ràng</option>
+                <option value="conservative">Bảo thủ tối đa — Chỉ gợi ý rác tạm 100% vô hại, giữ mọi bộ đệm nếu ổ còn trống</option>
+                <option value="deep">Truy quét sâu (Ổ đĩa đang báo đỏ) — Tìm mọi file/thư mục &gt;300MB, VHDX, AppData phình to</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label for="optNote">Ghi chú riêng cho Agent (tùy chọn):</label>
+              <input type="text" id="optNote" placeholder="VD: Không đụng vào Docker, giữ nguyên thư mục D:\Projects..." />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="prompt-toolbar">
+            <span class="label">📋 Nội dung Siêu Prompt (Sẵn sàng gửi cho AI Agent)</span>
+            <div class="btn-group">
+              <button class="copy-btn" id="copyPrompt" type="button">Sao chép prompt</button>
+            </div>
+          </div>
+          <pre class="prompt" id="superPrompt"></pre>
+        </div>
+      </section>
+
+      <section id="matrix">
+        <h2>2. Ma trận Thích ứng Phần cứng (Hardware-Agnostic Decision Matrix)</h2>
+        <p class="section-note">
+          Điểm nâng cấp cốt lõi của bản Universal v2.0: Thay vì áp dụng một lời khuyên cố định cho mọi máy, prompt buộc AI Agent phải phân nhánh khuyến nghị dựa trên thông số thực tế đo được ở Giai đoạn 0:
+        </p>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Tiêu chí phát hiện</th>
+                <th>Trường hợp A</th>
+                <th>Trường hợp B</th>
+                <th>Trường hợp C</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Loại máy (Form Factor)</strong><br><code class="inline">Win32_SystemEnclosure</code> / Pin</td>
+                <td><strong>Máy bàn (Desktop - Không pin):</strong><br>Gợi ý thu gọn hoặc tắt Hibernate (<code class="inline">powercfg /hibernate off</code> hoặc <code class="inline">/type reduced</code>) để lấy lại 6–25 GB ổ C:. Chế độ nguồn ưu tiên <em>Balanced</em> hoặc <em>High Performance</em>.</td>
+                <td><strong>Laptop / Handheld PC (Có pin):</strong><br><strong>TUYỆT ĐỐI KHÔNG</strong> tắt Hibernate (tránh mất dữ liệu khi hết pin/gập máy); chỉ gợi ý <code class="inline">/type reduced</code> nếu ổ C: quá chật. Phân tách cấu hình nguồn khi cắm sạc (AC) và dùng pin (DC).</td>
+                <td><strong>Máy ảo (VM / Cloud PC):</strong><br>Bỏ qua kiểm tra nhiệt độ vật lý, SMART, BIOS và Hibernation; tập trung vào tiến trình nền, dịch vụ và thu gọn ổ ảo.</td>
+              </tr>
+              <tr>
+                <td><strong>Dung lượng RAM</strong><br><code class="inline">Win32_PhysicalMemory</code></td>
+                <td><strong>RAM thấp (&le; 8 GB):</strong><br>Khắt khe tối đa với Startup apps, trình duyệt chạy nền (Edge/Chrome Startup Boost), Widget, hiệu ứng trong suốt. Đảm bảo Pagefile = System Managed trên ổ SSD nhanh nhất.</td>
+                <td><strong>RAM tầm trung (12 – 16 GB):</strong><br>Tắt Startup không cần thiết; giữ nguyên SysMain (Superfetch) trên SSD; kiểm tra Memory Compression và Hard Page Faults khi mở đa nhiệm.</td>
+                <td><strong>RAM lớn (&ge; 32 GB):</strong><br>Hiệu ứng hình ảnh và SysMain không gây nghẽn. Tập trung vào <strong>tốc độ Bus RAM thực tế</strong> (kiểm tra xem người dùng có quên bật XMP/DOCP/EXPO trong BIOS không) và dung lượng <code class="inline">hiberfil.sys</code> lớn.</td>
+              </tr>
+              <tr>
+                <td><strong>Loại ổ đĩa hệ thống</strong><br><code class="inline">Get-PhysicalDisk</code></td>
+                <td><strong>NVMe / SATA SSD:</strong><br>Kiểm tra TRIM (<code class="inline">DisableDeleteNotify = 0</code>), giữ trống &ge;15–20% (hoặc &ge;30 GB) để bộ điều khiển SSD thực hiện Garbage Collection &amp; Wear Leveling. Không bao giờ defrag truyền thống.</td>
+                <td><strong>Ổ cơ HDD làm ổ C::</strong><br>Báo động đỏ: đây là nút cổ chai số 1. Kiểm tra mức phân mảnh, giữ SysMain để đệm vào RAM, giảm tối đa các tác vụ ghi log/index ngầm cùng lúc, và khuyên nâng cấp SSD.</td>
+                <td><strong>Thiết lập đa ổ đĩa (C: + D:/E:):</strong><br>Ưu tiên di chuyển thư viện Steam/Epic, biến môi trường cache (HuggingFace/pip/npm), thư mục Video/Capture và WSL2 VHDX từ ổ C: sang ổ phụ thay vì xóa.</td>
+              </tr>
+              <tr>
+                <td><strong>Hệ sinh thái CPU &amp; GPU</strong><br><code class="inline">Win32_Processor</code> / <code class="inline">VideoController</code></td>
+                <td><strong>NVIDIA GPU:</strong><br>Kiểm tra <code class="inline">NVDisplay.Container</code>, dọn gói cài cũ ở <code class="inline">C:\NVIDIA</code> &amp; <code class="inline">Downloader</code>, kiểm tra DXCache/GLCache.</td>
+                <td><strong>AMD Ryzen / Radeon:</strong><br>Kiểm tra gói giải nén thừa ở <code class="inline">C:\AMD</code> (thường chiếm 2–10 GB sau mỗi lần cập nhật Adrenalin), kiểm tra AMD Chipset Driver.</td>
+                <td><strong>Intel Core (Hybrid P/E-core) / iGPU:</strong><br>Với Intel Gen 12+ (P-core + E-core), khuyên dùng Windows 11 + chế độ nguồn <em>Balanced</em> để Thread Director điều phối nhân chuẩn nhất (High Performance cũ có thể làm kẹt xung/sai nhân).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="deep-bloat">
+        <h2>3. Radar Rác Ngầm Khổng Lồ (Những thứ Windows Disk Cleanup bỏ sót)</h2>
+        <p class="section-note">
+          Trên các máy tính hiện đại, nguyên nhân làm ổ C: bay mất 30–200 GB thường không nằm ở <code class="inline">%TEMP%</code> mà nằm ở các kho dữ liệu phình to dưới đây. Siêu Prompt v2.0 yêu cầu Agent quét toàn bộ các vị trí này:
+        </p>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Nhóm đối tượng</th>
+                <th>Vị trí / Thủ phạm ẩn</th>
+                <th>Dung lượng thường gặp</th>
+                <th>Cách xử lý chuẩn an toàn trong Prompt v2.0</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Lập trình, AI &amp; Ảo hóa</strong></td>
+                <td>
+                  • Ổ ảo WSL2 (<code class="inline">ext4.vhdx</code>) &amp; Docker (<code class="inline">docker_data.vhdx</code>)<br>
+                  • Package Cache: <code class="inline">npm-cache</code>, <code class="inline">pnpm-store</code>, <code class="inline">pip</code>, <code class="inline">uv</code>, <code class="inline">NuGet</code>, <code class="inline">Gradle</code>, <code class="inline">Cargo</code><br>
+                  • AI Models: <code class="inline">.cache\huggingface</code>, <code class="inline">.ollama\models</code><br>
+                  • <code class="inline">node_modules</code> / <code class="inline">.venv</code> của project cũ &gt;180 ngày không chạm tới
+                </td>
+                <td class="num"><strong>15 – 150+ GB</strong></td>
+                <td>
+                  • Với VHDX: <strong>Không xóa file!</strong> Dùng lệnh <code class="inline">Optimize-VHD -Mode Full</code> hoặc <code class="inline">diskpart compact vdisk</code> để thu hồi dung lượng trống bên trong ổ ảo mà giữ nguyên 100% dữ liệu.<br>
+                  • Với cache quản lý gói: Dùng lệnh chính chủ (<code class="inline">npm cache clean --force</code>, <code class="inline">pip cache purge</code>, <code class="inline">docker builder prune</code>) sau khi bạn duyệt.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Chat &amp; Văn phòng tại Việt Nam</strong></td>
+                <td>
+                  • <strong>Zalo PC:</strong> <code class="inline">%LOCALAPPDATA%\ZaloPC</code> &amp; <code class="inline">Documents\Zalo Received Files</code><br>
+                  • <strong>Telegram Desktop:</strong> <code class="inline">%APPDATA%\Telegram Desktop\tdata\user_data</code><br>
+                  • <strong>Discord / Spotify / Teams:</strong> Cache media &amp; GPUCache trong <code class="inline">AppData</code>
+                </td>
+                <td class="num"><strong>5 – 60+ GB</strong></td>
+                <td>
+                  • Tách biệt rõ <strong>Cache ảnh/video tự tải lại được</strong> (nhóm Thận trọng — hướng dẫn dọn ngay trong phần Quản lý dữ liệu của Zalo/Telegram để không mất tin nhắn) với <strong>File tài liệu đã nhận</strong> (chỉ liệt kê, không tự xóa).
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Đồ họa, Video &amp; Sáng tạo</strong></td>
+                <td>
+                  • <strong>Adobe Media Cache:</strong> <code class="inline">%APPDATA%\Adobe\Common\Media Cache Files</code> &amp; <code class="inline">Peak Files</code><br>
+                  • <strong>CapCut / DaVinci Resolve:</strong> Cache render &amp; Proxy trong <code class="inline">%LOCALAPPDATA%\CapCut\User Data\Cache</code>
+                </td>
+                <td class="num"><strong>10 – 100+ GB</strong></td>
+                <td>
+                  • Liệt kê dung lượng từng thư mục cache render/proxy. Cảnh báo rõ: xóa khi không có project nào đang mở dở để tránh phải render lại preview.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Game &amp; Bộ cài Driver</strong></td>
+                <td>
+                  • Thư mục giải nén bộ cài <code class="inline">C:\NVIDIA</code>, <code class="inline">C:\AMD</code>, <code class="inline">C:\Intel</code><br>
+                  • Gói tải cũ: <code class="inline">C:\ProgramData\NVIDIA Corporation\Downloader</code><br>
+                  • Tàn dư tải dở: <code class="inline">steamapps\downloading</code>, <code class="inline">steamapps\temp</code><br>
+                  • Quay màn hình quên xóa: <code class="inline">Videos\Captures</code>, NVIDIA ShadowPlay / OBS
+                </td>
+                <td class="num"><strong>5 – 80+ GB</strong></td>
+                <td>
+                  • Bộ giải nén <code class="inline">C:\NVIDIA</code> và <code class="inline">C:\AMD</code> là rác tạm sau khi cài driver xong → thuộc nhóm <strong>An toàn</strong>.<br>
+                  • Video quay màn hình (<code class="inline">Videos\Captures</code>) thuộc dữ liệu cá nhân → chỉ liệt kê top file nặng để bạn tự chọn xóa hoặc chép sang ổ khác.
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Hệ thống &amp; Báo cáo lỗi (Crash Dumps)</strong></td>
+                <td>
+                  • <code class="inline">C:\Windows\MEMORY.DMP</code>, <code class="inline">C:\Windows\Minidump</code><br>
+                  • <code class="inline">C:\Windows\LiveKernelReports</code><br>
+                  • <code class="inline">%LOCALAPPDATA%\CrashDumps</code> &amp; <code class="inline">ProgramData\Microsoft\Windows\WER</code>
+                </td>
+                <td class="num"><strong>1 – 35+ GB</strong></td>
+                <td>
+                  • Kiểm tra ngày tạo file Dump trước: nếu mới sinh ra trong 7 ngày qua, Agent dùng nó để chẩn đoán lỗi BSOD/Crash trước, sau đó mới đưa vào danh sách dọn dẹp!
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="causes">
+        <h2>4. Vì sao máy chậm? — Thứ tự chẩn đoán chuẩn trên mọi cấu hình</h2>
+        <p class="section-note">
+          Dựa trên tài liệu hiệu năng chính thức của Microsoft và thực tế kỹ thuật hệ thống, Agent được lập trình để kiểm tra các nguyên nhân theo thứ tự tác động thực tế cao nhất:
+        </p>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th class="num">#</th><th>Nguyên nhân gốc rễ</th><th>Cách Agent phát hiện bằng số liệu (Giai đoạn 0)</th><th>Hiệu quả thực tế sau khi xử lý</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="num">1</td>
+                <td><strong>Quá tải App khởi động, Dịch vụ ngoài &amp; Tác vụ chạy nền</strong><br>(Launcher, Updater, Chat, Trình duyệt chạy ngầm, Overlay)</td>
+                <td>Đếm số mục trong Startup (Registry Run + Startup Folder + Task Scheduler Logon) và tổng RAM/CPU bị chiếm ngay sau khi đăng nhập.</td>
+                <td><span class="gain-high">Rất cao</span> trên mọi máy (đặc biệt máy &le;16 GB RAM). Tắt (Disable) hoàn tác được 100%.</td>
+              </tr>
+              <tr>
+                <td class="num">2</td>
+                <td><strong>Nghẽn ổ đĩa hệ thống (HDD làm ổ C: hoặc SSD bị đầy &gt;85–90%)</strong></td>
+                <td>Đo <code class="inline">MediaType</code>, % dung lượng trống ổ C:, độ trễ đọc/ghi (<code class="inline">Avg. Disk sec/Transfer</code>) và hàng đợi đĩa.</td>
+                <td><span class="gain-high">Rất cao</span> nếu ổ C: đang đỏ hoặc là HDD. Giải phóng về ngưỡng &ge;15–20% (hoặc &ge;30 GB) giúp SSD phục hồi tốc độ ghi.</td>
+              </tr>
+              <tr>
+                <td class="num">3</td>
+                <td><strong>Một tiến trình "nổi loạn", rò rỉ bộ nhớ (Memory Leak) hoặc lỗi hệ thống lặp lại</strong></td>
+                <td>Chụp Top 10 tiến trình theo CPU / Working Set / Commit Size / IOPS đĩa + Quét <strong>Windows Event Viewer</strong> (System/Application Critical &amp; Error trong 7 ngày).</td>
+                <td><span class="gain-high">Cao</span> — bắt trúng thủ phạm gây giật cục thay vì tối ưu mù quáng.</td>
+              </tr>
+              <tr>
+                <td class="num">4</td>
+                <td><strong>Quá nhiệt (Thermal Throttling) hoặc giới hạn nguồn điện (Power Limit / Power Saver)</strong></td>
+                <td>Kiểm tra cảm biến nhiệt độ, xung nhịp thực tế của CPU so với Base/Boost clock, và Power Plan hiện tại (tránh kẹt ở <em>Power Saver</em> hoặc xung nhịp thấp).</td>
+                <td><span class="gain-high">Cao</span> nếu đang bị bóp xung do nhiệt hoặc sai Power Plan.</td>
+              </tr>
+              <tr>
+                <td class="num">5</td>
+                <td><strong>Cấu hình phần cứng chạy dưới sức (RAM chưa bật XMP/EXPO, GPU chạy sai card, Driver lỗi)</strong></td>
+                <td>So sánh <code class="inline">ConfiguredClockSpeed</code> của RAM (VD: đang chạy 2133/4800 MHz thay vì 3200/6000 MHz), kiểm tra phiên bản Driver GPU/Chipset và trạng thái HAGS.</td>
+                <td><span class="gain-high">Trung bình – Cao</span> (Bật XMP/EXPO trong BIOS hoặc sửa đúng GPU rời cho app/game tăng 10–30% hiệu năng).</td>
+              </tr>
+              <tr>
+                <td class="num">6</td>
+                <td><strong>Thiếu RAM vật lý dẫn đến tràn sang Pagefile (Swapping liên tục)</strong></td>
+                <td>Đo tỷ lệ Commit Charge / Tổng RAM và chỉ số <code class="inline">Memory\Pages/sec</code> (Hard Page Faults).</td>
+                <td><span class="gain-high">Cao</span> trên máy 4–8 GB RAM (hoặc 16 GB mở nhiều tab/IDE). Xử lý bằng cách giảm app nền + tối ưu Pagefile trên SSD nhanh nhất.</td>
+              </tr>
+              <tr>
+                <td class="num">7</td>
+                <td><strong>Tồn đọng Windows Update, lỗi file hệ thống (SFC/DISM) hoặc Search Indexer bị kẹt</strong></td>
+                <td>Kiểm tra cờ <code class="inline">PendingReboot</code>, lịch sử Windows Update lỗi, kích thước <code class="inline">Windows.edb</code> của Search Indexer và <code class="inline">DISM /CheckHealth</code>.</td>
+                <td><strong>Trung bình – Cao</strong> về độ ổn định, hết tình trạng quạt rú ngầm vô cớ.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="classes">
+        <h2>5. Phân loại: An toàn / Thận trọng / Tuyệt đối không đụng</h2>
+        <p class="section-note">Bảng quy chuẩn an toàn được nhúng trực tiếp vào luật cứng của Prompt v2.0:</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Hạng mục can thiệp</th><th>Phân loại</th><th>Quy tắc xử lý trong Prompt v2.0</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>File tạm <code class="inline">%TEMP%</code>, <code class="inline">C:\Windows\Temp</code> (bỏ qua file đang mở trong 24h hoặc đang khóa)</td>
+                <td><span class="tag safe">Nhóm A/B — An toàn</span></td>
+                <td>Tự tái tạo khi cần, không chứa dữ liệu người dùng.</td>
+              </tr>
+              <tr>
+                <td>Delivery Optimization, Thumbnail Cache, DirectX Shader Cache, Cache trình duyệt (chỉ Cache)</td>
+                <td><span class="tag safe">Nhóm B — An toàn</span></td>
+                <td>Tự dựng lại. Riêng Shader Cache có ghi chú: game có thể biên dịch lại shader ở lần mở đầu tiên.</td>
+              </tr>
+              <tr>
+                <td>Thư mục bộ cài giải nén thừa: <code class="inline">C:\NVIDIA</code>, <code class="inline">C:\AMD</code>, <code class="inline">C:\SWSetup</code>, <code class="inline">C:\Drivers</code></td>
+                <td><span class="tag safe">Nhóm B — An toàn</span></td>
+                <td>Chỉ là bản giải nén tạm khi cài driver, xóa đi giải phóng 2–15 GB mà không ảnh hưởng driver đang chạy.</td>
+              </tr>
+              <tr>
+                <td>Thu gọn ổ ảo WSL2 / Docker (<code class="inline">Optimize-VHD</code> / <code class="inline">compact vdisk</code>)</td>
+                <td><span class="tag safe">Nhóm B — An toàn</span></td>
+                <td>Chỉ thu hồi vùng trống đã xóa bên trong file <code class="inline">.vhdx</code>, không làm mất bất kỳ file hay container nào.</td>
+              </tr>
+              <tr>
+                <td>Tắt (Disable) app khởi động cùng Windows &amp; tác vụ Updater không thiết yếu</td>
+                <td><span class="tag safe">Nhóm A — An toàn</span></td>
+                <td>Chỉ Disable (không Delete/Uninstall), hoàn tác lại bằng 1 lệnh hoặc 1 cú click.</td>
+              </tr>
+              <tr>
+                <td>Bộ đệm lập trình (<code class="inline">npm</code>, <code class="inline">pip</code>, <code class="inline">uv</code>, <code class="inline">NuGet</code>, <code class="inline">Gradle</code>, <code class="inline">Cargo</code>)</td>
+                <td><span class="tag safe">Nhóm B — An toàn</span></td>
+                <td>Dùng lệnh purge chính thức của từng công cụ; chỉ phải tải lại gói khi build project mới.</td>
+              </tr>
+              <tr>
+                <td><code class="inline">Windows.old</code>, <code class="inline">Windows Update Cleanup</code> (<code class="inline">StartComponentCleanup</code>)</td>
+                <td><span class="tag caution">Nhóm C — Thận trọng</span></td>
+                <td>Giải phóng 5–35 GB nhưng mất khả năng quay về bản Windows/Update cũ. Chỉ gợi ý khi máy đang chạy ổn định.</td>
+              </tr>
+              <tr>
+                <td>Dọn Thùng rác (Recycle Bin), thư mục <code class="inline">Downloads</code>, <code class="inline">Videos\Captures</code></td>
+                <td><span class="tag caution">Nhóm C — Thận trọng</span></td>
+                <td>Phải liệt kê Top 10–20 file lớn nhất kèm ngày sửa để bạn duyệt đích danh từng mục.</td>
+              </tr>
+              <tr>
+                <td>Cache ứng dụng nhắn tin &amp; đồ họa (Zalo, Telegram, Adobe Media Cache, CapCut)</td>
+                <td><span class="tag caution">Nhóm C — Thận trọng</span></td>
+                <td>Đo dung lượng thật và hướng dẫn dọn qua công cụ nội bộ của app hoặc xóa thư mục cache media khi đã đóng app.</td>
+              </tr>
+              <tr>
+                <td>Tùy chỉnh <code class="inline">hiberfil.sys</code> (<code class="inline">/type reduced</code> hoặc <code class="inline">/hibernate off</code>)</td>
+                <td><span class="tag caution">Nhóm C — Thận trọng</span></td>
+                <td>Tự động phân nhánh: chỉ gợi ý <code class="inline">off</code> trên Desktop không dùng Hibernate; trên Laptop chỉ cho phép giữ nguyên hoặc <code class="inline">reduced</code>.</td>
+              </tr>
+              <tr>
+                <td>Cập nhật Driver (GPU/Chipset) &amp; Tinh chỉnh Pagefile / Restore Point Max Size</td>
+                <td><span class="tag caution">Nhóm C — Thận trọng</span></td>
+                <td>Chỉ dùng nguồn chính hãng (Windows Update, NVIDIA, AMD, Intel, OEM); tạo Restore Point trước khi làm.</td>
+              </tr>
+              <tr>
+                <td>Xóa tay <code class="inline">System32</code>, <code class="inline">WinSxS</code>, <code class="inline">DriverStore</code>, <code class="inline">C:\Windows\Installer</code>, phân vùng EFI/Recovery</td>
+                <td><span class="tag never">Nhóm D — Cấm tuyệt đối</span></td>
+                <td>Làm hỏng Windows, mất khả năng gỡ/cập nhật phần mềm MSI hoặc mất khả năng khởi động.</td>
+              </tr>
+              <tr>
+                <td>Xóa toàn bộ <code class="inline">AppData</code>, Save Game, Cookie/Mật khẩu trình duyệt, SSH/GPG Keys (<code class="inline">.ssh</code>), <code class="inline">.env</code></td>
+                <td><span class="tag never">Nhóm D — Cấm tuyệt đối</span></td>
+                <td>Mất dữ liệu cá nhân, mất tài khoản, mất khóa bảo mật hoặc mất tiến trình chơi game không thể khôi phục.</td>
+              </tr>
+              <tr>
+                <td>Chạy script debloat từ mạng (<code class="inline">irm ... | iex</code>), phần mềm dọn Registry, RAM Booster, tắt Defender/Windows Update/Firewall</td>
+                <td><span class="tag never">Nhóm D — Cấm tuyệt đối</span></td>
+                <td>Nguy cơ mã độc, lỗi hệ điều hành ngầm sau cập nhật và không mang lại lợi ích hiệu năng thực tế.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="myths">
+        <h2>6. Giải mã các "Huyền thoại Tối ưu Windows"</h2>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Lời đồn phổ biến</th><th>Sự thật kỹ thuật &amp; Cách xử lý trong Prompt v2.0</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>"Xóa thư mục <code class="inline">C:\Windows\Prefetch</code> giúp máy nhanh hơn"</td>
+                <td><span class="gain-none">Sai — làm chậm lần mở app tiếp theo.</span> Prefetch lưu bản đồ đọc trước của ứng dụng, tự giới hạn 1.024 file (~15–30 MB). Xóa đi buộc Windows tốn CPU/Disk dựng lại từ đầu.</td>
+              </tr>
+              <tr>
+                <td>"Phải tắt dịch vụ <code class="inline">SysMain</code> (Superfetch) trên mọi máy"</td>
+                <td><span class="gain-none">Không đúng cho đa số máy.</span> SysMain tận dụng RAM trống để nạp sẵn app hay dùng và nhả RAM ngay lập tức khi cần. Chỉ thử tạm dừng (Stop) nếu đo thấy chính tiến trình <code class="inline">SysMain</code> gây 100% Disk kéo dài trên ổ đời cũ.</td>
+              </tr>
+              <tr>
+                <td>"Xóa thư mục <code class="inline">C:\Windows\Installer</code> để lấy lại vài chục GB"</td>
+                <td><span class="gain-none">Cực kỳ nguy hiểm.</span> Dù thư mục này có thể nặng 5–30 GB, việc xóa tay sẽ làm các phần mềm cài bằng MSI (Office, Visual Studio, Adobe, v.v.) không thể cập nhật hoặc gỡ cài đặt được nữa.</td>
+              </tr>
+              <tr>
+                <td>"Dọn Registry hằng tuần giúp Windows mượt hơn"</td>
+                <td><span class="gain-none">Huyền thoại + Rủi ro cao.</span> Các khóa Registry mồ côi chỉ nặng vài KB và Windows không quét toàn bộ Registry vào RAM theo cách làm chậm máy. Xóa nhầm khóa COM/Shell/Driver có thể gây lỗi app hoặc màn hình xanh.</td>
+              </tr>
+              <tr>
+                <td>"Tắt Pagefile (đặt = 0) khi máy có 16–32 GB RAM trở lên"</td>
+                <td><span class="gain-none">Sai lầm.</span> Nhiều game, trình biên dịch, công cụ AI và cả hệ thống ghi Crash Dump của Windows yêu cầu Commit Charge qua Pagefile ngay cả khi RAM vật lý còn trống. Đặt Pagefile = 0 dễ gây văng app (Out of Memory) đột ngột.</td>
+              </tr>
+              <tr>
+                <td>"Dùng lệnh <code class="inline">Get-CimInstance Win32_Product</code> để liệt kê phần mềm"</td>
+                <td><span class="gain-none">Bẫy kỹ thuật kinh điển.</span> Truy vấn lớp WMI <code class="inline">Win32_Product</code> kích hoạt Windows Installer kiểm tra tính toàn vẹn và tự sửa chữa (self-repair) lại toàn bộ gói MSI trên máy — vừa cực chậm vừa có thể làm hỏng cấu hình app.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="commands">
+        <h2>7. Bộ lệnh PowerShell Kiểm toán Chỉ-Đọc v2.0 (Chống treo, Chống lặp Symlink)</h2>
+        <p class="section-note">
+          Nếu bạn muốn tự chạy kiểm tra nhanh trên PowerShell trước khi dùng Agent, bộ lệnh v2.0 dưới đây đã được tối ưu hóa để <strong>chạy xong trong vài giây</strong> (không bị kẹt ở <code class="inline">WinSxS</code> hay vòng lặp Symbolic Link như các lệnh đệ quy thông thường):
+        </p>
+        <div class="code-wrap">
+          <div class="code-head">
+            <span>PowerShell — Kiểm toán Hệ thống &amp; Dung lượng Nhanh (100% Read-Only)</span>
+            <button class="copy-btn small" id="copyCmds" type="button">Sao chép bộ lệnh</button>
+          </div>
+          <pre class="code" id="auditCmds"># 1. Kiểm tra quyền Admin, Loại máy (Desktop/Laptop), CPU, RAM (kèm tốc độ Bus thực tế) &amp; GPU
+$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+Write-Host "Dang chay quyen Admin: $isAdmin" -ForegroundColor Cyan
+Get-CimInstance Win32_ComputerSystem | Select-Object Manufacturer, Model, PCSystemType, @{n='TotalRAM_GB';e={[math]::Round($_.TotalPhysicalMemory/1GB,1)}}
+Get-CimInstance Win32_PhysicalMemory | Select-Object BankLabel, @{n='SizeGB';e={$_.Capacity/1GB}}, Speed, ConfiguredClockSpeed
+Get-CimInstance Win32_Processor | Select-Object Name, NumberOfCores, NumberOfLogicalProcessors, MaxClockSpeed
+Get-CimInstance Win32_VideoController | Select-Object Name, DriverVersion, DriverDate
+
+# 2. Kiểm tra Ổ đĩa vật lý (SSD/HDD/NVMe, Sức khỏe) &amp; Dung lượng trống các phân vùng
+Get-PhysicalDisk | Select-Object FriendlyName, MediaType, BusType, HealthStatus, @{n='SizeGB';e={[math]::Round($_.Size/1GB,1)}}
+Get-CimInstance Win32_LogicalDisk -Filter "DriveType=3" | Select-Object DeviceID, VolumeName,
+  @{n='SizeGB';e={[math]::Round($_.Size/1GB,1)}},
+  @{n='FreeGB';e={[math]::Round($_.FreeSpace/1GB,1)}},
+  @{n='FreePct';e={[math]::Round(($_.FreeSpace/$_.Size)*100,1)}}
+
+# 3. Quét nhanh các "Kho Rác &amp; Bộ Đệm Ẩn" phổ biến (Chống lặp ReparsePoint/Symlink)
+$radarPaths = @{
+  "User_Temp"          = "$env:TEMP"
+  "Windows_Temp"       = "C:\Windows\Temp"
+  "SoftwareDist_DL"    = "C:\Windows\SoftwareDistribution\Download"
+  "NVIDIA_D3DCache"    = "$env:LOCALAPPDATA\NVIDIA\DXCache"
+  "AMD_DxCache"        = "$env:LOCALAPPDATA\AMD\DxCache"
+  "NVIDIA_Extracted"   = "C:\NVIDIA"
+  "AMD_Extracted"      = "C:\AMD"
+  "CrashDumps_Local"   = "$env:LOCALAPPDATA\CrashDumps"
+  "Windows_Minidump"   = "C:\Windows\Minidump"
+  "Windows_Old"        = "C:\Windows.old"
+  "Zalo_AppData"       = "$env:LOCALAPPDATA\ZaloPC"
+  "Telegram_Data"      = "$env:APPDATA\Telegram Desktop\tdata"
+  "Adobe_MediaCache"   = "$env:APPDATA\Adobe\Common\Media Cache Files"
+  "CapCut_Cache"       = "$env:LOCALAPPDATA\CapCut\User Data\Cache"
+  "NPM_Cache"          = "$env:LOCALAPPDATA\npm-cache"
+  "Pip_Cache"          = "$env:LOCALAPPDATA\pip\Cache"
+  "HuggingFace_Cache"  = "$env:USERPROFILE\.cache\huggingface"
+  "Docker_WSL_Data"    = "$env:LOCALAPPDATA\Docker\wsl"
+}
+$radarPaths.GetEnumerator() | ForEach-Object {
+  if (Test-Path $_.Value) {
+    $bytes = (Get-ChildItem $_.Value -Recurse -Force -File -Attributes !ReparsePoint -ErrorAction SilentlyContinue | Measure-Object Length -Sum).Sum
+    if ($bytes -gt 10MB) {
+      [PSCustomObject]@{ Category = $_.Key; Path = $_.Value; Size_GB = [math]::Round($bytes/1GB, 2); Size_MB = [math]::Round($bytes/1MB, 0) }
+    }
+  }
+} | Sort-Object Size_GB -Descending | Format-Table -AutoSize
+
+# 4. Tìm mọi file ổ ảo (.vhdx của WSL2/Docker/Hyper-V) và file lớn nhất (&gt;500MB) trong User Profile
+Get-ChildItem $env:USERPROFILE -Recurse -Force -File -Attributes !ReparsePoint -ErrorAction SilentlyContinue |
+  Where-Object { $_.Length -gt 500MB -or $_.Extension -eq '.vhdx' } |
+  Sort-Object Length -Descending | Select-Object -First 25 FullName, @{n='SizeGB';e={[math]::Round($_.Length/1GB,2)}}, LastWriteTime
+
+# 5. Liệt kê Top 25 Phần mềm chiếm dung lượng lớn nhất (Đọc trực tiếp từ Registry Uninstall — cực nhanh &amp; an toàn)
+$uninstallPaths = @(
+  'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*',
+  'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*',
+  'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*'
+)
+Get-ItemProperty $uninstallPaths -ErrorAction SilentlyContinue |
+  Where-Object { $_.DisplayName -and $_.EstimatedSize } |
+  Select-Object DisplayName, DisplayVersion, Publisher, InstallDate, @{n='EstimatedGB';e={[math]::Round($_.EstimatedSize/1MB, 2)}} |
+  Sort-Object EstimatedGB -Descending | Select-Object -First 25 | Format-Table -AutoSize</pre>
+        </div>
+      </section>
+
+      <section id="sources">
+        <h2>8. Nguồn tham khảo &amp; Kiểm chứng kỹ thuật</h2>
+        <ul class="sources tight">
+          <li>Microsoft Support — <em>Tips to improve PC performance in Windows</em>: <a href="https://support.microsoft.com/en-us/windows/tips-to-improve-pc-performance-in-windows-b3b3ef5b-5953-fb6a-2528-4bbed82fba96" target="_blank" rel="noopener">support.microsoft.com</a></li>
+          <li>Microsoft Learn — <em>Clean up the WinSxS Folder (DISM StartComponentCleanup)</em>: <a href="https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/clean-up-the-winsxs-folder" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+          <li>Microsoft Learn — <em>Win32_Product Class Warning (MSI Self-Repair)</em>: <a href="https://learn.microsoft.com/en-us/troubleshoot/windows-server/admin-development/windows-installer-reconfigured-all-applications" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+          <li>Microsoft Learn — <em>Checkpoint-Computer &amp; SystemRestorePointCreationFrequency</em>: <a href="https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/checkpoint-computer" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+          <li>Microsoft Learn — <em>Optimize-VHD (Compact WSL2 / Hyper-V Virtual Disks)</em>: <a href="https://learn.microsoft.com/en-us/powershell/module/hyper-v/optimize-vhd" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+          <li>Microsoft Sysinternals — <em>Autoruns for Windows</em>: <a href="https://learn.microsoft.com/en-us/sysinternals/downloads/autoruns" target="_blank" rel="noopener">learn.microsoft.com</a></li>
+          <li>Windows Latest — <em>Why deleting Prefetch or disabling SysMain blindly can slow down Windows 11</em>: <a href="https://www.windowslatest.com/2026/10/26/microsoft-explains-why-deleting-prefetch-can-slow-down-windows-11-as-its-designed-to-speed-up-app-launches/" target="_blank" rel="noopener">windowslatest.com</a></li>
+        </ul>
+      </section>
+
+      <footer>
+        Phiên bản <strong>Universal Edition v2.0</strong> — Thiết kế mở rộng tương thích mọi cấu hình Windows 10/11 (Desktop, Laptop, SSD/HDD, Gaming/Dev/Văn phòng). Toàn bộ hành động của AI Agent được kiểm soát qua cơ chế 3 giai đoạn: Kiểm toán chỉ đọc &rarr; Bảng chờ duyệt từng mục &rarr; Thực thi kèm Script hoàn tác.
+      </footer>
+    </div>
+
+    <script>
+      var basePromptTemplate = [
+        "Bạn là Kỹ sư Hệ thống & Chuyên gia Tối ưu hóa Windows cấp cao (Principal Windows Systems Engineer), làm việc trực tiếp trên máy tính của tôi thông qua terminal/shell.",
+        "Nhiệm vụ của bạn: Tự động nhận diện chính xác cấu hình phần cứng & thói quen sử dụng của máy này, kiểm tra toàn diện nguyên nhân gây chậm/nghẽn (nếu có), truy quét mọi thứ rác / bộ đệm ẩn / ứng dụng & dữ liệu ít dùng để tôi chọn dọn dẹp giải phóng ổ đĩa, và tối ưu hệ thống chạy nhanh, mượt, ổn định nhất theo quy trình an toàn tuyệt đối dưới đây.",
+        "",
+        "__CUSTOM_CONTEXT__",
+        "=== PHẦN 1: 9 QUY TẮC CỨNG (VI PHẠM BẤT KỲ ĐIỀU NÀO -> DỪNG NGAY VÀ HỎI TÔI) ===",
+        "1. GIAI ĐOẠN 0 LÀ KIỂM TOÁN CHỈ-ĐỌC 100% (READ-ONLY AUDIT): Tuyệt đối KHÔNG xóa bất kỳ file nào, KHÔNG gỡ app, KHÔNG tắt/bật dịch vụ, KHÔNG sửa Registry, KHÔNG đổi cài đặt hệ thống cho đến khi bạn trình bày xong bảng đề xuất ở Giai đoạn 1 và được tôi duyệt đích danh từng mã mục.",
+        "2. KHÔNG GIẢ ĐỊNH CẤU HÌNH TRƯỚC: Bạn phải tự phát hiện máy này là Desktop hay Laptop (có pin hay không), Windows 10 hay 11 (phiên bản/build), dung lượng & tốc độ Bus RAM thực tế, loại ổ đĩa (NVMe/SATA SSD hay HDD), CPU/GPU của hãng nào (Intel/AMD/NVIDIA/ARM) để áp dụng đúng nhánh tối ưu tương ứng.",
+        "3. CHỐNG TREO TERMINAL (ANTI-TIMEOUT): Khi quét dung lượng bằng PowerShell, TUYỆT ĐỐI KHÔNG chạy `Get-ChildItem C:\\ -Recurse` mù quáng vào `C:\\Windows\\WinSxS` và BẮT BUỘC dùng cờ `-Attributes !ReparsePoint` để tránh vòng lặp vô tận ở Symbolic Link / Junction Point. Đặt timeout hợp lý và quét có mục tiêu.",
+        "4. CẤM DÙNG `Win32_Product`: Không bao giờ chạy `Get-CimInstance Win32_Product` hay `Get-WmiObject Win32_Product` (vì nó kích hoạt Windows Installer tự cấu hình lại toàn bộ gói MSI trên máy). Chỉ đọc danh sách phần mềm qua Registry `Uninstall` (64-bit, WOW6432Node 32-bit, HKCU) và `winget list`.",
+        "5. DANH SÁCH CẤM ĐỤNG TUYỆT ĐỐI (NEVER-TOUCH): Không bao giờ chạy script tải từ mạng (`irm ... | iex`); không cài phần mềm debloat / dọn registry / RAM booster / driver updater bên thứ ba; không xóa tay `C:\\Windows\\System32`, `C:\\Windows\\WinSxS`, `DriverStore`, `C:\\Windows\\Installer`, phân vùng EFI/Recovery; không xóa toàn bộ `AppData`; không xóa `Prefetch`; không đặt `Pagefile = 0`; không tắt Windows Update, Microsoft Defender, Windows Firewall, Microsoft Store hay tắt hẳn Windows Search.",
+        "6. BẢO VỆ DỮ LIỆU CÁ NHÂN & ĐẶC THÙ: Tuyệt đối không tự động xóa hay đánh dấu chọn sẵn đối với: `Desktop`, `Documents`, `Downloads`, `Pictures`, `Videos`, Save Game (`Saved Games`, `My Games`, `AppData` của game, `Steam\\userdata`), Cookie/Mật khẩu/Phiên đăng nhập trình duyệt, khóa bảo mật (`.ssh`, `.gnupg`, `.aws`, `.kube`, file `.env`), hoặc dữ liệu máy ảo/container. Các mục lớn ở đây chỉ được LIỆT KÊ để tôi tự quyết định.",
+        "7. LƯỚI AN TOÀN & HOÀN TÁC TỰ ĐỘNG (ROLLBACK-FIRST): Trước khi thực thi bất kỳ thay đổi nào ở Giai đoạn 2, phải: (a) đảm bảo System Protection bật trên ổ C: và tạo được System Restore Point mới (lưu ý: nếu đã có điểm khôi phục trong vòng 24h, Windows sẽ bỏ qua lệnh `Checkpoint-Computer` trừ khi dùng `-RestorePointType MODIFY_SETTINGS` hoặc tạm truyền tham số vượt giới hạn 24h — hãy kiểm tra bằng `Get-ComputerRestorePoint` để chắc chắn điểm mới đã được tạo thật!); (b) xuất file backup các nhánh Registry sắp sửa; (c) tạo sẵn script hoàn tác `Desktop\\Undo-Optimization-[Ngày].ps1` và file nhật ký `Desktop\\PC-Cleanup-Log-[Ngày].txt`.",
+        "8. THỰC THI THEO TỪNG NHÓM & KIỂM TRA LẠI: Không dồn mọi thay đổi vào một lệnh duy nhất. Thực thi từng nhóm, kiểm tra lỗi và đo lại dung lượng/trạng thái sau mỗi nhóm.",
+        "9. ĐIỀU KIỆN DỪNG KHẨN CẤP (STOP CONDITIONS): Nếu ổ đĩa báo lỗi SMART (`HealthStatus != Healthy` hoặc có Bad Sector / lỗi WHEA-Logger ổ cứng), nếu ổ C: còn dưới 2 GB mà tôi chưa duyệt mục giải phóng dung lượng nào, hoặc nếu phát hiện dấu hiệu mã độc/ransomware đang hoạt động — hãy dừng tối ưu và cảnh báo ngay cho tôi.",
+        "",
+        "=== GIAI ĐOẠN 0: KIỂM TOÁN CHỈ-ĐỌC TOÀN DIỆN (CHẠY NGAY, KHÔNG SỬA GÌ) ===",
+        "Hãy chạy các lệnh kiểm tra chỉ-đọc trên máy và báo cáo bằng SỐ LIỆU ĐO THẬT 100% theo 7 hạng mục sau:",
+        "1. Tiền kiểm tra Môi trường & Quyền hạn:",
+        "   - Kiểm tra phiên shell hiện tại có quyền Administrator chưa (`WindowsPrincipal`). Nếu chưa có quyền Admin, hãy vẫn chạy tất cả các bước chỉ-đọc không cần Admin, đồng thời liệt kê rõ những thông số nào cần quyền Admin để tôi mở lại terminal nếu muốn.",
+        "   - Kiểm tra thời gian máy chạy liên tục (Uptime từ `LastBootUpTime`) và cờ `PendingReboot` (Windows Update / Component Based Servicing đang chờ khởi động lại).",
+        "2. Hồ sơ Phần cứng & Cấu hình Thích ứng:",
+        "   - Loại máy (Desktop hay Laptop/Battery), Phiên bản/Build Windows (10/11, 23H2/24H2/25H2...).",
+        "   - CPU (Model, số nhân/luồng, tốc độ), GPU (Rời & Tích hợp, phiên bản + ngày phát hành Driver).",
+        "   - RAM: Tổng dung lượng, số thanh, đang dùng bao nhiêu GB, Commit Charge hiện tại, và ĐẶC BIỆT kiểm tra `Speed` vs `ConfiguredClockSpeed` (xem RAM có đang chạy thấp hơn tốc độ thiết kế do chưa bật XMP/DOCP/EXPO trong BIOS không).",
+        "   - Ổ đĩa: Tất cả ổ vật lý (`Get-PhysicalDisk`: Model, NVMe/SATA SSD hay HDD, `HealthStatus`), tất cả phân vùng (`C:`, `D:`... kèm dung lượng tổng, còn trống bao nhiêu GB và %), trạng thái TRIM (`fsutil behavior query DisableDeleteNotify`), dung lượng `pagefile.sys` và `hiberfil.sys`.",
+        "   - Chế độ nguồn (`powercfg /getactivescheme`), Game Mode, HAGS (Hardware-Accelerated GPU Scheduling).",
+        "3. Bằng chứng Nghẽn cổ chai & Nhật ký Lỗi hệ thống:",
+        "   - Top 10 tiến trình ngốn CPU, RAM (Working Set & Private Memory) và I/O Đĩa cao nhất lúc này.",
+        "   - Danh sách toàn bộ ứng dụng khởi động cùng Windows (Registry `Run`/`RunOnce` ở HKCU & HKLM, thư mục `Startup`, và các `Scheduled Tasks` kích hoạt khi Logon/Boot của bên thứ ba).",
+        "   - Quét nhanh Windows Event Viewer trong 7 ngày gần nhất: tìm các lỗi Critical/Error đáng chú ý (Kernel-Power 41, WHEA-Logger phần cứng, Disk/NTFS lỗi, ứng dụng bị Crash lặp lại trong `Application` log).",
+        "4. Truy quét Dung lượng & Radar Rác Ngầm (Deep Storage Audit):",
+        "   - Dung lượng các hạng mục rác hệ thống chuẩn: `%TEMP%`, `C:\\Windows\\Temp`, `SoftwareDistribution\\Download`, `Delivery Optimization`, `Recycle Bin` (Thùng rác), `Windows.old`, `DirectX/NVIDIA/AMD Shader Cache`, `Thumbnails`, `WER` (Windows Error Reporting), `Minidump` / `MEMORY.DMP` / `LiveKernelReports`.",
+        "   - Dung lượng các Bộ cài giải nén thừa: `C:\\NVIDIA`, `C:\\AMD`, `C:\\Intel`, `C:\\SWSetup`, `C:\\Drivers`, `C:\\ProgramData\\NVIDIA Corporation\\Downloader`.",
+        "   - Dung lượng Rác & Bộ đệm theo tác vụ:",
+        "     + Lập trình / AI / Ảo hóa (nếu có): File ổ ảo `.vhdx` của WSL2 / Docker Desktop / Hyper-V, bộ đệm `npm-cache`, `pnpm-store`, `yarn`, `pip`, `uv`, `NuGet`, `Gradle`, `Cargo`, `.cache\\huggingface`, `.ollama`, và các thư mục `node_modules` / `.venv` / `target` của project cũ không sửa đổi trên 180 ngày.",
+        "     + Ứng dụng Chat / Đồ họa / Trình duyệt (nếu có): Cache của Zalo PC (`%LOCALAPPDATA%\\ZaloPC`, `Zalo Received Files`), Telegram Desktop (`tdata`), Discord, Spotify, Teams, Adobe Media Cache / Peak Files, CapCut Cache, và Cache trình duyệt (Chrome/Edge/Brave/Firefox — chỉ đo thư mục Cache/Code Cache/GPUCache, tách biệt hoàn toàn với Cookie/Login Data).",
+        "     + Thư mục người dùng: Tổng dung lượng và Top 15 file lớn nhất (>300 MB) trong `Downloads`, `Desktop`, `Documents`, `Videos\\Captures`.",
+        "   - Danh sách Top 25 ứng dụng/game đã cài chiếm dung lượng lớn nhất (từ Registry Uninstall + thư mục `Program Files` / `SteamLibrary` / `Epic Games`).",
+        "   - Lưu ý khi gắn nhãn 'Ít sử dụng': Báo cáo cả `InstallDate` và `LastWriteTime` (hoặc `LastAccessTime` nếu có), nhưng phải ghi rõ nhãn 'Nghi ít dùng — cần bạn xác nhận' vì Windows không theo dõi hoàn hảo lần chạy cuối của mọi ứng dụng.",
+        "5. Kiểm tra Lưới an toàn hiện có:",
+        "   - Trạng thái System Restore trên ổ C:, dung lượng Shadow Copy (`vssadmin list shadows` / `vssadmin list shadowstorage`), điểm khôi phục gần nhất là ngày nào.",
+        "",
+        "=== GIAI ĐOẠN 1: MA TRẬN THÍCH ỨNG & BẢNG ĐỀ XUẤT ĐỂ TÔI CHỌN ===",
+        "Sau khi báo cáo kết quả Giai đoạn 0, hãy áp dụng quy tắc thích ứng phần cứng:",
+        "- Nếu là LAPTOP (có pin): KHÔNG đề xuất tắt hẳn Hibernate (`/hibernate off`); chỉ đề xuất giữ nguyên hoặc thu gọn (`/type reduced`) nếu ổ C: chật. Tối ưu nguồn tách biệt chế độ Cắm sạc và Dùng pin.",
+        "- Nếu là DESKTOP (không pin): Có thể đề xuất `/hibernate off` hoặc `/type reduced` nếu tôi không dùng Hibernate để lấy lại hàng chục GB.",
+        "- Nếu RAM <= 8 GB: Ưu tiên cắt giảm tối đa app chạy nền, Startup Boost của trình duyệt, Widget và hiệu ứng nặng. Nếu RAM >= 32 GB: Không đổ lỗi cho hiệu ứng hình ảnh hay SysMain; tập trung vào Bus RAM (XMP/EXPO), tiến trình ngầm và dung lượng ổ đĩa.",
+        "- Ngưỡng mục tiêu dung lượng trống ổ C:: Hướng tới giữ trống ít nhất 15–20% VÀ tối thiểu 30 GB (để đảm bảo SSD bền bỉ, đủ chỗ cho Pagefile và Windows Feature Update). Nếu ổ C: nhỏ nhưng máy có ổ D:/E: trống nhiều, hãy ưu tiên đề xuất DI CHUYỂN (game, thư mục media, WSL2/Docker VHDX, biến môi trường cache) sang ổ phụ thay vì chỉ xóa.",
+        "",
+        "Tiếp theo, xuất BẢNG ĐỀ XUẤT ĐÁNH MÃ SỐ RÕ RÀNG (A1, A2..., B1, B2..., C1, C2..., D1...) theo đúng 9 cột sau:",
+        "| Mã | Hành động đề xuất | Đường dẫn / Đối tượng | Dung lượng thu hồi (Đo thật) | Dấu thời gian (Cài đặt / Sửa cuối) | Mức rủi ro | Hoàn tác? | Lợi ích thực tế | Cách hoàn tác |",
+        "",
+        "Phân nhóm bắt buộc:",
+        "- NHÓM A (Tối ưu Hiệu năng & Độ mượt — An toàn, Hoàn tác 100%): Tắt (Disable) từng app khởi động không cần thiết; tắt Scheduled Tasks cập nhật/telemetry trùng lặp của bên thứ ba; tối ưu Power Plan theo đúng loại CPU/máy; bật Game Mode / HAGS (nếu phù hợp); tắt Startup Boost của trình duyệt nếu chiếm RAM ngầm; sửa lỗi cấu hình phát hiện được ở Giai đoạn 0.",
+        "- NHÓM B (Giải phóng Dung lượng — An toàn 100%, Tự tái tạo hoặc Không mất dữ liệu): Dọn `%TEMP%`, `C:\\Windows\\Temp` (bỏ qua file đang khóa), `Delivery Optimization`, `Thumbnail Cache`, `Shader Cache` (kèm lưu ý game biên dịch lại lần đầu), bộ cài giải nén thừa (`C:\\NVIDIA`, `C:\\AMD`), Cache trình duyệt (chỉ Cache, giữ nguyên 100% Cookie/Mật khẩu), lệnh purge cache chính thức của công cụ Dev (`npm`, `pip`, `uv`...), và nén thu hồi vùng trống ổ ảo WSL2/Docker (`Optimize-VHD` / `compact vdisk` — giữ nguyên 100% dữ liệu bên trong).",
+        "- NHÓM C (Giải phóng Dung lượng & Tinh chỉnh Sâu — Thận trọng, Cần tôi xác nhận kỹ từng mã): Dọn Thùng rác (liệt kê các file lớn nhất trước); các file lớn cụ thể trong `Downloads` / `Videos\\Captures`; xóa `Windows.old` / `Windows Update Cleanup` (ghi rõ: mất khả năng rollback bản cập nhật/Windows cũ); dọn Cache media của Zalo/Telegram/Adobe/CapCut; xóa Crash Dumps cũ sau khi đã chẩn đoán xong; thu gọn `hiberfil.sys`; gỡ các phần mềm/game nặng lâu không dùng; di chuyển thư mục nặng từ ổ C: sang ổ phụ.",
+        "- NHÓM D (Báo cáo Minh bạch — Tuyệt đối KHÔNG đụng): Liệt kê các mục hệ thống/nhạy cảm có dung lượng lớn trên máy (`WinSxS`, `C:\\Windows\\Installer`, `System32`, `DriverStore`, Save Game, dữ liệu cá nhân) kèm lời giải thích vì sao không được xóa tay.",
+        "",
+        "Cuối Giai đoạn 1, hãy dừng lại và hướng dẫn tôi gõ lệnh duyệt ngắn gọn, ví dụ:",
+        "  -> `Duyệt: A1, A3, B1-B6, C2` hoặc `Duyệt toàn bộ Nhóm A và Nhóm B`.",
+        "",
+        "=== GIAI ĐOẠN 2: THỰC THI AN TOÀN, TẠO SCRIPT HOÀN TÁC & BÁO CÁO CUỐI ===",
+        "Chỉ sau khi tôi gửi danh sách các mã được duyệt:",
+        "1. Tạo System Restore Point mới (xác minh điểm khôi phục đã xuất hiện thật trong `Get-ComputerRestorePoint`), tạo bản sao lưu Registry cho các nhánh Startup/Services sắp chỉnh, và khởi tạo file `Desktop\\Undo-Optimization-[Ngày].ps1` + `Desktop\\PC-Cleanup-Log-[Ngày].txt`.",
+        "2. Thực thi chính xác từng mã tôi đã duyệt theo thứ tự: Nhóm A -> Nhóm B -> Nhóm C. Tuyệt đối không chạm vào bất kỳ mã nào tôi không liệt kê.",
+        "3. Đo lại toàn bộ chỉ số sau khi thực thi và xuất BÁO CÁO TỔNG KẾT gồm:",
+        "   - Bảng so sánh Trước vs Sau: Dung lượng trống ổ C: (GB và %), tổng số GB đã giải phóng, số mục Startup/Tác vụ ngầm đã giảm, mức RAM/CPU tiêu thụ.",
+        "   - Danh sách chi tiết các mã đã thực hiện thành công + các file đang bị khóa đã bỏ qua an toàn.",
+        "   - Đường dẫn tới file Log và cách chạy file `Undo-Optimization-[Ngày].ps1` hoặc System Restore nếu muốn quay lại như cũ.",
+        "   - Checklist 3 điểm cần theo dõi sau 7 ngày sử dụng.",
+        "",
+        "Bây giờ, hãy bắt đầu ngay GIAI ĐOẠN 0 (Kiểm toán chỉ-đọc) trên máy của tôi và trình bày báo cáo chi tiết. Không thực hiện bất kỳ thay đổi nào trong bước này."
+      ].join("\n");
+
+      var roleSnippets = {
+        auto: "-> NGỮ CẢNH ƯU TIÊN: Tự động suy luận vai trò sử dụng chính của máy (Chơi game, Lập trình/AI, Đồ họa hay Văn phòng) dựa trên các phần mềm và thư mục phát hiện được ở Giai đoạn 0.\n",
+        gaming: "-> NGỮ CẢNH ƯU TIÊN [CHƠI GAME & GIẢI TRÍ]: Ưu tiên tối đa độ ổn định FPS, giảm độ trễ (frametime), giải phóng RAM/CPU khỏi các ứng dụng chạy nền trước khi vào game, kiểm tra Driver GPU, Game Mode, HAGS, XMP/EXPO RAM. Tuyệt đối bảo vệ toàn bộ Save Game, Mod và cấu hình game.\n",
+        dev: "-> NGỮ CẢNH ƯU TIÊN [LẬP TRÌNH, AI & MÁY ẢO]: Kiểm tra kỹ các ổ ảo WSL2 (`ext4.vhdx`) và Docker (`docker_data.vhdx`) để đề xuất nén thu hồi dung lượng (`Optimize-VHD`/`compact vdisk`), quét kỹ các kho bộ đệm (`npm`, `pnpm`, `yarn`, `pip`, `uv`, `NuGet`, `Cargo`, `Gradle`, `HuggingFace`, `Ollama`) và các thư mục `node_modules`/`.venv` bỏ hoang >180 ngày. Tuyệt đối không đụng vào biến môi trường, SSH keys, Docker volumes đang dùng hay source code.\n",
+        creator: "-> NGỮ CẢNH ƯU TIÊN [ĐỒ HỌA, DỰNG PHIM & SÁNG TẠO]: Quét kỹ các kho Media Cache, Peak Files, Proxy và Scratch Disk của Adobe (Premiere, After Effects, Photoshop, Lightroom), DaVinci Resolve, CapCut, Blender. Đảm bảo không xóa project hay nguyên liệu gốc.\n",
+        office: "-> NGỮ CẢNH ƯU TIÊN [VĂN PHÒNG & HỌC TẬP]: Tập trung làm máy khởi động nhanh, mở trình duyệt và Office mượt mà; kiểm tra kỹ dung lượng phình to của Zalo PC, Telegram, Microsoft Teams, OneDrive và Cache trình duyệt mà vẫn giữ nguyên 100% lịch sử đăng nhập, mật khẩu và tài liệu quan trọng.\n",
+        lowspec: "-> NGỮ CẢNH ƯU TIÊN [MÁY CẤU HÌNH YẾU / LAPTOP CẦN PIN]: Ưu tiên cắt giảm tối đa các tiến trình ngốn RAM/CPU chạy ngầm (Startup apps, trình duyệt chạy nền, Widget, Telemetry phụ), tối ưu Pagefile trên ổ nhanh nhất, và bảo vệ thời lượng pin + chế độ ngủ đông (Hibernate) nếu là Laptop.\n"
+      };
+
+      var aggrSnippets = {
+        balanced: "-> MỨC ĐỘ QUÉT DỌN: Cân bằng — Quét toàn diện cả hệ thống và ứng dụng, phân tách rõ Nhóm B (An toàn 100%) và Nhóm C (Thận trọng cần xác nhận).\n",
+        conservative: "-> MỨC ĐỘ QUÉT DỌN: Bảo thủ tối đa — Ưu tiên sự ổn định tuyệt đối; chỉ đề xuất xóa các file rác tạm 100% vô hại và giữ lại các bộ đệm nếu ổ đĩa vẫn còn dư dả.\n",
+        deep: "-> MỨC ĐỘ QUÉT DỌN: Truy quét sâu (Giải cứu ổ đĩa đầy) — Tìm mọi thư mục/file >300MB gây tốn chỗ, phân tích sâu `AppData\\Local`, `AppData\\Roaming`, `ProgramData`, file `.vhdx`, bộ cài cũ và đề xuất cả phương án di chuyển dữ liệu lớn sang ổ đĩa phụ.\n"
+      };
+
+      function buildPrompt() {
+        var role = document.getElementById('optRole').value;
+        var aggr = document.getElementById('optAggressiveness').value;
+        var note = document.getElementById('optNote').value.trim();
+        var customBlock = "=== HỒ SƠ ƯU TIÊN CỦA TÔI ===\n" + (roleSnippets[role] || roleSnippets.auto) + (aggrSnippets[aggr] || aggrSnippets.balanced);
+        if (note) {
+          customBlock += "-> GHI CHÚ BỔ SUNG TỪ TÔI: " + note + "\n";
+        }
+        var finalPrompt = basePromptTemplate.replace("__CUSTOM_CONTEXT__", customBlock);
+        document.getElementById('superPrompt').textContent = finalPrompt;
+      }
+
+      document.getElementById('optRole').addEventListener('change', buildPrompt);
+      document.getElementById('optAggressiveness').addEventListener('change', buildPrompt);
+      document.getElementById('optNote').addEventListener('input', buildPrompt);
+      document.getElementById('resetCustom').addEventListener('click', function () {
+        document.getElementById('optRole').value = 'auto';
+        document.getElementById('optAggressiveness').value = 'balanced';
+        document.getElementById('optNote').value = '';
+        buildPrompt();
+      });
+
+      buildPrompt();
+
+      function wireCopy(buttonId, sourceId, doneText) {
+        var btn = document.getElementById(buttonId);
+        var src = document.getElementById(sourceId);
+        if (!btn || !src) return;
+        btn.addEventListener('click', function () {
+          var text = src.innerText || src.textContent;
+          function done() {
+            var old = btn.textContent;
+            btn.textContent = doneText;
+            btn.classList.add('copied');
+            setTimeout(function () { btn.textContent = old; btn.classList.remove('copied'); }, 2200);
+          }
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(done, function () { fallback(); });
+          } else { fallback(); }
+          function fallback() {
+            var range = document.createRange();
+            range.selectNodeContents(src);
+            var sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            try { if (document.execCommand('copy')) done(); } catch (e) {}
+            sel.removeAllRanges();
+          }
+        });
+      }
+      wireCopy('copyPrompt', 'superPrompt', 'Đã sao chép Prompt ✓');
+      wireCopy('copyCmds', 'auditCmds', 'Đã sao chép Bộ lệnh ✓');
+    </script>
+  </body>
+</html>
