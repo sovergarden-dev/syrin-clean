@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "package": "syrin-clean",
+  "version": "3.6",
+  "language": "en",
+  "channel": "development",
+  "files": [
+    {
+      "path": "INSTALL.txt",
+      "sha256": "6ab5a8c68f2a576a0c22b499e6171752c6fe7521a9ff87e84ac7f3f9bd4c2372",
+      "bytes": 401
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "b4c4e2d7444e4a7c8a6c98dc7d77c926cc148f90c29c92e4d6107f955d1b9b07",
+      "bytes": 1064
+    },
+    {
+      "path": "install.ps1",
+      "sha256": "cf1ccb05bf83d042b88e7bede8bedc3fbf086ae87efe7f39c4069fa6f883b07a",
+      "bytes": 7638
+    },
+    {
+      "path": "syrin-clean/SKILL.md",
+      "sha256": "9b6bb729c1586a58bbb3165980a2b718724c481fa6de0b948d59b1ed7b2c47d9",
+      "bytes": 6106
+    },
+    {
+      "path": "syrin-clean/assets/audit.schema.json",
+      "sha256": "f101d3b4c8bb79148c28c2069a0069aabb354f0cbc720fd549e9ee3f8cf99aaa",
+      "bytes": 1916
+    },
+    {
+      "path": "syrin-clean/assets/plan.schema.json",
+      "sha256": "70b1cc0989ec653327975cf121dd42df4d2fd0a8af1cd3d7376ce4c339be6099",
+      "bytes": 1693
+    },
+    {
+      "path": "syrin-clean/assets/proposals.schema.json",
+      "sha256": "1aa8527774588e9018644be1e8ffa42c9296a434c0fc2afce12d55d697776c7a",
+      "bytes": 1435
+    },
+    {
+      "path": "syrin-clean/assets/report-template.html",
+      "sha256": "f90625f91ab9861c8f646a4ee20e9e36a36ef1c7d92908133273a7e98336eb2b",
+      "bytes": 29152
+    },
+    {
+      "path": "syrin-clean/modules/Audit.psm1",
+      "sha256": "add03f1d40431506936a50db23c3bdfe1a01ebf531a1de155889069ef847211b",
+      "bytes": 20542
+    },
+    {
+      "path": "syrin-clean/modules/IO.psm1",
+      "sha256": "4bd94c73435a16d52fe63aea84746fb4a2ac930335269b433d0ffc2c875bfb6b",
+      "bytes": 18467
+    },
+    {
+      "path": "syrin-clean/modules/Quarantine.psm1",
+      "sha256": "6356db9cd49aae9ea63046df3c3c77e8e1bc759fa7a68e7d7f9b4c09fc3e7e09",
+      "bytes": 24930
+    },
+    {
+      "path": "syrin-clean/modules/Report.psm1",
+      "sha256": "573ec3c42bc625bf558429dce1fb56b7e35a8beca776019cfeb2dfc34838ba49",
+      "bytes": 10273
+    },
+    {
+      "path": "syrin-clean/modules/Windows.psm1",
+      "sha256": "7b94f34f0affaab7b898621e30c5d37943b0675eb47d8b4d39ee3c9e105cc40d",
+      "bytes": 5228
+    },
+    {
+      "path": "syrin-clean/references/stage0-audit.md",
+      "sha256": "22c5edec4a7a47799d8359dc09e946f45584293bbab445b1269a7c32d35240dc",
+      "bytes": 1610
+    },
+    {
+      "path": "syrin-clean/references/stage1-proposals.md",
+      "sha256": "32fbd8af1777b28c59bd6cd664a50f07b4578dc2390b840eabe336b96e8d58cb",
+      "bytes": 2192
+    },
+    {
+      "path": "syrin-clean/references/stage2-execution.md",
+      "sha256": "8955408118a1405aa20fe7cd0ef81f00fc246f57ba577c3331d1342ca7b3297e",
+      "bytes": 2032
+    },
+    {
+      "path": "syrin-clean/references/support.md",
+      "sha256": "97b858370ba977ea69766f5ddb204c8c9d11467f5af49f3ded82fe0b011225f7",
+      "bytes": 4250
+    },
+    {
+      "path": "syrin-clean/scripts/audit.ps1",
+      "sha256": "3d0fcf48f324e7b281febdb9b7dd5ed0dd2a0a51e019755eb61095b44a1c5b9b",
+      "bytes": 893
+    },
+    {
+      "path": "syrin-clean/scripts/history.ps1",
+      "sha256": "4e0e74e066f140150836cbf0fbc67486c846bfa8556a6c4e9be14ea5b48453df",
+      "bytes": 1269
+    },
+    {
+      "path": "syrin-clean/scripts/make-report.ps1",
+      "sha256": "d6cdd9e85767077b9b7a23404bff5ed187c775c4cb6411209a9fb81870237283",
+      "bytes": 740
+    },
+    {
+      "path": "syrin-clean/scripts/new-restorepoint.ps1",
+      "sha256": "e186a6faecb728a7079d1d039276710bb5f7a9b79a26700d7ac2d91c95986971",
+      "bytes": 611
+    },
+    {
+      "path": "syrin-clean/scripts/quarantine.ps1",
+      "sha256": "7452ace2ac472b46be886f1477e5f2101f07d7fc51b7434b15af492778f85e24",
+      "bytes": 1573
+    },
+    {
+      "path": "syrin-clean/scripts/run-elevated.ps1",
+      "sha256": "3004418e95493bf5e8d0aebc2659003eb9b185959062a001c037ae417d2a072a",
+      "bytes": 726
+    },
+    {
+      "path": "syrin-clean/skill-manifest.json",
+      "sha256": "56473f4a8afd52359b6ac81b78959444cf210fe4dfa6ffe05cbfc1160a49d1da",
+      "bytes": 3256
+    }
+  ]
+}

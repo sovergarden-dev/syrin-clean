@@ -1,0 +1,172 @@
+import base64
+import hashlib
+import importlib.util
+import io
+import json
+import os
+import re
+import shutil
+import subprocess
+import tempfile
+import unittest
+import zipfile
+from html.parser import HTMLParser
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+spec = importlib.util.spec_from_file_location("syrin_build", ROOT / "tools/build.py")
+build = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(build)
+
+
+class PackagingTests(unittest.TestCase):
+    def test_page_contracts_have_accessible_tabs_and_unique_ids(self):
+        class Elements(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.elements = []
+            def handle_starttag(self, tag, attributes):
+                self.elements.append((tag, dict(attributes)))
+        for language in build.LANGUAGES:
+            parser = Elements()
+            parser.feed((ROOT / f"web/syrin-clean-{language}-v3.6.html").read_text(encoding="utf-8"))
+            ids = [a["id"] for _, a in parser.elements if "id" in a]
+            self.assertEqual(len(ids), len(set(ids)))
+            tabs = [a for _, a in parser.elements if a.get("role") == "tab"]
+            self.assertEqual(len(tabs), 2)
+            self.assertEqual(sum(a.get("aria-selected") == "true" for a in tabs), 1)
+            for tab in tabs:
+                self.assertIn(tab["aria-controls"], ids)
+                self.assertEqual(tab["tabindex"], "0" if tab["aria-selected"] == "true" else "-1")
+            panels = [a for _, a in parser.elements if a.get("role") == "tabpanel"]
+            self.assertEqual(len(panels), 2)
+            for panel in panels:
+                self.assertIn(panel["aria-labelledby"], [a["id"] for a in tabs])
+
+    def test_generated_outputs_match_and_embedded_bundles_are_exact(self):
+        outputs = build.build_outputs()
+        for name, data in outputs.items():
+            self.assertEqual((ROOT / name).read_bytes(), data, name)
+        for language in build.LANGUAGES:
+            data = (ROOT / f"dist/syrin-clean-skill-v3.6-{language}.zip").read_bytes()
+            with zipfile.ZipFile(io.BytesIO(data)) as bundle:
+                self.assertIsNone(bundle.testzip())
+                manifest = json.loads(bundle.read("bundle-manifest.json"))
+                self.assertEqual(set(bundle.namelist()), {x["path"] for x in manifest["files"]} | {"bundle-manifest.json"})
+                for entry in manifest["files"]:
+                    self.assertEqual(hashlib.sha256(bundle.read(entry["path"])).hexdigest(), entry["sha256"])
+                    if entry["path"].endswith((".ps1", ".psm1")):
+                        self.assertTrue(bundle.read(entry["path"]).startswith(b"\xef\xbb\xbf"), entry["path"])
+            prompt = (ROOT / f"prompts/syrin-clean-prompt-{language}-v3.6.md").read_text(encoding="utf-8")
+            match = re.search(r"## Runtime bundle \(APPENDIX-RUNTIME\)\nSHA256: ([a-f0-9]{64})\n\n```base64\n(.*?)\n```", prompt, re.S)
+            self.assertIsNotNone(match)
+            self.assertEqual(base64.b64decode(match[2]), data)
+            self.assertEqual(match[1], hashlib.sha256(data).hexdigest())
+            page = (ROOT / f"web/syrin-clean-{language}-v3.6.html").read_text(encoding="utf-8")
+            payload = json.loads(re.search(r"var skillZipEnB64 = (.*?);\n", page).group(1))
+            self.assertEqual(base64.b64decode(payload), (ROOT / "dist/syrin-clean-skill-v3.6-en.zip").read_bytes())
+
+    def test_allowlist_rejects_unknown_files_without_packaging_them(self):
+        with tempfile.TemporaryDirectory(prefix="syrin-build-test-") as temporary:
+            directory = Path(temporary)
+            original = build.ROOT
+            try:
+                build.ROOT = directory
+                (directory / "skill/en").mkdir(parents=True)
+                (directory / "skill/en/.env").write_text("SYNTHETIC_FIXTURE=not-secret", encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "Unexpected"):
+                    build.allowlist("skill/en", {"install.ps1"})
+            finally:
+                build.ROOT = original
+
+
+@unittest.skipUnless(os.name == "nt", "Windows PowerShell and native directory handles are required")
+class WindowsPackageTests(unittest.TestCase):
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory(prefix="syrin-package-test-")
+        self.root = Path(self.directory.name)
+        self.package = self.root / "package"
+        with zipfile.ZipFile(ROOT / "dist/syrin-clean-skill-v3.6-en.zip") as bundle:
+            bundle.extractall(self.package)
+        self.profile = self.root / "profile"
+        self.profile.mkdir()
+        self.environment = dict(os.environ)
+        self.environment["PSModulePath"] = str(Path(os.environ["SystemRoot"]) / "System32/WindowsPowerShell/v1.0/Modules")
+        for key, suffix in (("USERPROFILE", ""), ("LOCALAPPDATA", "local"), ("APPDATA", "roaming"), ("TEMP", "temp"), ("TMP", "temp")):
+            target = self.profile / suffix
+            target.mkdir(exist_ok=True)
+            self.environment[key] = str(target)
+
+    def tearDown(self):
+        self.directory.cleanup()
+
+    def powershell(self, script, *arguments):
+        return subprocess.run(["powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", str(script), *map(str, arguments)], env=self.environment, cwd=self.root, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60, creationflags=subprocess.CREATE_NO_WINDOW)
+
+    def test_install_verifies_both_locations_and_preserves_old_versions(self):
+        first = self.powershell(self.package / "install.ps1", "-ProfileRoot", self.profile)
+        self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+        for agent in (".claude", ".agents"):
+            target = self.profile / agent / "skills/syrin-clean"
+            manifest = json.loads((target / "skill-manifest.json").read_text(encoding="utf-8"))
+            for entry in manifest["files"]:
+                self.assertEqual(hashlib.sha256((target / entry["path"]).read_bytes()).hexdigest(), entry["sha256"])
+            (target / "user-customization.txt").write_text("keep previous work", encoding="utf-8")
+        second = self.powershell(self.package / "install.ps1", "-ProfileRoot", self.profile)
+        self.assertEqual(second.returncode, 0, second.stdout + second.stderr)
+        for agent in (".claude", ".agents"):
+            backups = list((self.profile / ".syrin-clean-installer").glob("*/" + agent.lstrip(".") + "/previous"))
+            self.assertEqual(len(backups), 1)
+            self.assertEqual((backups[0] / "user-customization.txt").read_text(encoding="utf-8"), "keep previous work")
+            self.assertEqual([p.name for p in (self.profile / agent / "skills").iterdir()], ["syrin-clean"])
+
+    def test_tampered_package_does_not_replace_existing_skill(self):
+        first = self.powershell(self.package / "install.ps1", "-ProfileRoot", self.profile)
+        self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+        marker = self.profile / ".claude/skills/syrin-clean/user-customization.txt"
+        marker.write_text("keep", encoding="utf-8")
+        (self.package / "syrin-clean/scripts/audit.ps1").write_text("corrupted", encoding="utf-8")
+        failed = self.powershell(self.package / "install.ps1", "-ProfileRoot", self.profile)
+        self.assertNotEqual(failed.returncode, 0)
+        self.assertEqual(marker.read_text(encoding="utf-8"), "keep")
+
+    def test_failed_second_commit_rolls_back_first_target(self):
+        import ctypes
+        from ctypes import wintypes
+        first = self.powershell(self.package / "install.ps1", "-ProfileRoot", self.profile)
+        self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+        targets = [self.profile / agent / "skills/syrin-clean" for agent in (".claude", ".agents")]
+        for target in targets:
+            (target / "original.txt").write_text("original", encoding="utf-8")
+        kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel.CreateFileW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD, ctypes.c_void_p, wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE]
+        kernel.CreateFileW.restype = wintypes.HANDLE
+        kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+        handle = kernel.CreateFileW(str(targets[1]), 0x80000000, 3, None, 3, 0x02000000, None)
+        self.assertNotEqual(handle, wintypes.HANDLE(-1).value)
+        try:
+            failed = self.powershell(self.package / "install.ps1", "-ProfileRoot", self.profile)
+            self.assertNotEqual(failed.returncode, 0, failed.stdout)
+            for target in targets:
+                self.assertEqual((target / "original.txt").read_text(encoding="utf-8"), "original")
+        finally:
+            kernel.CloseHandle(handle)
+
+    def test_prompt_extractor_matches_package_and_rejects_traversal(self):
+        destination = self.root / "extracted"
+        result = self.powershell(ROOT / "src/extract-runtime.ps1", "-PromptFile", ROOT / "prompts/syrin-clean-prompt-en-v3.6.md", "-OutDir", destination)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual((destination / "bundle-manifest.json").read_bytes(), (self.package / "bundle-manifest.json").read_bytes())
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w") as bundle:
+            bundle.writestr("../escape.txt", "fixture")
+        data = buffer.getvalue()
+        malicious = self.root / "invalid-prompt.md"
+        malicious.write_text("## Runtime bundle (APPENDIX-RUNTIME)\nSHA256: " + hashlib.sha256(data).hexdigest() + "\n\n```base64\n" + base64.b64encode(data).decode() + "\n```\n", encoding="utf-8")
+        result = self.powershell(ROOT / "src/extract-runtime.ps1", "-PromptFile", malicious, "-OutDir", self.root / "rejected")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse((self.root / "escape.txt").exists())
+
+
+if __name__ == "__main__":
+    unittest.main()

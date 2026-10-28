@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Syrin clean report</title><style>/*__REPORT_CSS__*/</style></head>
+<body>
+<main>
+  <header><a class="brand" href="#top">Syrin clean</a><p id="subtitle"></p><h1 id="top"></h1><p id="identity"></p></header>
+  <div id="notice" class="notice" role="status"></div>
+  <nav class="toolbar" aria-label="Report tools"><button id="motion" type="button"></button><button id="share" type="button"></button><a href="#history" id="history-link"></a></nav>
+  <section aria-labelledby="summary-title"><h2 id="summary-title"></h2><div id="facts" class="facts"></div></section>
+  <section id="measurements" aria-labelledby="measurements-title"><h2 id="measurements-title"></h2><p id="measurement-note"></p><div class="measurements"><div id="scene"><canvas id="cloud" tabindex="0"></canvas><p id="scene-note"></p></div><div><label for="category" id="category-label"></label><select id="category"></select><div id="radar"></div></div></div></section>
+  <section id="comparison-section" hidden><h2 id="comparison-title"></h2><p id="comparison-note"></p><div id="comparison" class="facts"></div></section>
+  <section><h2 id="proposals-title"></h2><p id="proposal-note"></p><div id="proposals"></div></section>
+  <section id="history"><h2 id="history-title"></h2><p id="history-note"></p><div id="sessions"></div></section>
+  <section id="request-section" hidden><h2 id="request-title"></h2><textarea id="request" readonly rows="6"></textarea><button id="copy-request" type="button"></button><p id="request-status" role="status" aria-live="polite"></p></section>
+  <section><h2 id="details-title"></h2><div id="details"></div></section>
+  <footer id="footer"></footer>
+</main>
+<script type="application/json" id="syrin-data">__SYRIN_DATA__</script>
+<script type="module">/*__REPORT_JS__*/</script>
+</body></html>

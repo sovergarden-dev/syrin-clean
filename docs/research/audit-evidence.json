@@ -1,0 +1,319 @@
+{
+  "baseline": "a0752aac632ef3f378e8020cd1f0480c759dadb6",
+  "date": "2026-10-28",
+  "timezone": "Asia/Bangkok",
+  "scope_tracked_files": 52,
+  "note": "Synthetic fixtures only. Dangerous mutation boundaries were mocked. Paths are normalized; real system cleanup and privilege escalation were not performed.",
+  "safety": [
+    {
+      "Name": "restore_conflict_loses_active_manifest",
+      "Data": {
+        "FirstOutput": "SKIP <scratch>\\fixtures\\restore-conflict\\original.txt",
+        "SecondOutput": "",
+        "StoredStillPresent": true,
+        "ActiveManifestPresent": false,
+        "ArchivedManifests": 1
+      }
+    },
+    {
+      "Name": "purge_targets_entire_supplied_directory",
+      "Data": {
+        "Requests": [
+          {
+            "Path": "<scratch>\\fixtures\\unrelated-folder",
+            "Recurse": true
+          }
+        ],
+        "UnlistedFileStillPresent": true,
+        "DeletionWasMocked": true
+      }
+    },
+    {
+      "Name": "apply_moves_before_journal_and_ignores_custom_root",
+      "Data": {
+        "RequestedRoot": "<scratch>\\fixtures\\journal-failure\\custom-quarantine",
+        "Calls": [
+          "mkdir:C:\\Syrin-Clean-Quarantine\\20261028-165347\\<scratch>\\fixtures\\journal-failure",
+          "move:C:\\Syrin-Clean-Quarantine\\20261028-165347\\<scratch>\\fixtures\\journal-failure\\source.txt",
+          "manifest:C:\\Syrin-Clean-Quarantine\\manifest.csv"
+        ],
+        "ReportedError": true,
+        "MutationsWereMocked": true
+      }
+    },
+    {
+      "Name": "cloud_path_boundary",
+      "Data": {
+        "ParentWasPreviewed": true,
+        "NonCloudSiblingWasSkipped": true,
+        "PreviewOnly": true
+      }
+    },
+    {
+      "Name": "restorepoint_accepts_existing_matching_label",
+      "Data": {
+        "Created": true,
+        "Sequence": 17,
+        "SystemCallsWereMocked": true
+      }
+    },
+    {
+      "Name": "denied_scan_marked_complete",
+      "Data": {
+        "GB": 0,
+        "CloudGB": 0,
+        "Complete": true
+      }
+    },
+    {
+      "Name": "installer_removes_before_failed_copy",
+      "Data": {
+        "Calls": [
+          "remove:<scratch>\\fixtures\\profile\\.claude\\skills\\syrin-clean",
+          "copy:<scratch>\\fixtures\\profile\\.claude\\skills"
+        ],
+        "Error": "SIMULATED_COPY_FAILURE",
+        "MutationsWereMocked": true
+      }
+    }
+  ],
+  "report_data": [
+    {
+      "name": "system_drive_assumed_C",
+      "facts": "<div class=\"fact ok\"><b>Drive C: free</b><span>60.0 GB (60%)</span></div><div class=\"fact ok\"><b>Apps that start with Windows</b><span>0 items</span></div><div class=\"fact ok\"><b>Critical errors, 7 days</b><span>0 times</span></div><div class=\"fact warn\"><b>Latest Restore Point</b><span>None found</span></div>"
+    },
+    {
+      "name": "application_data_counted_as_junk",
+      "total": "10.0 GB",
+      "explanation": "Junk and caches found (personal data not included). This is measured size; not all of it should be deleted."
+    },
+    {
+      "name": "missing_collectors_rendered_as_healthy_zero",
+      "facts": "<div class=\"fact ok\"><b>Apps that start with Windows</b><span>0 items</span></div><div class=\"fact ok\"><b>Critical errors, 7 days</b><span>0 times</span></div><div class=\"fact warn\"><b>Latest Restore Point</b><span>None found</span></div>"
+    },
+    {
+      "name": "free_space_regression_clamped_to_zero",
+      "comparison": "<div><b>Drive C: free</b><span>70.0 GB → 60.0 GB</span></div><div><b>Freed</b><span>0.0 GB</span></div><div><b>Junk left</b><span>0.0 GB → 0.0 GB</span></div><div><b>Startup apps</b><span>0 → 0</span></div>"
+    }
+  ],
+  "boundaries": [
+    {
+      "Name": "startup_same_name_cross_hive",
+      "ExpectedHKCU": true,
+      "ExpectedHKLM": false,
+      "Actual": [
+        {
+          "Hive": "HKCU",
+          "Name": "DemoApp",
+          "Enabled": false,
+          "Command": "fixture.exe"
+        },
+        {
+          "Hive": "HKLM",
+          "Name": "DemoApp",
+          "Enabled": false,
+          "Command": "fixture.exe"
+        }
+      ]
+    },
+    {
+      "Name": "elevation_argument_quoting",
+      "ExpectedOutDir": "C:\\Fixture Folder\\",
+      "ExpectedQuiet": true,
+      "Received": {
+        "OutDir": "C:\\Fixture Folder\" -Quiet ",
+        "Quiet": false
+      },
+      "ExitCode": 0,
+      "Elevated": false
+    },
+    {
+      "Name": "invalid_json_accepted_by_report_builder",
+      "Message": {},
+      "ReportWritten": true
+    },
+    {
+      "Name": "powershell_syntax",
+      "Version": "5.1.19041.6456",
+      "Scripts": 12,
+      "Errors": 0
+    }
+  ],
+  "build": {
+    "baseline_build_exit": 0,
+    "six_outputs_identical": true,
+    "unexpected_env_packaged": true,
+    "malformed_report_js_exit": 1,
+    "browser_markdown_matches": true
+  },
+  "javascript_syntax": [
+    {
+      "file": "web/syrin-clean-en-v3.6.html",
+      "script_block": 0,
+      "exit_code": 0
+    },
+    {
+      "file": "web/syrin-clean-en-v3.6.html",
+      "script_block": 1,
+      "exit_code": 0
+    },
+    {
+      "file": "web/syrin-clean-vi-v3.6.html",
+      "script_block": 0,
+      "exit_code": 0
+    },
+    {
+      "file": "web/syrin-clean-vi-v3.6.html",
+      "script_block": 1,
+      "exit_code": 0
+    },
+    {
+      "file": "skill/en/syrin-clean/assets/report-template.html",
+      "script_block": 0,
+      "exit_code": 0
+    },
+    {
+      "file": "skill/vi/syrin-clean/assets/report-template.html",
+      "script_block": 0,
+      "exit_code": 0
+    }
+  ],
+  "browser": {
+    "default_viewports": [
+      {
+        "language": "en",
+        "width": 320,
+        "height": 740,
+        "horizontal_overflow": 0,
+        "layout_self_check_issues": 0
+      },
+      {
+        "language": "en",
+        "width": 390,
+        "height": 844,
+        "horizontal_overflow": 0,
+        "layout_self_check_issues": 0
+      },
+      {
+        "language": "en",
+        "width": 768,
+        "height": 1024,
+        "horizontal_overflow": 0,
+        "layout_self_check_issues": 0
+      },
+      {
+        "language": "en",
+        "width": 1366,
+        "height": 768,
+        "horizontal_overflow": 0,
+        "layout_self_check_issues": 0
+      },
+      {
+        "language": "en",
+        "width": 1920,
+        "height": 1080,
+        "horizontal_overflow": 0,
+        "layout_self_check_issues": 0
+      },
+      {
+        "language": "en",
+        "width": 2560,
+        "height": 1440,
+        "horizontal_overflow": 0,
+        "layout_self_check_issues": 0
+      },
+      {
+        "language": "vi",
+        "width": 320,
+        "height": 740,
+        "horizontal_overflow": 0,
+        "layout_self_check_issues": 0
+      },
+      {
+        "language": "vi",
+        "width": 390,
+        "height": 844,
+        "horizontal_overflow": 0,
+        "layout_self_check_issues": 0
+      },
+      {
+        "language": "vi",
+        "width": 768,
+        "height": 1024,
+        "horizontal_overflow": 0,
+        "layout_self_check_issues": 0
+      },
+      {
+        "language": "vi",
+        "width": 1366,
+        "height": 768,
+        "horizontal_overflow": 0,
+        "layout_self_check_issues": 0
+      },
+      {
+        "language": "vi",
+        "width": 1920,
+        "height": 1080,
+        "horizontal_overflow": 0,
+        "layout_self_check_issues": 0
+      },
+      {
+        "language": "vi",
+        "width": 2560,
+        "height": 1440,
+        "horizontal_overflow": 0,
+        "layout_self_check_issues": 0
+      }
+    ],
+    "expanded_viewports": [
+      {
+        "language": "en",
+        "width": 390,
+        "height": 844,
+        "open_details": 7,
+        "layout_self_check_issues": 0
+      },
+      {
+        "language": "en",
+        "width": 768,
+        "height": 1024,
+        "open_details": 7,
+        "layout_self_check_issues": 0
+      },
+      {
+        "language": "en",
+        "width": 1366,
+        "height": 768,
+        "open_details": 7,
+        "layout_self_check_issues": 0
+      },
+      {
+        "language": "vi",
+        "width": 668,
+        "height": 580,
+        "open_details": 7,
+        "layout_self_check_issues": 0
+      }
+    ],
+    "audit_only_mode": "audit",
+    "reset_role": "auto",
+    "reset_note": "",
+    "english_zip_matches": true,
+    "english_markdown_matches_after_newline_normalization": true,
+    "tab_attributes": {
+      "role": null,
+      "aria-selected": null,
+      "aria-controls": null
+    },
+    "limitations": [
+      "Default and expanded layout self-checks are not a full accessibility or visual proof.",
+      "The attempted extra Vietnamese expanded viewport batch was interrupted by the browser tool and is not counted.",
+      "No forced WebGL fallback or low-end hardware benchmark."
+    ],
+    "cleanup": {
+      "tab_closed": true,
+      "viewport_reset": true,
+      "preview_server_stopped": true
+    }
+  }
+}

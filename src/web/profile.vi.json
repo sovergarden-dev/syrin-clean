@@ -1,0 +1,43 @@
+{
+  "roleSnippets": {
+    "auto": "-> VAI TRÒ MÁY: Tự suy luận nhu cầu chính (game, lập trình/AI, đồ họa, văn phòng, di động) từ phần mềm và thư mục phát hiện ở Giai đoạn 0, ghi rõ suy luận và mức tin cậy.",
+    "gaming": "-> VAI TRÒ MÁY [CHƠI GAME]: Ưu tiên độ ổn định FPS và frametime, giảm app nền khi chơi, kiểm tra driver GPU, Game Mode, HAGS, GPU ưu tiên theo game, XMP/EXPO (nhóm M), nhiệt độ và bóp xung. Bảo vệ tuyệt đối save game, mod, cấu hình game; chỉ dọn shader cache khi cần dung lượng (game sẽ biên dịch lại).",
+    "dev": "-> VAI TRÒ MÁY [LẬP TRÌNH, AI & MÁY ẢO]: Quét kỹ VHDX của WSL/Docker, Hyper-V/VirtualBox, cache npm/pnpm/yarn/pip/uv/conda/NuGet/Gradle/Maven/Cargo/Go, model HuggingFace/Ollama/LM Studio, node_modules/.venv/target bỏ hoang trên 180 ngày; đề xuất dời cache sang ổ khác bằng biến môi trường. Tuyệt đối không đụng mã nguồn, Git repo, biến môi trường hiện có, khóa SSH/cloud, Docker volume và container đang dùng.",
+    "creator": "-> VAI TRÒ MÁY [ĐỒ HỌA & DỰNG PHIM]: Quét kỹ Media Cache/Peak Files/Scratch của Adobe, Lightroom Previews, DaVinci CacheClip/Proxy, CapCut, Blender, OBS; đề xuất đặt cache trên SSD nhanh nhất hoặc ổ phụ. Tuyệt đối không xóa project, footage, asset gốc, thư viện font/preset/LUT.",
+    "office": "-> VAI TRÒ MÁY [VĂN PHÒNG & HỌC TẬP]: Ưu tiên khởi động nhanh, trình duyệt và Office mượt, ít app nền; kiểm tra Zalo/Telegram/Teams/Zoom, OneDrive (chỉ Free up space) và cache trình duyệt; giữ nguyên 100% đăng nhập, mật khẩu, tài liệu.",
+    "laptop": "-> VAI TRÒ MÁY [LAPTOP DI ĐỘNG]: Ưu tiên thời lượng pin, nhiệt độ, độ êm: báo cáo % chai pin, tác vụ nền gây hao pin, Power Mode khi dùng pin, GPU rời bị đánh thức không cần thiết; giữ nguyên Hibernate và tiện ích OEM quản lý pin/quạt.",
+    "lowspec": "-> VAI TRÒ MÁY [MÁY YẾU / MÁY CŨ / Ổ HDD]: Ưu tiên giảm tối đa tác vụ nền, Startup, hiệu ứng, trình duyệt chạy ngầm; Pagefile System Managed trên ổ nhanh nhất; nói thẳng nếu nâng SSD hoặc RAM là giải pháp hiệu quả nhất.",
+    "vm": "-> VAI TRÒ MÁY [MÁY ẢO / CLOUD PC]: Bỏ qua nhiệt độ, SMART, BIOS, pin, Hibernate, driver GPU; tập trung tiến trình nền, dịch vụ, dung lượng; việc nén/mở rộng ổ ảo làm từ phía máy chủ ảo hóa."
+  },
+  "scopeSnippets": {
+    "full": "-> PHẠM VI: Kiểm tra và rà soát dung lượng toàn diện. (Scope=full)",
+    "health": "-> PHẠM VI: Chỉ khám sức khỏe, chỉ đọc, không đề xuất thực thi thay đổi. (Scope=health)",
+    "speed": "-> PHẠM VI: Chẩn đoán và tư vấn hiệu năng; bỏ quét dung lượng chi tiết. (Scope=speed)",
+    "cleanup": "-> PHẠM VI: Rà soát dung lượng kèm kiểm tra an toàn; không tự chọn file cá nhân. (Scope=cleanup)"
+  },
+  "aggrSnippets": {
+    "balanced": "-> MỨC DỌN: Rà soát cân bằng. Tách cache, dữ liệu ứng dụng, file cá nhân và ổ máy ảo.",
+    "conservative": "-> MỨC DỌN: Bảo thủ. Giữ cache hữu ích khi chưa thiếu chỗ; không chọn sẵn file cá nhân.",
+    "deep": "-> MỨC DỌN: Rà soát dung lượng kỹ, giữ nguyên giới hạn đường dẫn, xác nhận và khôi phục. Chuyển sang ổ khác là tư vấn tới khi có quy trình đã kiểm chứng."
+  },
+  "modeSnippets": {
+    "approve": "-> MỨC TỰ CHỦ: Đề xuất theo mã, chờ tôi duyệt và XÁC NHẬN rồi mới thực thi.",
+    "audit": "-> MỨC TỰ CHỦ: CHỈ KIỂM TOÁN VÀ ĐỀ XUẤT. Dừng sau Giai đoạn 1; không thực thi Giai đoạn 2 kể cả khi tôi gõ duyệt, trừ khi tôi nói rõ \"Mở khóa thực thi\"."
+  },
+  "blockHeader": "=== HỒ SƠ ƯU TIÊN CỦA TÔI (ÁP DỤNG TRÊN NỀN CÁC QUY TẮC AN TOÀN CỨNG, KHÔNG GHI ĐÈ CHÚNG) ===\n",
+  "extraTpl": {
+    "drive": "-> CHỈ TƯ VẤN CHUYỂN DỮ LIỆU: cân nhắc {v}; cách ly phải ở cùng ổ nguồn.",
+    "protect": "-> CẤM ĐỤNG (chỉ được đo, không đề xuất xóa/di chuyển/tắt): {v}",
+    "note": "-> GHI CHÚ TỪ TÔI: {v}"
+  },
+  "reportSnippets": {
+    "r3d": "-> BÁO CÁO: Báo cáo 3D từ số liệu đã đo. (ReportMode=3d)",
+    "simple": "-> BÁO CÁO: HTML đơn giản, không hiệu ứng. (ReportMode=simple)",
+    "none": "-> BÁO CÁO: Không tạo hoặc mở HTML. Giữ trạng thái và kế hoạch JSON. (ReportMode=none)"
+  },
+  "budgetSnippets": {
+    "lean": "-> NGÂN SÁCH: Quét ngắn và tóm tắt gọn. Nêu rõ collector bị bỏ hoặc chưa đầy đủ. (MaxSeconds=90)",
+    "balanced": "-> NGÂN SÁCH: Quét cân bằng, kết quả có cấu trúc và bằng chứng ngắn gọn. (MaxSeconds=180)",
+    "thorough": "-> NGÂN SÁCH: Quét chỉ đọc lâu hơn, giải thích chi tiết khi hữu ích; giữ mọi giới hạn an toàn. (MaxSeconds=600)"
+  }
+}

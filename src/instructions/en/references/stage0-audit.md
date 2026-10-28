@@ -1,0 +1,8 @@
+# Phase 0: read-only audit
+
+1. Determine the user's scope and report choice. Call `scripts/audit.ps1 -OutDir <new working directory> -Scope full|health|speed|cleanup -ReportMode 3d|simple|none -Lang en|vi -MaxSeconds <profile-budget> -Quiet`. Start without elevation. Inspect the returned `incomplete` list and collector errors. Request UAC through run-elevated.ps1 only for a named required read that actually failed for lack of privileges.
+2. Read audit.json schema 1. The metadata contains sessionId, machineId and systemDrive. Every collector has status, data and errors. Missing and partial data stay visibly unknown. Review volumes, memory, startup, logs, security, devices and categorized storage before proposing actions. The scope/budget may intentionally skip collectors.
+3. Clarify organization management through read-only Windows evidence when system.managementStatus is unknown. A domain-joined/Entra/MDM-managed device is report-only. Do not treat a successful collector as permission to mutate.
+4. Preserve the first audit as baseline.json before another measurement. Do not compare audits from another machine or incompatible schema. List unmeasured hardware/agent/provider combinations honestly.
+5. Show a short health summary, actual bottlenecks with evidence, measured cache versus app/user/VM/system data, and what remains unknown. Do not equate cache bytes with reclaimable bytes. With report mode none, no HTML is created. Do not open or regenerate a report contrary to the selected mode.
+6. Continue to proposals. For health-only scope, stop with advice; do not offer mutation actions.

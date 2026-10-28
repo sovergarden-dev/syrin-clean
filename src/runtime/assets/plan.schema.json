@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Syrin clean immutable file plan",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "kind",
+    "planId",
+    "sessionId",
+    "operation",
+    "ownerSid",
+    "root",
+    "items"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "kind": {
+      "const": "syrin-file-plan"
+    },
+    "planId": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{32}$"
+    },
+    "sessionId": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{32}$"
+    },
+    "operation": {
+      "enum": [
+        "quarantine",
+        "restore",
+        "purge",
+        "resume",
+        "import"
+      ]
+    },
+    "ownerSid": {
+      "type": "string"
+    },
+    "root": {
+      "type": "string"
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "original",
+          "stored",
+          "fingerprint",
+          "destination",
+          "expectedState"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "original": {
+            "type": "string"
+          },
+          "stored": {
+            "type": "string"
+          },
+          "fingerprint": {
+            "type": "object",
+            "required": [
+              "FileId",
+              "Length",
+              "LastWriteUtc",
+              "Links"
+            ]
+          },
+          "destination": {
+            "type": "string"
+          },
+          "expectedState": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,1 @@
+Cài Syrin clean từ ZIP đầy đủ. Chạy install.ps1 bằng Windows PowerShell 5.1 hoặc nhờ agent thực hiện. Trình cài kiểm tra manifest, chuẩn bị hai vị trí agent rồi mới thay bản cũ; bản trước được giữ làm backup. Mở phiên agent mới sau khi cài. Trình cài không dọn hệ thống. Đây là bản đang phát triển; xem ma trận hỗ trợ trước khi dùng thao tác thay đổi file.

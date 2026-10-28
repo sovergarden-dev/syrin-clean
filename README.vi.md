@@ -1,51 +1,53 @@
-<div align="center">
-
 # Syrin clean
 
-**Máy nhanh lại. Bạn chỉ duyệt.**
+**Kiểm tra Windows, xem bằng chứng, duyệt đúng thao tác file.**
 
-Skill và prompt cho AI Agent trên máy bạn: tự kiểm tra, tăng tốc và dọn dẹp Windows 10/11 an toàn, bạn chỉ duyệt bằng lời thường.
+Đây là bộ skill và prompt song ngữ dùng chung runtime PowerShell. Nhánh hiện tại chứa **bản hardening đang phát triển, chưa phát hành ổn định**. Cấu hình chưa thử không được coi là đã chứng nhận.
 
-[English](README.md) · [Tài liệu](docs/index.md) · [Ghi chú bàn giao](HANDOFF.md) · [Lịch sử phiên bản](CHANGELOG.md)
+[English](README.md) · [Lệnh sử dụng](docs/ref/commands.md) · [Ma trận hỗ trợ](docs/feat/support.md) · [Kiểm chứng](docs/ref/validation.md) · [Lịch sử thay đổi](CHANGELOG.md)
 
-</div>
+## Các phần đã có
 
-![Câu chuyện 3D: quét, cách ly, dọn](docs/images/scene-sequence.png)
+- Kiểm tra chỉ đọc với trạng thái đầy đủ, một phần, không khả dụng hoặc lỗi; thiếu số liệu không biến thành “0 lỗi”.
+- Phân biệt cache, dữ liệu ứng dụng, file cá nhân, máy ảo và dữ liệu hệ thống; không đồng nhất dung lượng đo được với dung lượng sẽ giải phóng.
+- Lập kế hoạch theo từng file trước khi cách ly, khôi phục hoặc xóa hẳn. Người dùng duyệt mã ngắn; agent giữ ánh xạ ID và mã băm của đúng kế hoạch.
+- Nhật ký bền vững, kiểm tra định danh file, xử lý trùng tên, tiếp tục sau gián đoạn và lịch sử phiên.
+- Báo cáo offline EN/VI, so sánh cùng máy và bản xuất tổng hợp đã lược bỏ thông tin riêng thô.
 
-## Vì sao có dự án này
+Thao tác tự động hiện giới hạn ở vòng đời file mà runtime hỗ trợ. Chỉnh hệ thống, sửa Windows, gỡ app và phần cứng giữ ở dạng tư vấn tới khi có hỗ trợ đã kiểm chứng. Cách ly không thay sao lưu và không giải phóng dung lượng; xóa hẳn là bước riêng, không hoàn tác được.
 
-Nhiều mẹo "tối ưu máy" khuyên xóa Prefetch, dọn registry hay tắt Defender. Nhiều AI agent khi được nhờ "dọn máy" thì tự nghĩ ra lệnh trên một máy chưa từng thấy. Dự án này đưa cho agent một quy trình đã được thiết kế kỹ:
+## Bắt đầu bằng chỉ kiểm tra
 
-- **Đo trước, kết luận sau:** phần cứng, bản Windows, loại và sức khỏe ổ, RAM, nhiệt, app khởi động, nhật ký lỗi và khoảng 50 vị trí rác, tất cả chỉ đọc.
-- **Bạn quyết định bằng lời thường:** mỗi đề xuất ghi được gì, mất gì, quay lại được không. Không rành máy tính thì gõ `Duyệt gói khuyến nghị`.
-- **Luôn có đường quay lại:** Restore Point đã xác minh, sao lưu registry, `undo.ps1` theo từng mã, khu cách ly cho file cá nhân.
-- **Tiết kiệm quota:** script viết sẵn, đầu ra nhỏ, tài liệu nạp theo từng bước.
+1. Tải [gói tiếng Việt](dist/syrin-clean-skill-v3.6-vi.zip) hoặc [gói tiếng Anh](dist/syrin-clean-skill-v3.6-en.zip) của nhánh này.
+2. Nhờ agent kiểm tra gói rồi chạy `install.ps1` bằng Windows PowerShell 5.1. Trình cài chuẩn bị và xác minh trước khi thay; bản cũ được giữ ngoài thư mục nạp skill ở `%USERPROFILE%\.syrin-clean-installer`.
+3. Mở phiên agent mới và gửi: **Dùng skill syrin-clean để kiểm tra máy và lập đề xuất, chưa thực thi thay đổi.**
+4. Đọc bằng chứng và phần chưa đo được. Với thao tác file, xem đúng danh sách và xác nhận các mã đã chọn; không duyệt mơ hồ việc liên quan file cá nhân hoặc xóa hẳn.
 
-## Bắt đầu nhanh
+Hai vị trí cài là `.claude/skills/syrin-clean` và `.agents/skills/syrin-clean`. Đã kiểm tra việc cài file; khả năng nạp và luồng đầy đủ của từng agent/phiên bản vẫn cần kiểm chứng. Trình cài không dọn máy.
 
-**Cách 1: cài skill (khuyên dùng)**
-1. Tải [skill tiếng Việt](https://github.com/sovergarden-dev/syrin-clean/raw/refs/heads/main/dist/syrin-clean-skill-v3.6-vi.zip) hoặc [skill tiếng Anh](https://github.com/sovergarden-dev/syrin-clean/raw/refs/heads/main/dist/syrin-clean-skill-v3.6-en.zip) (hướng dẫn tiếng Anh, vẫn trả lời tiếng Việt).
-2. Nhắn agent: *"Hãy cài skill từ file zip này: `<đường dẫn>`. Giải nén ra thư mục tạm rồi chạy install.ps1 bằng `powershell -NoProfile -ExecutionPolicy Bypass -File install.ps1`."*
-3. Mở **phiên mới** của agent và gửi: *"Dùng skill syrin-clean để kiểm tra, tối ưu và dọn dẹp máy tính này."*
+## Prompt độc lập và trang HTML
 
-Lần đầu nên chạy chế độ **Chỉ kiểm tra**: trang web có nút tạo sẵn câu mở đầu này.
+[Prompt VI](prompts/syrin-clean-prompt-vi-v3.6.md) và [prompt EN](prompts/syrin-clean-prompt-en-v3.6.md) có cùng runtime được nhúng. Agent đọc phần PROMPT, trích bootstrap bằng lệnh filesystem rồi giải nén vào thư mục mới, trống; không chép Base64 vào ngữ cảnh model. Bootstrap kiểm tra mã băm và đường dẫn, không thực thi dọn dẹp.
 
-Để dùng trang tùy chỉnh, tải repo về rồi mở `web/syrin-clean-vi-v3.6.html` hoặc `web/syrin-clean-en-v3.6.html` bằng trình duyệt. Trang đã nhúng file skill và bộ tạo prompt, không cần chạy server.
+Tải repo rồi mở `web/syrin-clean-vi-v3.6.html` hoặc `web/syrin-clean-en-v3.6.html`. Trang chỉ tạo câu mở đầu và tải gói, không chạy lệnh Windows. Font trang giới thiệu dùng mạng; báo cáo không cần tài nguyên ngoài.
 
-**Cách 2: dùng file prompt** (mọi agent có terminal): lưu `prompts/syrin-clean-prompt-vi-v3.6.md` vào máy rồi nhắn agent *"Đọc file `<đường dẫn>` và làm đúng theo phần PROMPT"*. File đã kèm bộ lệnh kiểm tra, mẫu báo cáo 3D và script tạo báo cáo.
+## Dữ liệu riêng và giới hạn
 
-## Câu lệnh chat
+Phiên kiểm tra mặc định ở `%LOCALAPPDATA%\SyrinClean\Sessions`; khu cách ly ở `%LOCALAPPDATA%\SyrinClean\Quarantine`. Root tùy chọn phải cục bộ, thuộc chủ sở hữu và tách khỏi file được chọn. Di chuyển ở cùng ổ. Provider cloud và filesystem chưa thử cần xem riêng.
 
-`Duyệt: A1, B1-B6, C2` · `Duyệt gói khuyến nghị` · `Bỏ: B4` · `Giải thích: C3` · `XÁC NHẬN` · `DỪNG` · `Tiếp tục` · `Hoàn tác` / `Hoàn tác: A2`. Nói tự nhiên cũng được; agent nhắc lại mã trước khi làm.
+Runtime không upload dữ liệu. Agent/nhà cung cấp có thể xử lý đầu ra terminal ngoài máy. Báo cáo và kế hoạch thô chứa đường dẫn riêng; không đưa chúng vào Git hoặc chia sẻ nhầm. `make-report.ps1 -Share -NoOpen` tạo bản tổng hợp để xem lại, không bảo đảm ẩn danh tuyệt đối.
 
-## Cấu trúc, build, kiểm thử
+Theo lựa chọn của chủ dự án, **kiểm chứng VM vẫn chưa xác minh**. Không dùng thử thao tác hệ thống thật trên máy cá nhân để thay cho VM. Xem [ma trận hỗ trợ](docs/feat/support.md).
 
-Xem [README.md](README.md) (tiếng Anh) cho cấu trúc thư mục, bảng script, cách build (`python tools/build.py`) và cách kiểm thử (`?check`). Trạng thái công việc và việc còn mở nằm trong [HANDOFF.md](HANDOFF.md).
+## Build và kiểm thử
 
-## Miễn trừ
+Cần Python 3.10+, Node.js 22+ và Windows PowerShell 5.1 cho toàn bộ bộ kiểm tra; không cần cài thư viện npm/Python.
 
-Dự án chỉ thay đổi hệ thống sau khi bạn duyệt và luôn tạo đường quay lại, nhưng không công cụ nào thay được bản sao lưu dữ liệu của chính bạn.
+```powershell
+python -B -X utf8 tools/build.py
+powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File tests/run.ps1
+```
 
-## Giấy phép
+Nguồn chuẩn nằm trong `src/runtime`, `src/instructions`, `src/report`, `src/web`. Các gói `skill/`, `dist/`, prompt và HTML được sinh lại; không sửa riêng bản nhúng. `build.py --check` chỉ xác minh, không ghi file. CI kiểm thử trên Windows, không tự phát hành hoặc triển khai website.
 
-[MIT](LICENSE)
+[Kiến trúc](docs/arch/project.md) · [Hợp đồng thực thi](docs/arch/execution.md) · [Bàn giao](HANDOFF.md) · [Bảo mật](SECURITY.md) · [MIT](LICENSE)

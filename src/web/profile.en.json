@@ -1,0 +1,43 @@
+{
+  "roleSnippets": {
+    "auto": "-> MACHINE ROLE: infer the main use (gaming, coding/AI, creative, office, mobile) from the software and folders found in Phase 0; state the inference and confidence.",
+    "gaming": "-> MACHINE ROLE [GAMING]: prioritise stable FPS and frametime, fewer background apps while playing, GPU driver, Game Mode, HAGS, per-game GPU, XMP/EXPO (group M), heat and throttling. Never touch saves, mods or game settings; clean shader caches only when space is needed (games recompile them).",
+    "dev": "-> MACHINE ROLE [CODING, AI AND VMs]: look closely at WSL/Docker VHDX, Hyper-V/VirtualBox, npm/pnpm/yarn/pip/uv/conda/NuGet/Gradle/Maven/Cargo/Go caches, HuggingFace/Ollama/LM Studio models, node_modules/.venv/target untouched for 180+ days; propose moving caches to another drive via environment variables. Never touch source code, Git repos, existing environment variables, SSH/cloud keys, Docker volumes or running containers.",
+    "creator": "-> MACHINE ROLE [DESIGN AND VIDEO]: look closely at Adobe Media Cache/Peak Files/Scratch, Lightroom Previews, DaVinci CacheClip/Proxy, CapCut, Blender, OBS; propose caches on the fastest SSD or a second drive. Never delete projects, footage, source assets, fonts, presets or LUTs.",
+    "office": "-> MACHINE ROLE [OFFICE AND STUDY]: fast boot, smooth browser and Office, few background apps; check Zalo/Telegram/Teams/Zoom, OneDrive (Free up space only) and browser caches; keep every login, password and document.",
+    "laptop": "-> MACHINE ROLE [LAPTOP ON THE GO]: battery life, heat and noise first: report battery wear, background tasks that drain the battery, Power Mode on battery, a discrete GPU woken for no reason; keep Hibernate and the OEM battery/fan utility.",
+    "lowspec": "-> MACHINE ROLE [OLD OR WEAK PC / HDD]: cut background tasks, startup apps, effects and background browsers as far as possible; pagefile System Managed on the fastest drive; say plainly when an SSD or more RAM is the most effective fix.",
+    "vm": "-> MACHINE ROLE [VIRTUAL MACHINE / CLOUD PC]: skip temperature, SMART, BIOS, battery, Hibernate and GPU drivers; focus on background processes, services and disk space; compacting or growing virtual disks happens on the host."
+  },
+  "scopeSnippets": {
+    "full": "-> SCOPE: Full diagnostic and storage review. (Scope=full)",
+    "health": "-> SCOPE: Health-only read-only diagnostics; no mutation proposals. (Scope=health)",
+    "speed": "-> SCOPE: Performance diagnostics and advice; skip detailed storage scans. (Scope=speed)",
+    "cleanup": "-> SCOPE: Storage review with safety diagnostics; no automatic selection of personal data. (Scope=cleanup)"
+  },
+  "aggrSnippets": {
+    "balanced": "-> CLEANUP: Balanced review. Keep cache, application data, personal files and VM disks separate.",
+    "conservative": "-> CLEANUP: Conservative. Retain useful caches unless space is needed; never preselect personal files.",
+    "deep": "-> CLEANUP: Detailed storage review without relaxing path, approval or recovery limits. Relocation is advice unless a tested procedure is available."
+  },
+  "modeSnippets": {
+    "approve": "-> AUTONOMY: propose by code, wait for my approval and CONFIRM before doing anything.",
+    "audit": "-> AUTONOMY: AUDIT AND PROPOSE ONLY. Stop after Phase 1; do not run Phase 2 even if I approve, unless I clearly say \"Unlock execution\"."
+  },
+  "blockHeader": "=== MY PROFILE (APPLIED ON TOP OF THE HARD SAFETY RULES, NEVER OVERRIDING THEM) ===\n",
+  "extraTpl": {
+    "drive": "-> RELOCATION ADVICE ONLY: consider {v}; quarantine must remain on the source volume.",
+    "protect": "-> NEVER TOUCH (measure only, never propose deleting, moving or disabling): {v}",
+    "note": "-> MY NOTE: {v}"
+  },
+  "reportSnippets": {
+    "r3d": "-> REPORT: 3D report from measured data. (ReportMode=3d)",
+    "simple": "-> REPORT: Simple HTML report without animation. (ReportMode=simple)",
+    "none": "-> REPORT: Do not create or open HTML. Keep JSON state and plans. (ReportMode=none)"
+  },
+  "budgetSnippets": {
+    "lean": "-> BUDGET: Short scan and compact summary. Clearly list skipped/incomplete collectors. (MaxSeconds=90)",
+    "balanced": "-> BUDGET: Balanced scan; concise structured results and evidence. (MaxSeconds=180)",
+    "thorough": "-> BUDGET: Longer read-only scan and detailed explanations where useful; preserve all safety limits. (MaxSeconds=600)"
+  }
+}

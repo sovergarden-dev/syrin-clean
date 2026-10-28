@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "package": "syrin-clean",
+  "version": "3.6",
+  "channel": "development",
+  "files": [
+    {
+      "path": "dist/syrin-clean-skill-v3.6-en.zip",
+      "sha256": "4a6d438928a9e7f0f0abb91b1655cabb15f14ecf8846daf1a5cd7cf663431475",
+      "bytes": 56040
+    },
+    {
+      "path": "dist/syrin-clean-skill-v3.6-vi.zip",
+      "sha256": "cb883ecde12e9a26a7e7d22550a69fc18bb434c243332258f745a1b403aab317",
+      "bytes": 56816
+    },
+    {
+      "path": "prompts/syrin-clean-prompt-en-v3.6.md",
+      "sha256": "f7ef853150be2f67d3036fdf27a35103ea1ba64889caa4cbd9fbf776cbc90d14",
+      "bytes": 90227
+    },
+    {
+      "path": "prompts/syrin-clean-prompt-vi-v3.6.md",
+      "sha256": "edc97d9ffa2150560c3e9c8a8ce0e600e261fa487c9c435c6522ea4b30c0daae",
+      "bytes": 93241
+    },
+    {
+      "path": "web/syrin-clean-en-v3.6.html",
+      "sha256": "e84a7af71eca8e851a491f415edd5d930bc8286164803e42abe57e7578d343c1",
+      "bytes": 263712
+    },
+    {
+      "path": "web/syrin-clean-vi-v3.6.html",
+      "sha256": "1d8208dc376d1416966ee802934d409738a57fe7fecb1c9a47a5e7d4c16bfc9c",
+      "bytes": 359114
+    }
+  ]
+}

@@ -2,14 +2,20 @@
 
 ## Scope
 
-The skill and prompts instruct an AI agent to run PowerShell on the user's machine. Reports of any path where the agent could change the system before approval, delete personal data, disable security features or send data off the machine are treated as security issues.
+Report paths that can move/delete unapproved files, overwrite recovery data, bypass ownership or containment checks, misrepresent missing data, expose private output or execute untrusted content.
+
+The supported file engine uses reviewed plan bytes and explicit item IDs, canonical local paths, file identity, owned storage, writer locks and durable journals. Permanent removal targets a selected regular file through its verified handle, not a directory tree. Recovery remains conditional on intact data and access. Purge is irreversible.
+
+## Limits
+
+This is a development build. It is not an OS sandbox, a backup product or authentication of the human behind an unrestricted agent. A full-shell agent or local administrator can bypass package controls. The elevation bridge can launch a supplied local script; the skill policy does not authorize using it to invent unsupported mutation procedures.
+
+Device-management policy and unsupported system operations require separate review. Unknown cloud providers, untested filesystems/hardware and out-of-band changes are not certified safe. See the [support matrix](docs/feat/support.md).
+
+The runtime does not upload results. Raw reports/plans may contain private paths, app names and metadata; an agent/provider may process terminal output externally. Aggregate exports omit raw private fields but are not guaranteed anonymous. Checksums detect corruption, not publisher authenticity.
 
 ## Reporting
 
-Please open a private security advisory on the repository (GitHub: Security > Report a vulnerability) rather than a public issue. Include the agent used, Windows version and the steps or prompt that triggered the behaviour.
+Use the repository's private vulnerability reporting feature rather than publishing a destructive repro in an issue. Include the source revision, Windows/PowerShell versions, the smallest synthetic fixture and observed versus expected behavior. Do not attach credentials, real personal documents, raw audit reports or private paths.
 
-## Design guarantees
-
-- Read-only until the user approves codes and types CONFIRM.
-- Metadata only: no reading of document contents, cookies, passwords or keys; nothing is sent to the Internet.
-- No downloaded scripts, no third-party optimisers, no disabling of Windows Update, Defender, Firewall, UAC, BitLocker or VBS.
+Do not test deletion, registry changes, System Restore or other destructive behavior on production/user data. Use disposable fixtures or VM snapshots.

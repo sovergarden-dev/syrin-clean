@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Syrin clean proposals (display data, not execution approval)",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "kind",
+    "sessionId",
+    "items"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "kind": {
+      "const": "syrin-proposals"
+    },
+    "sessionId": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{32}$"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "evidence",
+          "benefit",
+          "loss",
+          "risk",
+          "undo"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9.-]{0,63}$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "benefit": {
+            "type": "string"
+          },
+          "loss": {
+            "type": "string"
+          },
+          "risk": {
+            "enum": [
+              "low",
+              "review",
+              "high"
+            ]
+          },
+          "undo": {
+            "enum": [
+              "reversible",
+              "partial",
+              "irreversible",
+              "not-applicable"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
