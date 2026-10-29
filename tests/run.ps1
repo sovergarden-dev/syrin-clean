@@ -8,6 +8,8 @@ try {
   if($LASTEXITCODE){throw 'Build parity failed'}
   node tests/report.mjs
   if($LASTEXITCODE){throw 'Report tests failed'}
+  node tests/page.mjs
+  if($LASTEXITCODE){throw 'Landing tests failed'}
   foreach($name in @('quarantine.ps1','runtime.ps1','scale.ps1')){
     & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot $name)
     if($LASTEXITCODE){throw "Runtime tests failed: $name"}

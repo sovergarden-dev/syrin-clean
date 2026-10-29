@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "package": "syrin-clean",
-  "version": "3.6",
+  "version": "4.0.0-preview.1",
   "language": "vi",
   "files": [
     {
       "path": "SKILL.md",
-      "sha256": "407bfbd8693cd2c1f542ce755d8f58de8f0075c9603bbed633c6b990440cc02c",
-      "bytes": 7171
+      "sha256": "52e1735ed5fd995bb07a033b02bde446852f2fa9d6c9a11b9c03587d30f17010",
+      "bytes": 7182
     },
     {
       "path": "assets/audit.schema.json",
@@ -26,8 +26,8 @@
     },
     {
       "path": "assets/report-template.html",
-      "sha256": "372d8d15b0f6868b9d12966bad3f12fce08d0a6a9808a559e2bdedad4c150ea3",
-      "bytes": 32855
+      "sha256": "5c0e3991107576c08fefa63e72b3db7d6084d587220b14733514fcc0142d689b",
+      "bytes": 375449
     },
     {
       "path": "modules/Audit.psm1",
@@ -41,8 +41,8 @@
     },
     {
       "path": "modules/Quarantine.psm1",
-      "sha256": "8014546910fcc39e93ad0c2582af5d14fb56fdd784f0445c7988a38bbd7a23ef",
-      "bytes": 24897
+      "sha256": "2d5019c03a175d6e359da48bb147317d42dd034c99ade5b644e1f46337d2031d",
+      "bytes": 24929
     },
     {
       "path": "modules/Report.psm1",
@@ -71,8 +71,8 @@
     },
     {
       "path": "references/support.md",
-      "sha256": "a1e892b0878e3f34ac10e5dfac16b9f348987443754375eee1c6b92d9886cb86",
-      "bytes": 4397
+      "sha256": "e2f5e144b5b40faefeb9393cbcdca10bddc0fa887906f7bc09efb1886d0826f5",
+      "bytes": 4550
     },
     {
       "path": "scripts/audit.ps1",

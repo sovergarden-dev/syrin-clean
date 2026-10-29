@@ -1,6 +1,6 @@
 # Kế hoạch tăng độ tin cậy cho Syrin clean
 
-Trạng thái: **đã triển khai, đạt kiểm thử cục bộ và CI; các cổng nghiệm thu môi trường vẫn mở**. Baseline `a0752aa`, ngày 2026-10-28; nhánh `codex/hardening`, [PR nháp #1](https://github.com/sovergarden-dev/syrin-clean/pull/1). Nguồn: [báo cáo kiểm tra](../research/audit-safety.md) và [bằng chứng](../research/audit-evidence.json). Đích: thao tác đúng phạm vi, có đường phục hồi được kiểm chứng và báo cáo không biến dữ liệu thiếu thành kết luận tốt.
+Trạng thái: **đã review và merge; các cổng nghiệm thu môi trường vẫn mở**. Baseline `a0752aa`, ngày 2026-10-28; [PR #1 đã merge](https://github.com/sovergarden-dev/syrin-clean/pull/1) ở `f4d1d35` sau kiểm thử cục bộ và CI. [Kế hoạch HTML song ngữ](bilingual-experience.md) theo dõi bản preview tiếp theo. Nguồn: [báo cáo kiểm tra](../research/audit-safety.md) và [bằng chứng](../research/audit-evidence.json). Đích: thao tác đúng phạm vi, có đường phục hồi được kiểm chứng và báo cáo không biến dữ liệu thiếu thành kết luận tốt.
 
 ## 1. Khép kín vòng đời file
 
@@ -63,7 +63,7 @@ Nghiệm thu: người dùng biết cái gì chưa đo được, có thể duy�
 
 ## Cổng trước khi coi là bản ổn định
 
-- [ ] Không còn lỗi P1 và các ca hồi quy tương ứng đạt.
+- [x] Các phát hiện P1 đã biết trong audit và review trước merge đã được xử lý, có regression tương ứng đạt; đây không phải khẳng định không còn lỗi ở môi trường chưa thử.
 - [x] Phục hồi thành công trên dữ liệu fixture sau mô phỏng lỗi ghi journal/hết dung lượng, lỗi quyền, file khóa thật, xung đột tên và ngắt giữa chừng; đây không phải bằng chứng nghiệm thu dịch vụ hệ thống trên VM.
 - [ ] Đã thử Windows 10/11, x64/ARM64 và các edition được tuyên bố hỗ trợ; nhánh chưa thử phải ghi là chưa xác minh.
 - [ ] Luồng agent từ kiểm tra đến duyệt, dry run, thực thi, dừng và hoàn tác đã được chạy trên VM có snapshot và dữ liệu fixture.

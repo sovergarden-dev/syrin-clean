@@ -2,9 +2,13 @@
 
 All notable changes to this project. Dates are 2026.
 
-## [Unreleased]
+## [4.0.0-preview.1] - 2026-10-29
 
 ### Added
+- Add one English-default EN/VI landing HTML with both embedded packages, prompt generation, fonts and a synthetic report; preserve the active profile and tab when switching languages.
+- Add bilingual report controls, history search/state filters, persistent selections across filters and a print summary.
+- Add a shared bounded review-lens renderer and licensed offline typography, with pause, hidden/offscreen and reduced-motion paths.
+- Add an allowlisted Pages publisher gated by validation of the published release tag and deployment metadata for live verification.
 - Add durable audit progress, large-tree/history regression coverage and offline history pagination with persistent item selection.
 - Add reviewed file plans with explicit item selection, owned storage, append-only journals, conflict recovery, reconciliation and explicit legacy CSV import.
 - Add native handle-based file identity checks for same-volume rename and selected-file purge.
@@ -17,7 +21,7 @@ All notable changes to this project. Dates are 2026.
 - Run path normalization and live ancestor checks within the existing native helper to reduce PowerShell overhead in long histories.
 - Include all loaded report history and cap decorative rendering at 24 frames per second with 250/500 points.
 - Give storage scans a share of the requested audit budget and retain explicit partial coverage.
-- Rename the project to Syrin clean and keep the imported 3.6 artifact version while hardening remains unreleased.
+- Rename the project to Syrin clean and replace the imported 3.6 delivery with the first 4.0 preview; the file-plan runtime replaces the original command contract and environment qualification remains open.
 - Generate both language packages, prompts and pages from canonical runtime, policy, report and web sources.
 - Stage installation outside skill-discovery folders, serialize updates and retain previous versions for rollback.
 - Limit automatic mutation to the supported file lifecycle; system tuning and repair remain advisory pending validated adapters.
@@ -25,6 +29,7 @@ All notable changes to this project. Dates are 2026.
 - Group advanced page options, prioritize the introduction on mobile and add controllable report animation.
 
 ### Fixed
+- Apply the source-path policy to legacy imports and recheck it during restore, including cloud roots registered after a plan was approved.
 - Bind approval validation, execution and persisted session plans to one captured document so concurrent plan replacement cannot change a reviewed restore destination.
 - Preserve caller IO commands across nested runtime entry points instead of force-reloading shared modules.
 - Pass a true null backup path to .NET when replacing reports/state in Windows PowerShell 5.1; cover report regeneration and locked-file preservation with regression tests.

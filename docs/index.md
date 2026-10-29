@@ -1,5 +1,9 @@
 # Documentation
 
+- [Product context](../PRODUCT.md) and [visual system](../DESIGN.md).
+- [Bilingual HTML and preview release plan](plan/bilingual-experience.md).
+- [Bilingual HTML validation](research/bilingual-validation.md).
+
 - [English quick start](../README.md) and [Vietnamese quick start](../README.vi.md).
 - [Project architecture](arch/project.md): sources, generated files and execution boundaries.
 - [Handoff](../HANDOFF.md): design decisions, verification and remaining work.

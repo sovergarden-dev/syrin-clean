@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createView,normalizeAudit,escapeHtml,historyPage} from '../src/report/report.mjs';
+import {createView,normalizeAudit,escapeHtml,historyPage,filterHistoryItems} from '../src/report/report.mjs';
 const complete=data=>({status:'complete',data,errors:[]});
 const audit=()=>({schemaVersion:1,kind:'syrin-audit',meta:{sessionId:'a'.repeat(32),machineId:'machine-a',systemDrive:'D:',generatedUtc:'2026-10-28T00:00:00Z',reportMode:'3d'},collectors:{system:complete([{model:'Fixture'}]),volumes:complete([{drive:'C:',volumeId:'data',sizeBytes:100,freeBytes:60},{drive:'D:',volumeId:'system',sizeBytes:100,freeBytes:1}]),startup:complete([]),events:complete([]),radar:complete([{id:'cache',label:'Cache',category:'cache',measuredBytes:2,cloudBytes:0,estimatedReclaimableBytes:null,status:'complete'},{id:'chat',label:'Telegram data',category:'app-data',measuredBytes:3,cloudBytes:0,estimatedReclaimableBytes:null,status:'complete'},{id:'vm',label:'Docker',category:'vm',measuredBytes:5,cloudBytes:0,estimatedReclaimableBytes:null,status:'complete'}])}});
 let view=createView(audit());
@@ -26,4 +26,9 @@ assert.equal(historyPage(historyItems,999).page,2);
 assert.equal(historyPage(historyItems,-1).page,0);
 assert.deepEqual(historyPage([],0).items,[]);
 assert.equal(historyPage(historyItems,1).items[0].id,'item-50');
+const searchable=[{id:'a',code:'Q1',original:'D:\\Đường\\A[1].cache',state:'quarantined'},{id:'b',code:'Q2',original:'D:\\other.cache',state:'purged'},{id:'c',code:'Q3',original:'D:\\conflict.cache',state:'conflict'}];
+assert.deepEqual(filterHistoryItems(searchable,{query:'đường'.normalize('NFD')}).map(item=>item.id),['a']);
+assert.deepEqual(filterHistoryItems(searchable,{query:'[1]'}).map(item=>item.id),['a']);
+assert.deepEqual(filterHistoryItems(searchable,{state:'attention'}).map(item=>item.id),['c']);
+assert.deepEqual(filterHistoryItems(searchable,{state:'purged',query:'Q1'}),[]);
 console.log('Report model: volume identity, categories, unknown/partial data, baseline identity, legacy data and escaping passed');

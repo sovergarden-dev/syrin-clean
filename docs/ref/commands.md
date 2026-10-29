@@ -46,7 +46,7 @@ Restore defaults to retaining an existing destination and recording conflict. `-
 & .\syrin-clean\scripts\quarantine.ps1 -Operation import -LegacyRoot <old-named-root> -QuarantineRoot <separate-new-root> -PlanFile <working-directory>\legacy-plan.json
 ```
 
-The importer reads both active and archived CSV manifests under `PC-Optimize-Quarantine` or `Syrin-Clean-Quarantine`, validates containment and previews still-stored files. Confirm IDs and execute the import plan; it creates a new journal without moving files or rewriting old metadata. Imported sessions support separately approved restore only. Unsafe, foreign-owner, inaccessible or unsupported records require separate recovery; never weaken validation to force import.
+The importer reads both active and archived CSV manifests under `PC-Optimize-Quarantine` or `Syrin-Clean-Quarantine`, validates containment and previews still-stored files. The legacy root must pass the same source policy as new selections; restore rechecks current cloud/protected-path restrictions. Confirm IDs and execute the import plan; it creates a new journal without moving files or rewriting old metadata. Imported sessions support separately approved restore only. Unsafe, foreign-owner, inaccessible or unsupported records require separate recovery; never weaken validation to force import.
 
 ## Reports and sharing
 
@@ -58,7 +58,17 @@ The importer reads both active and archived CSV manifests under `PC-Optimize-Qua
 
 Only compatible machine/volume identities are compared. Invalid data does not replace a good report. `share-report.html` omits raw paths, names, commands, identifiers, errors and history. Review it before sharing; it is not automatically uploaded. Use `proposals.json` with the bundled schema for advisory rows; legacy CSV is display-only.
 
-When `-QuarantineRoot` is supplied, all loaded sessions/items are embedded in the offline report. Select a session and use the file-page controls; selections persist across pages within that session. Legacy truncated snapshots remain marked as limited. Restore controls prepare a request only and never execute an OS command.
+When `-QuarantineRoot` is supplied, all loaded sessions/items are embedded in the offline report. Select a session and use the file-page, search and state controls; selections persist across pages, filters and EN/VI changes within that session. Legacy truncated snapshots remain marked as limited. Restore controls prepare a request only and never execute an OS command. The language requested by `-Lang` is the initial report language; the public sample defaults to English. Original records are not machine-translated.
+
+`Print summary` prints measurements and proposals, with a notice that full history and raw collector records remain in the HTML. The shared canvas renderer pauses when hidden/offscreen or disabled and has a reduced-motion path. Simple mode does not start the canvas renderer.
+
+## Public HTML delivery
+
+`web/index.html` and `dist/syrin-clean.html` are byte-identical English-default EN/VI entry points. `web/report-demo.html` and `dist/syrin-clean-report-demo.html` contain the labeled synthetic report. The ZIP and Markdown downloads inside the page follow its selected language.
+
+`artifact-manifest.json` lists the six release payloads by filename, and `SHA256SUMS.txt` covers those files plus the manifest itself. All paths are flat so downloaded release assets can be checked together without recreating the source tree.
+
+From a validated clean checkout, `python -B -X utf8 tools/publish_site.py <empty-directory-outside-checkout>` stages only the two HTML files, `.nojekyll` and `version.json`. It refuses nonempty staging destinations and never stages session data. GitHub Pages opens the hosted page; release attachments download as files. Opening an attachment afterward depends on the user's browser and file association.
 
 ## Elevation and Restore Point helper
 

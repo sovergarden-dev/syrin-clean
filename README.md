@@ -2,7 +2,7 @@
 
 **Inspect Windows, review the evidence, approve exact file operations.**
 
-Syrin clean is a bilingual Agent Skill and standalone prompt with a shared Windows PowerShell runtime. This branch contains an **unreleased development hardening build**. It is not a universal compatibility or stable-release claim.
+Syrin clean is a bilingual Agent Skill and standalone prompt with a shared Windows PowerShell runtime. This is **4.0.0-preview.1**, a pre-release with environment qualification still open. It is not a universal compatibility or stable-release claim.
 
 [Tiếng Việt](README.vi.md) · [Commands](docs/ref/commands.md) · [Support matrix](docs/feat/support.md) · [Validation](docs/ref/validation.md) · [Changelog](CHANGELOG.md)
 
@@ -20,7 +20,7 @@ Automatic mutation is limited to the file lifecycle implemented by the runtime. 
 
 ## Start with an audit
 
-1. Download the [English package](dist/syrin-clean-skill-v3.6-en.zip) or [Vietnamese package](dist/syrin-clean-skill-v3.6-vi.zip) from this branch, or build them locally.
+1. Download the [English package](dist/syrin-clean-skill-v4.0.0-preview.1-en.zip) or [Vietnamese package](dist/syrin-clean-skill-v4.0.0-preview.1-vi.zip) from this branch, or build them locally.
 2. Ask your agent to verify the package and run `install.ps1` with Windows PowerShell 5.1. The installer stages and validates both agent locations before switching them; previous versions remain outside the discovery folders under `%USERPROFILE%\.syrin-clean-installer`.
 3. Start a new agent session and ask: **Use the syrin-clean skill to audit this PC and prepare proposals only.**
 4. Review the evidence and uncertainty. For any supported file action, review the exact plan and confirm only the selected codes. Do not approve a personal-file or purge operation through a vague blanket instruction.
@@ -29,9 +29,11 @@ The installer writes `.claude/skills/syrin-clean` and `.agents/skills/syrin-clea
 
 ## Standalone prompt and web pages
 
-Use the [English prompt](prompts/syrin-clean-prompt-en-v3.6.md) or [Vietnamese prompt](prompts/syrin-clean-prompt-vi-v3.6.md) with an agent that can run terminal commands. Read the PROMPT section, then extract the bootstrap/runtime appendix with filesystem commands; do not paste Base64 into model context. The extractor checks the digest, blocks path traversal and only writes a new empty runtime directory. It does not execute cleanup. Both channels use the same packaged helpers and safety policy.
+Use the [English prompt](prompts/syrin-clean-prompt-en-v4.0.0-preview.1.md) or [Vietnamese prompt](prompts/syrin-clean-prompt-vi-v4.0.0-preview.1.md) with an agent that can run terminal commands. Read the PROMPT section, then extract the bootstrap/runtime appendix with filesystem commands; do not paste Base64 into model context. The extractor checks the digest, blocks path traversal and only writes a new empty runtime directory. It does not execute cleanup. Both channels use the same packaged helpers and safety policy.
 
-Open `web/syrin-clean-en-v3.6.html` or `web/syrin-clean-vi-v3.6.html` after downloading the repository. The pages configure the opening message and download the embedded ZIP or prompt. They do not execute Windows commands. Landing-page fonts use the network; reports contain no external asset dependency.
+Open the [web app](https://sovergarden-dev.github.io/syrin-clean/) or download the [single offline HTML](dist/syrin-clean.html). English is the default; switch to Vietnamese without losing the profile. Both packages, prompt generation, fonts and the [synthetic report](dist/syrin-clean-report-demo.html) are embedded. The page does not execute Windows commands. GitHub release assets download as files; the Pages link opens the hosted application.
+
+Generated reports also switch EN/VI in place, preserve file selections across pages and filters, and offer a print summary. Original records retain their source language. The optional visual uses measured categories and has an equivalent labeled table.
 
 ## Data and privacy
 
@@ -48,7 +50,7 @@ python -B -X utf8 tools/build.py
 powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File tests/run.ps1
 ```
 
-`python tools/build.py --check` validates without changing files. Packaging uses an explicit allowlist, manifests, checksums and deterministic ZIP metadata. The same checks run in the [Windows CI workflow](.github/workflows/check.yml); CI does not deploy or publish a release.
+`python tools/build.py --check` validates without changing files. Packaging uses an explicit allowlist, manifests, checksums and deterministic ZIP metadata. The same checks run in the [Windows CI workflow](.github/workflows/check.yml). When a release is published, the [Pages workflow](.github/workflows/pages.yml) validates that tag through the same Windows suite, verifies its version and publishes only the two public HTML files and deployment metadata. Releases are explicitly published with the verified assets; raw machine reports are excluded.
 
 | Canonical source | Responsibility |
 |---|---|
@@ -56,7 +58,9 @@ powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File tests/ru
 | `src/runtime/scripts/` | Public command entry points |
 | `src/instructions/{en,vi}/` | One policy and phase set per language, shared by skill and prompt |
 | `src/report/` | Report template, data model, rendering and styles |
-| `src/web/` | Shared landing logic/styles and localized markup/profile text |
+| `src/web/` | Unified bilingual landing template, logic and locale/profile text |
+| `src/shared/` | Shared tokens, licensed embedded fonts and bounded canvas rendering |
+| `project.json` | Version, channel and public destinations |
 | `src/install.ps1`, `src/extract-runtime.ps1` | Transactional installation and standalone extraction |
 | `tools/build.py` | Generate and validate all delivery formats |
 

@@ -1,3 +1,5 @@
+import {createLens} from '../shared/lens.mjs';
+
 const list = value => Array.isArray(value) ? value : [];
 const first = value => list(value)[0] || {};
 const number = value => typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
@@ -82,108 +84,176 @@ Object.assign(copy.vi,{
 });
 function localDate(value,lang){const date=new Date(value);return Number.isNaN(date.getTime())?String(value||''):date.toLocaleString(lang==='vi'?'vi-VN':'en-US');}
 
-function renderScene(canvas,rows,button,T){
-  const context=canvas.getContext('2d');if(!context){button.disabled=true;return}
-  const media=matchMedia('(prefers-reduced-motion: reduce)');
-  let enabled=!media.matches,visible=false,frame=0,timer=0,lastTime=0,rotation=.4,drag=false,lastX=0,width=0,height=0;
-  const interval=1000/24;
-  const palette={cache:'#5ce0ac','app-data':'#94bfff','user-data':'#ffd17b',vm:'#c8a4ff',system:'#a8b9af',unknown:'#ff9e9e'};
-  const budget=innerWidth<700?250:500,sum=rows.reduce((n,x)=>n+x.measuredBytes,0)||1;
-  const points=[];let seed=7;const random=()=>{seed=seed*16807%2147483647;return(seed-1)/2147483646};
-  rows.forEach((row,i)=>{const angle=i*2.399963,y=1-2*(i+.5)/Math.max(1,rows.length),radius=Math.sqrt(1-y*y),count=Math.max(8,Math.round(budget*row.measuredBytes/sum));for(let j=0;j<count&&points.length<budget;j++){const a=random()*Math.PI*2,r=Math.cbrt(random())*.18;points.push([Math.cos(angle)*radius+r*Math.cos(a),y+r*(random()-.5),Math.sin(angle)*radius+r*Math.sin(a),palette[row.category]])}});
-  const projected=points.map(()=>({x:0,y:0,z:0,k:0,color:''}));
-  function draw(){
-    const dpr=Math.min(devicePixelRatio||1,2);context.setTransform(dpr,0,0,dpr,0,0);context.clearRect(0,0,width,height);
-    const c=Math.cos(rotation),s=Math.sin(rotation),scale=Math.min(width,height)*.32;
-    for(let i=0;i<points.length;i++){const[x,y,z,color]=points[i],xx=x*c-z*s,zz=x*s+z*c,k=2.8/(2.8+zz),p=projected[i];p.x=width/2+xx*scale*k;p.y=height/2+y*scale*k;p.z=zz;p.k=k;p.color=color}
-    projected.sort((a,b)=>b.z-a.z);
-    for(const p of projected){context.globalAlpha=.35+.6*(1-(p.z+1.3)/2.6);context.fillStyle=p.color;context.fillRect(p.x,p.y,Math.max(1.5,2*p.k),Math.max(1.5,2*p.k))}
-    context.globalAlpha=1;
-  }
-  function cancel(){if(frame)cancelAnimationFrame(frame);if(timer)clearTimeout(timer);frame=0;timer=0}
-  function active(){return visible&&!document.hidden&&enabled&&!media.matches&&!drag}
-  function schedule(){if(active())timer=setTimeout(()=>{timer=0;frame=requestAnimationFrame(tick)},interval)}
-  function tick(now){frame=0;if(!active())return;if(lastTime)rotation+=Math.min((now-lastTime)/1000,.1)*.18;lastTime=now;draw();schedule()}
-  function paint(){if(!frame&&visible&&!document.hidden)frame=requestAnimationFrame(()=>{frame=0;draw()})}
-  function update(){
-    cancel();lastTime=0;button.disabled=media.matches;button.title=media.matches?T.reducedMotion:'';button.textContent=enabled?T.pause:T.resume;button.setAttribute('aria-pressed',String(enabled));
-    if(visible&&!document.hidden){draw();schedule()}
-  }
-  function resize(){width=canvas.clientWidth;height=canvas.clientHeight;const dpr=Math.min(devicePixelRatio||1,2);canvas.width=width*dpr;canvas.height=height*dpr;update()}
-  new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;update()}).observe(canvas);
-  button.addEventListener('click',()=>{enabled=!enabled;update()});document.addEventListener('visibilitychange',update);media.addEventListener('change',()=>{enabled=!media.matches;update()});window.addEventListener('resize',resize);
-  canvas.addEventListener('pointerdown',e=>{drag=true;lastX=e.clientX;cancel();canvas.setPointerCapture(e.pointerId)});
-  canvas.addEventListener('pointermove',e=>{if(drag){rotation+=(e.clientX-lastX)*.008;lastX=e.clientX;paint()}});
-  canvas.addEventListener('pointerup',()=>{drag=false;update()});canvas.addEventListener('pointercancel',()=>{drag=false;update()});
-  canvas.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();rotation+=(e.key==='ArrowLeft'?-.12:.12);draw()}});
-  resize();
+
+Object.assign(copy.en, {
+  summary:'At a glance',print:'Print summary',language:'Language',skip:'Skip to report',tools:'Report tools',fontCredits:'Font licenses',
+  share:'Prepare shared export',chooseSession:'Choose a session',search:'Find a file',searchPlaceholder:'Path, code or item ID',stateFilter:'State',
+  allStates:'All states',storedState:'In quarantine',attentionState:'Needs attention',plannedState:'Planned',restoredState:'Restored',purgedState:'Permanently deleted',
+  clearSelection:'Clear selection',noMatches:'No files match these filters. Try another term or state.',noHistory:'No file operations are included in this report.',
+  noProposals:'No proposals were included. Ask your agent to review the audit before preparing a plan.',
+  noMeasurements:'No folder measurements are available. Ask your agent which collectors were skipped or incomplete.',
+  pageStatus:'Page {page}/{pages}. Files {start}–{end} of {total}.',coverage:'{filtered} of {total} files match the current filters.',selectedCount:'Selected in this session: {count} files.',
+  demo:'Example data. This report does not describe your PC.',examplePC:'Example PC',demoRequest:'This is a synthetic example. Do not execute it.',
+  requestNote:'This text asks your agent to prepare a plan. It does not authorize execution.',printNote:'Printed summary only. The full file history and original collector records remain in the HTML report.',
+  pause:'Pause animation',resume:'Resume animation',reduced:'Reduced motion',scene:'A spatial view of measured groups. Exact values are in the table. Drag or use the arrow keys to rotate.',
+  empty:'No data was included.',measurementNote:'Logical folder sizes can overlap and are not a promise of recoverable space. Application data, virtual disks and personal files are not junk. Partial measurements are lower bounds.',
+  footer:'Generated locally by Syrin clean. No automatic upload. Original records retain their source language. Your agent/provider has its own data boundary. Review a fresh plan before any file operation.'
+});
+Object.assign(copy.vi, {
+  summary:'Tổng quan',print:'In tóm tắt',language:'Ngôn ngữ',skip:'Đến báo cáo',tools:'Công cụ báo cáo',fontCredits:'Giấy phép font',
+  share:'Chuẩn bị bản chia sẻ',chooseSession:'Chọn phiên',search:'Tìm file',searchPlaceholder:'Đường dẫn, mã hoặc ID file',stateFilter:'Trạng thái',
+  allStates:'Mọi trạng thái',storedState:'Đang cách ly',attentionState:'Cần xem xét',plannedState:'Đã lập kế hoạch',restoredState:'Đã khôi phục',purgedState:'Đã xóa hẳn',
+  clearSelection:'Bỏ chọn',noMatches:'Không có file khớp bộ lọc. Thử từ khóa hoặc trạng thái khác.',noHistory:'Báo cáo này chưa có lịch sử thao tác file.',
+  noProposals:'Chưa có đề xuất đi kèm. Nhờ agent xem báo cáo trước khi lập kế hoạch.',
+  noMeasurements:'Chưa có số đo thư mục. Nhờ agent làm rõ bộ thu thập nào bị bỏ qua hoặc chưa hoàn tất.',
+  pageStatus:'Trang {page}/{pages}. File {start}–{end} trên {total}.',coverage:'{filtered} trên {total} file khớp bộ lọc hiện tại.',selectedCount:'Đã chọn trong phiên: {count} file.',
+  demo:'Dữ liệu minh họa. Báo cáo này không mô tả máy của bạn.',examplePC:'Máy minh họa',demoRequest:'Đây là ví dụ giả lập. Không thực thi.',
+  requestNote:'Nội dung này nhờ agent lập kế hoạch, chưa cấp quyền thực thi.',printNote:'Bản in chỉ gồm tóm tắt. Lịch sử file đầy đủ và bản ghi thu thập gốc vẫn nằm trong HTML.',
+  pause:'Tạm dừng hiệu ứng',resume:'Bật hiệu ứng',reduced:'Đã giảm chuyển động',scene:'Góc nhìn không gian của các nhóm đã đo. Số chính xác nằm trong bảng. Kéo hoặc dùng phím mũi tên để xoay.',
+  empty:'Chưa có dữ liệu đi kèm.',measurementNote:'Kích thước logic có thể chồng lặp và không phải cam kết dung lượng thu hồi. Dữ liệu ứng dụng, ổ máy ảo và file cá nhân không phải rác. Số đo chưa đầy đủ là mức tối thiểu đã thấy.',
+  footer:'Syrin clean tạo báo cáo cục bộ, không tự tải lên. Bản ghi gốc giữ nguyên ngôn ngữ nguồn. Agent/nhà cung cấp có ranh giới dữ liệu riêng. Xem kế hoạch mới trước mỗi thao tác file.'
+});
+
+export function filterHistoryItems(items, {query = '', state = 'all'} = {}) {
+  const needle = String(query).trim().normalize('NFC').toLowerCase();
+  const attention = ['moving','restoring','purging','conflict','failed'];
+  return list(items).filter(item => {
+    const matchesState = state === 'all' || (state === 'attention' ? attention.includes(item.state) : item.state === state);
+    const text = [item.original,item.code,item.id].filter(Boolean).join(' ').normalize('NFC').toLowerCase();
+    return matchesState && (!needle || text.includes(needle));
+  });
 }
 
-function renderReport(payload){
-  const lang=payload.language==='vi'?'vi':'en',T=copy[lang],$=id=>document.getElementById(id),esc=escapeHtml;
-  document.documentElement.lang=lang;
-  const view=createView(payload.audit,payload.baseline);const gb=n=>formatBytes(n,lang);
-  const labels={'subtitle':'report','summary-title':'summary','measurements-title':'measured','measurement-note':'measurementNote','category-label':'category','comparison-title':'comparison','comparison-note':'comparisonNote','proposals-title':'proposals','proposal-note':'proposalNote','history-title':'history','history-note':'historyNote','details-title':'details','scene-note':'scene','share':'share','request-title':'request','copy-request':'copy','history-link':'history','footer':'footer'};
-  for(const[id,key]of Object.entries(labels))$(id).textContent=T[key];
-  $('top').textContent=view.system.model||T.pc;
-  $('identity').textContent=[view.system.windows,view.system.edition,view.system.architecture,localDate(view.audit.meta.generatedUtc,lang)].filter(Boolean).join(' · ');
-  const messages=lang==='vi'?{'agent-privacy':'Agent hoặc nhà cung cấp có thể xử lý đầu ra lệnh ngoài máy.','support-unverified':'Các cấu hình, filesystem và provider chưa thử vẫn chưa được xác minh.'}:{'agent-privacy':'Your agent/provider may process command output outside this device.','support-unverified':'Untested configurations, filesystems and providers remain unverified.'};
-  const warnings=[...list(view.audit.meta.warnings),...list(view.audit.meta.warningCodes).map(code=>messages[code]).filter(Boolean)];if(view.audit.legacy)warnings.unshift(T.legacy);if(payload.shared)warnings.unshift(T.shared);if(view.incomplete.length)warnings.push(T.incomplete+view.incomplete.map(name=>T.collectorNames[name]||name).join(', '));$('notice').textContent=warnings.join('\n');
-  const fact=(title,value,quality,detail='')=>'<div class="fact" data-quality="'+esc(quality)+'"><b>'+esc(title)+'</b><strong>'+esc(value)+'</strong><small>'+esc(detail|| (quality==='complete'?T.complete:T.partial))+'</small></div>';
-  $('facts').innerHTML=fact(T.space,view.systemVolume?view.systemVolume.drive+' '+gb(view.systemVolume.freeBytes):T.unknown,view.systemVolume?view.collector('volumes').status:'unavailable')+fact(T.startup,view.startupCount??T.unknown,view.startupCount===null?'unavailable':'complete',view.unknownStartup?view.unknownStartup+' '+T.unknown:'')+fact(T.events,view.eventCount??T.unknown,view.eventCount===null?'unavailable':view.collector('events').status)+fact(T.estimate,gb(view.reclaimable),view.reclaimable===null?'unavailable':'complete');
-  $('facts').innerHTML+=fact(T.memory,gb(view.memoryAvailable),view.memoryAvailable===null?'unavailable':view.collector('memory').status)+fact(T.defender,view.defender===null?T.unknown:view.defender?T.on:T.off,view.defender===null?'unavailable':view.collector('security').status,T.securityNote);
-  $('category').innerHTML='<option value="all">'+T.all+'</option>'+categories.map(c=>'<option value="'+c+'">'+esc(T[c==='unknown'?'unknown-category':c])+'</option>').join('');
-  function showRadar(){const chosen=$('category').value;const rows=view.radar.filter(x=>chosen==='all'||x.category===chosen);$('radar').innerHTML=rows.length?rows.map(x=>'<div class="radar-row"><div><b>'+esc(x.label)+'</b><small>'+esc(T[x.category==='unknown'?'unknown-category':x.category])+' · '+esc(x.status==='complete'?T.complete:T.partial)+'</small></div><span>'+esc(gb(x.measuredBytes))+'</span></div>').join(''):'<p>'+T.empty+'</p>'}
-  $('category').addEventListener('change',showRadar);showRadar();
-  if(payload.mode==='3d'&&view.radar.length){$('cloud').setAttribute('aria-label',T.scene);renderScene($('cloud'),view.radar,$('motion'),T)}else{$('scene').hidden=true;$('motion').hidden=true}
-  if(view.comparison){$('comparison-section').hidden=false;const c=view.comparison;$('comparison').innerHTML=fact(T.before,gb(c.before),'complete')+fact(T.after,gb(c.after),'complete')+fact(T.delta,(c.delta>=0?'+':'−')+gb(Math.abs(c.delta)),'complete')}
-  function table(rows,columns){if(!rows.length)return '<p>'+T.empty+'</p>';const keys=columns||Object.keys(rows[0]);return '<div class="table-wrap"><table><thead><tr>'+keys.map(k=>'<th scope="col">'+esc(k)+'</th>').join('')+'</tr></thead><tbody>'+rows.slice(0,200).map(row=>'<tr>'+keys.map(k=>'<td>'+esc(typeof row[k]==='object'?JSON.stringify(row[k]):row[k]??T.unknown)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'+(rows.length>200?'<p>'+T.limited+'</p>':'')}
-  const proposalRows=list(payload.proposals?.items).map(item=>{if(payload.proposals.schemaVersion!==1)return item;const row={};for(const[key,label]of Object.entries(T.proposalColumns))row[label]=key==='risk'?(T.risks[item[key]]||item[key]):key==='undo'?(T.undoLabels[item[key]]||item[key]):item[key];return row});
-  $('proposals').innerHTML=table(proposalRows);
-  $('details').innerHTML=Object.entries(view.audit.collectors).map(([name,c])=>'<details><summary>'+esc(T.collectorNames[name]||name)+' · '+esc(T.qualities[c.status]||c.status)+'</summary><p class="errors">'+esc(list(c.errors).join('\n'))+'</p>'+table(list(c.data))+'</details>').join('');
-  function request(action){$('request').value=T.beforeApproval+'\n'+JSON.stringify(action,null,2);$('request-section').hidden=false;$('request').focus();$('request-status').textContent=''}
-  const sessions=list(payload.history),selections=new Map();
-  $('sessions').textContent='';
-  if(sessions.length){
-    const toolbar=document.createElement('div');toolbar.className='toolbar';
-    const label=document.createElement('label');label.htmlFor='history-session';label.textContent=T.chooseSession+' ('+sessions.length+')';
-    const picker=document.createElement('select');picker.id='history-session';
-    sessions.forEach((session,index)=>{const option=document.createElement('option');option.value=String(index);option.textContent=(index+1)+'. '+localDate(session.createdUtc,lang)+' · '+String(session.sessionId).slice(0,12);picker.appendChild(option)});
-    const body=document.createElement('div');toolbar.append(label,picker);$('sessions').append(toolbar,body);
-    let activeSession=0,pageIndex=0;
-    function showSession(){
-      body.textContent='';const session=sessions[activeSession],box=document.createElement('div');box.className='session';
-      const identity=document.createElement('code');identity.textContent=session.sessionId;box.appendChild(identity);
-      if(!session.ok){const error=document.createElement('p');error.className='errors';error.textContent=session.error;box.appendChild(error);body.appendChild(box);return}
-      if(!selections.has(session.sessionId))selections.set(session.sessionId,new Set());
-      const selected=selections.get(session.sessionId),page=historyPage(session.items,pageIndex);pageIndex=page.page;
-      const status=document.createElement('p');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
-      status.textContent=T.page+' '+(page.page+1)+'/'+page.pages+' · '+(page.total?page.start+1:0)+'–'+page.end+'/'+page.total+' '+T.files;box.appendChild(status);
-      const selectedStatus=document.createElement('p'),restore=document.createElement('button');restore.type='button';restore.textContent=T.restore;
-      function updateSelection(){selectedStatus.textContent=T.selected+': '+selected.size+' '+T.files;restore.disabled=selected.size===0}
-      for(const item of page.items){
-        const row=document.createElement('label');row.className='selection';const checkbox=document.createElement('input');checkbox.type='checkbox';
-        checkbox.disabled=!['quarantined','conflict','failed'].includes(item.state)||!/^[a-f0-9]{32}$/.test(item.id||'');checkbox.checked=selected.has(item.id);
-        checkbox.addEventListener('change',()=>{if(checkbox.checked)selected.add(item.id);else selected.delete(item.id);updateSelection()});
-        const text=document.createElement('span');text.textContent=(item.code?item.code+' · ':'')+(item.original||item.id)+' · '+(T.states[item.state]||item.state);row.append(checkbox,text);box.appendChild(row);
-      }
-      const navigation=document.createElement('div');navigation.className='toolbar';
-      for(const[direction,text,id,disabled]of [[-1,T.previousPage,'history-prev',page.page===0],[1,T.nextPage,'history-next',page.page+1>=page.pages]]){
-        const button=document.createElement('button');button.id=id;button.type='button';button.textContent=text;button.disabled=disabled;
-        button.addEventListener('click',()=>{pageIndex+=direction;showSession();const focus=$(id);if(!focus.disabled)focus.focus();else picker.focus()});navigation.appendChild(button);
-      }
-      box.appendChild(navigation);
-      if(session.totalItems>page.total){const warning=document.createElement('p');warning.textContent=T.limited;box.appendChild(warning)}
-      restore.addEventListener('click',()=>{if(selected.size)request({operation:'restore',root:payload.historyRoot,sessionId:session.sessionId,itemIds:[...selected]})});
-      updateSelection();box.append(selectedStatus,restore);body.appendChild(box);
+const interpolate = (text, values) => text.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? ''));
+
+function renderReport(payload) {
+  const $ = id => document.getElementById(id), esc = escapeHtml;
+  const view = createView(payload.audit, payload.baseline);
+  const sessions = list(payload.history);
+  let language = payload.language === 'vi' ? 'vi' : 'en', T = copy[language], lens;
+  const requested = new URLSearchParams(location.search || location.hash.slice(1)).get('lang');
+  if (requested === 'en' || requested === 'vi') language = requested;
+  const state = {session:0,page:0,query:'',filter:'all',category:'all',selections:new Map(),request:null};
+  const gb = value => formatBytes(value, language);
+  const empty = text => '<p class="empty-state">' + esc(text) + '</p>';
+  function fact(title, value, quality, detail = '') {
+    return '<div class="fact" data-quality="' + esc(quality) + '"><b>' + esc(title) + '</b><strong>' + esc(value) + '</strong><small>' + esc(detail || (quality === 'complete' ? T.complete : T.partial)) + '</small></div>';
+  }
+  function table(rows) {
+    if (!rows.length) return empty(T.empty);
+    const keys = Object.keys(rows[0]);
+    return '<div class="table-wrap"><table><thead><tr>' + keys.map(key => '<th scope="col">' + esc(key) + '</th>').join('') + '</tr></thead><tbody>' + rows.slice(0,200).map(row => '<tr>' + keys.map(key => '<td>' + esc(typeof row[key] === 'object' ? JSON.stringify(row[key]) : row[key] ?? T.unknown) + '</td>').join('') + '</tr>').join('') + '</tbody></table></div>' + (rows.length > 200 ? '<p class="section-note">' + esc(T.limited) + '</p>' : '');
+  }
+  function renderRadar() {
+    const rows = view.radar.filter(row => state.category === 'all' || row.category === state.category);
+    const max = Math.max(1, ...view.radar.map(row => row.measuredBytes));
+    $('radar').innerHTML = rows.length ? rows.map(row => {
+      const label = payload.demo ? T[row.category === 'unknown' ? 'unknown-category' : row.category] : row.label;
+      return '<div class="radar-row"><div><b>' + esc(label) + '</b><small>' + esc(T[row.category === 'unknown' ? 'unknown-category' : row.category]) + ', ' + esc(row.status === 'complete' ? T.complete : T.partial) + '</small></div><span class="radar-value">' + esc((row.status === 'complete' ? '' : '≥ ') + gb(row.measuredBytes)) + '</span><div class="measure-track" aria-hidden="true"><span style="--ratio:' + Math.min(1,row.measuredBytes/max) + '"></span></div></div>';
+    }).join('') : empty(T.noMeasurements);
+    lens?.setCategory(state.category);
+  }
+  function renderRequest(action, focus = true) {
+    state.request = action;
+    $('request').value = (payload.demo ? T.demoRequest : T.beforeApproval) + '\n' + JSON.stringify(action, null, 2);
+    $('request-section').hidden = false; $('request-status').textContent = '';
+    if (focus) $('request').focus();
+  }
+  function renderHistory() {
+    const host = $('sessions'); host.textContent = '';
+    $('history-tools').hidden = !sessions.length;
+    if (!sessions.length) { host.innerHTML = empty(T.noHistory); return; }
+    const session = sessions[state.session], box = document.createElement('div'); box.className = 'session';
+    const header = document.createElement('div'); header.className = 'session-header';
+    const identity = document.createElement('div'), code = document.createElement('code'); code.textContent = session.sessionId; identity.append(code); header.append(identity); box.append(header); host.append(box);
+    if (!session.ok) { const error = document.createElement('p'); error.className = 'errors'; error.textContent = session.error; box.append(error); return; }
+    if (!state.selections.has(session.sessionId)) state.selections.set(session.sessionId, new Set());
+    const selected = state.selections.get(session.sessionId), source = list(session.items);
+    const filtered = filterHistoryItems(source, {query:state.query,state:state.filter}), page = historyPage(filtered,state.page); state.page = page.page;
+    const pageText = document.createElement('p'); pageText.className = 'history-page'; pageText.setAttribute('role','status'); pageText.setAttribute('aria-live','polite');
+    pageText.textContent = interpolate(T.pageStatus,{page:page.page+1,pages:page.pages,start:page.total?page.start+1:0,end:page.end,total:page.total}); identity.append(pageText);
+    const coverage = document.createElement('p'); coverage.className = 'history-page'; coverage.textContent = interpolate(T.coverage,{filtered:filtered.length,total:source.length}); identity.append(coverage);
+    const selectedText = document.createElement('p'); selectedText.className = 'selection-summary'; selectedText.setAttribute('role','status'); selectedText.setAttribute('aria-live','polite'); header.append(selectedText);
+    const restore = document.createElement('button'); restore.className = 'button button-primary'; restore.type = 'button'; restore.id = 'restore-request'; restore.textContent = T.restore;
+    const clear = document.createElement('button'); clear.type = 'button'; clear.className = 'button button-quiet'; clear.textContent = T.clearSelection;
+    function updateSelection() { selectedText.textContent = interpolate(T.selectedCount,{count:selected.size}); restore.disabled = selected.size === 0; clear.disabled = selected.size === 0; }
+    for (const item of page.items) {
+      const row = document.createElement('label'); row.className = 'selection';
+      const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.dataset.itemId = item.id;
+      checkbox.disabled = !['quarantined','conflict','failed'].includes(item.state) || !/^[a-f0-9]{32}$/.test(item.id || '');
+      checkbox.checked = selected.has(item.id);
+      checkbox.addEventListener('change', () => { if (checkbox.checked) selected.add(item.id); else selected.delete(item.id); updateSelection(); });
+      const text = document.createElement('span'), itemCode = document.createElement('b'), original = document.createTextNode(item.original || item.id), itemState = document.createElement('small');
+      itemCode.textContent = item.code || ''; itemState.textContent = T.states[item.state] || item.state; text.append(itemCode, original, itemState); row.append(checkbox, text); box.append(row);
     }
-    picker.addEventListener('change',()=>{activeSession=Number(picker.value);pageIndex=0;showSession()});showSession();
-  }else{$('sessions').textContent=T.empty}
-  $('share').hidden=Boolean(payload.shared);$('share').addEventListener('click',()=>request({operation:'share-report',auditSessionId:view.audit.meta.sessionId,upload:false}));
-  $('copy-request').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('request').value);$('request-status').textContent=T.copied}catch{$('request').select();$('request-status').textContent=T.manual}});
+    if (!page.items.length) { const message = document.createElement('p'); message.className = 'empty-state'; message.textContent = T.noMatches; box.append(message); }
+    const navigation = document.createElement('div'); navigation.className = 'history-navigation';
+    const pageButtons = document.createElement('div'); pageButtons.className = 'toolbar';
+    for (const [delta,id,label,disabled] of [[-1,'history-prev',T.previousPage,page.page === 0],[1,'history-next',T.nextPage,page.page+1 >= page.pages]]) {
+      const button = document.createElement('button'); button.type = 'button'; button.id = id; button.className = 'button button-secondary'; button.textContent = label; button.disabled = disabled;
+      button.addEventListener('click', () => { state.page += delta; renderHistory(); const target = $(id); if (target.disabled) $('history-session').focus(); else target.focus(); }); pageButtons.append(button);
+    }
+    const selectionButtons = document.createElement('div'); selectionButtons.className = 'toolbar';
+    clear.addEventListener('click', () => { selected.clear(); renderHistory(); $('history-search').focus(); });
+    restore.addEventListener('click', () => { if (selected.size) renderRequest({operation:'restore',root:payload.historyRoot,sessionId:session.sessionId,itemIds:[...selected]}); });
+    selectionButtons.append(clear,restore); navigation.append(pageButtons,selectionButtons); box.append(navigation);
+    if (session.totalItems > source.length) { const warning = document.createElement('p'); warning.className = 'notice'; warning.textContent = T.limited; box.append(warning); }
+    updateSelection();
+  }
+  function renderAll() {
+    T = copy[language]; document.documentElement.lang = language; $('report-language').value = language;
+    document.title = 'Syrin clean | ' + (payload.demo ? T.examplePC : view.system.model || T.pc);
+    const labels = {'skip-report':'skip','language-label':'language','subtitle':'report','summary-title':'summary','measurements-title':'measured','measurement-note':'measurementNote','category-label':'category','comparison-title':'comparison','comparison-note':'comparisonNote','proposals-title':'proposals','proposal-note':'proposalNote','history-title':'history','history-note':'historyNote','details-title':'details','scene-note':'scene','share':'share','request-title':'request','request-note':'requestNote','copy-request':'copy','history-link':'history','print-report':'print','print-note':'printNote','font-credits-title':'fontCredits','session-label':'chooseSession','search-label':'search','state-label':'stateFilter','footer':'footer'};
+    for (const [id,key] of Object.entries(labels)) $(id).textContent = T[key];
+    $('session-label').textContent = T.chooseSession + ' (' + sessions.length + ')';
+    $('report-tools').setAttribute('aria-label',T.tools); $('request').setAttribute('aria-label',T.request); $('cloud').setAttribute('aria-label',T.scene); $('history-search').placeholder = T.searchPlaceholder;
+    $('top').textContent = payload.demo ? T.examplePC : view.system.model || T.pc;
+    $('identity').textContent = [view.system.windows,view.system.edition,view.system.architecture,localDate(view.audit.meta.generatedUtc,language)].filter(Boolean).join(', ');
+    $('demo-banner').hidden = !payload.demo; $('demo-banner').textContent = T.demo;
+    const warningText = language === 'vi' ? {'agent-privacy':'Agent hoặc nhà cung cấp có thể xử lý đầu ra lệnh ngoài máy.','support-unverified':'Cấu hình, filesystem và provider chưa thử vẫn chưa được xác minh.'} : {'agent-privacy':'Your agent/provider may process command output outside this device.','support-unverified':'Untested configurations, filesystems and providers remain unverified.'};
+    const warnings = [...list(view.audit.meta.warnings), ...list(view.audit.meta.warningCodes).map(code => warningText[code]).filter(Boolean)];
+    if (view.audit.legacy) warnings.unshift(T.legacy);
+    if (payload.shared) warnings.unshift(T.shared);
+    if (view.incomplete.length) warnings.push(T.incomplete + view.incomplete.map(name => T.collectorNames[name] || name).join(', '));
+    $('notice').textContent = warnings.join('\n');
+    $('facts').innerHTML = fact(T.space,view.systemVolume ? view.systemVolume.drive + ' ' + gb(view.systemVolume.freeBytes) : T.unknown,view.systemVolume ? view.collector('volumes').status : 'unavailable') +
+      fact(T.memory,gb(view.memoryAvailable),view.memoryAvailable === null ? 'unavailable' : view.collector('memory').status) +
+      fact(T.estimate,gb(view.reclaimable),view.reclaimable === null ? 'unavailable' : 'complete') +
+      fact(T.startup,view.startupCount ?? T.unknown,view.startupCount === null ? 'unavailable' : 'complete',view.unknownStartup ? view.unknownStartup + ' ' + T.unknown : '') +
+      fact(T.events,view.eventCount ?? T.unknown,view.eventCount === null ? 'unavailable' : view.collector('events').status) +
+      fact(T.defender,view.defender === null ? T.unknown : view.defender ? T.on : T.off,view.defender === null ? 'unavailable' : view.collector('security').status,T.securityNote);
+    $('category').innerHTML = '<option value="all">' + esc(T.all) + '</option>' + categories.map(category => '<option value="' + category + '">' + esc(T[category === 'unknown' ? 'unknown-category' : category]) + '</option>').join('');
+    $('category').value = state.category; renderRadar();
+    $('scene').hidden = payload.mode !== '3d' || !view.radar.some(row => row.measuredBytes > 0);
+    $('comparison-section').hidden = !view.comparison;
+    if (view.comparison) { const comparison = view.comparison; $('comparison').innerHTML = fact(T.before,gb(comparison.before),'complete') + fact(T.after,gb(comparison.after),'complete') + fact(T.delta,(comparison.delta >= 0 ? '+' : '−') + gb(Math.abs(comparison.delta)),'complete'); }
+    const proposals = list(payload.proposals?.items).map(item => {
+      if (payload.proposals.schemaVersion !== 1) return item;
+      return Object.fromEntries(Object.entries(T.proposalColumns).map(([key,label]) => [label,key === 'risk' ? T.risks[item[key]] || item[key] : key === 'undo' ? T.undoLabels[item[key]] || item[key] : item[key]]));
+    });
+    $('proposals').innerHTML = proposals.length ? table(proposals) : empty(T.noProposals);
+    $('details').innerHTML = Object.entries(view.audit.collectors).map(([name,collector]) => '<details><summary>' + esc(T.collectorNames[name] || name) + ': ' + esc(T.qualities[collector.status] || collector.status) + '</summary><p class="errors">' + esc(list(collector.errors).join('\n')) + '</p>' + table(list(collector.data)) + '</details>').join('');
+    $('history-session').textContent = '';
+    sessions.forEach((session,index) => { const option = document.createElement('option'); option.value = String(index); option.textContent = (index+1) + '. ' + localDate(session.createdUtc,language) + ' / ' + String(session.sessionId).slice(0,12); $('history-session').append(option); });
+    $('history-session').value = String(state.session);
+    $('history-state').innerHTML = [['all','allStates'],['quarantined','storedState'],['attention','attentionState'],['planned','plannedState'],['restored','restoredState'],['purged','purgedState']].map(([value,label]) => '<option value="' + value + '">' + esc(T[label]) + '</option>').join('');
+    $('history-state').value = state.filter;
+    $('share').hidden = Boolean(payload.shared); $('history').hidden = Boolean(payload.shared); $('history-link').hidden = Boolean(payload.shared);
+    renderHistory(); if (state.request) renderRequest(state.request,false); lens?.refresh();
+  }
+  $('report-language').addEventListener('change', () => { language = $('report-language').value === 'vi' ? 'vi' : 'en'; renderAll(); });
+  $('category').addEventListener('change', () => { state.category = $('category').value; renderRadar(); });
+  $('history-session').addEventListener('change', () => { state.session = Number($('history-session').value); state.page = 0; renderHistory(); });
+  $('history-search').addEventListener('input', () => { state.query = $('history-search').value; state.page = 0; renderHistory(); });
+  $('history-state').addEventListener('change', () => { state.filter = $('history-state').value; state.page = 0; renderHistory(); });
+  $('share').addEventListener('click', () => renderRequest({operation:'share-report',auditSessionId:view.audit.meta.sessionId,upload:false}));
+  $('print-report').addEventListener('click', () => window.print());
+  $('copy-request').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('request').value); $('request-status').textContent = T.copied; } catch { $('request').select(); $('request-status').textContent = T.manual; } });
+  renderAll();
+  if (!$('scene').hidden) lens = createLens($('cloud'),{rows:view.radar,button:$('motion'),labels:() => T});
 }
 
-if(typeof document!=='undefined'){
-  try{renderReport(JSON.parse(document.getElementById('syrin-data').textContent))}
-  catch(error){document.getElementById('notice').textContent='Report could not be rendered: '+error.message;document.getElementById('top').textContent='Syrin clean';}
+if (typeof document !== 'undefined') {
+  try { renderReport(JSON.parse(document.getElementById('syrin-data').textContent)); }
+  catch (error) { document.getElementById('notice').textContent = 'Report could not be rendered. Ask your agent to regenerate it. ' + error.message; document.getElementById('top').textContent = 'Syrin clean'; console.error(error); }
 }

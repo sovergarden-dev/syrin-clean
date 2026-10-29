@@ -1,46 +1,35 @@
-# Syrin clean: bàn giao hardening
+# Syrin clean: bàn giao
 
-Trạng thái: đã triển khai và đạt kiểm thử cục bộ/CI; bản phát triển ở [PR nháp #1](https://github.com/sovergarden-dev/syrin-clean/pull/1), nhánh `codex/hardening`, chưa phát hành ổn định. Baseline audit là `a0752aa`; phiên bản tên file 3.6 được giữ, thay đổi ghi ở Unreleased.
-
-## Phạm vi và quyết định đã chốt
-
-Chủ dự án đã đồng ý toàn bộ kế hoạch sửa/nâng cấp. Sau khi Hyper-V báo thiếu quyền quản lý, chủ dự án xác nhận chưa có VM và yêu cầu giữ kiểm chứng VM ở trạng thái chưa xác minh. Không thử Restore Point hoặc thay đổi hệ thống thật trên máy cá nhân để thay thế VM.
-
-Runtime mới tự động hóa vòng đời file theo kế hoạch cố định. Chỉnh cấu hình, sửa Windows và gỡ ứng dụng giữ ở dạng tư vấn tới khi có adapter/quy trình đã kiểm chứng. Đây không phải sandbox cho một agent có toàn quyền shell.
+Trạng thái: PR #1 đã merge vào main ở f4d1d35, sau khi sửa lỗi đọc lại kế hoạch ở 856b16a và đạt hai workflow. Công việc hiện tại chuẩn bị 4.0.0-preview.1 với GitHub Pages và HTML offline theo lựa chọn của chủ dự án. Đây vẫn là pre-release; các cổng VM/môi trường chưa đạt không bị đóng thay.
 
 ## Nguồn chuẩn
 
-- `src/runtime`: module và entry point dùng chung; `src/instructions`: chính sách và các giai đoạn EN/VI.
-- `src/report`: báo cáo và mô hình dữ liệu; `src/web`: logic/CSS chung và nội dung giao diện theo ngôn ngữ.
-- `src/install.ps1`: staging, checksum, khóa tiến trình, rollback; backup nằm ngoài thư mục nạp skill.
-- `tools/build.py`: sinh mọi bản phân phối; không sửa trực tiếp file sinh trong skill, web, prompts hoặc dist.
+- project.json: phiên bản, kênh và địa chỉ công khai.
+- src/runtime và src/instructions: runtime và chính sách dùng chung; không sửa trực tiếp bản sinh.
+- src/shared: token, font có giấy phép và renderer có giới hạn tải.
+- src/web: một template EN/VI, module và dữ liệu ngôn ngữ/hồ sơ.
+- src/report: mô hình dữ liệu, báo cáo song ngữ và dữ liệu minh họa được ghi rõ.
+- tools/build.py: sinh package, prompt, HTML, manifest và checksum.
+- tools/publish_site.py: chỉ đưa hai HTML công khai cùng metadata vào thư mục Pages rỗng, ngoài checkout.
 
-## Những thay đổi chính
+## Những gì phải giữ
 
-- Lập kế hoạch theo từng file, mã ngắn cho người dùng, ID cố định và digest cho bộ thực thi.
-- Root có chủ sở hữu, khóa writer, kế hoạch bất biến và journal append-only. Xung đột được giữ; resume đối chiếu trạng thái, không đoán hay lặp xóa.
-- Rename và purge dùng handle với kiểm tra định danh file; không xóa cây thư mục hoặc dữ liệu ngoài danh sách. Chặn đường dẫn không được hỗ trợ, reparse/recall và quan hệ cloud đã nhận diện.
-- Audit schema có trạng thái collector và phân loại dữ liệu rõ. Báo cáo không biến thiếu số liệu thành 0 tốt, không coi app/VM là rác, chọn đúng ổ hệ thống và so sánh cùng máy.
-- Parse/schema sai không ghi đè báo cáo tốt; report mode none không tạo HTML. Có lịch sử, yêu cầu khôi phục từng item và bản chia sẻ tổng hợp.
-- Trình cài xác minh trước khi thay, có rollback và giữ bản cũ. Build dùng allowlist, manifest, checksum; prompt độc lập mang cùng runtime và extractor chống traversal.
-- Giao diện có tab semantics/keyboard, nhóm lựa chọn nâng cao, nội dung chính trước cảnh 3D trên mobile; báo cáo dừng hiệu ứng khi tạm dừng, khuất viewport hoặc tab không hiển thị.
+Thực thi file dùng cùng một bản kế hoạch cho digest, nội dung và dữ liệu lưu trong phiên. ID được chọn, định danh handle, quyền sở hữu root, journal và kiểm tra đường dẫn vẫn bắt buộc. Báo cáo tạo yêu cầu cho agent; nó không thực thi thao tác Windows. Xóa hẳn là kế hoạch riêng và không hoàn tác được.
 
-## Kiểm chứng
+Trang mở mặc định English; lựa chọn ngôn ngữ của người dùng được giữ. Đổi EN/VI không làm mất hồ sơ, tab hay lựa chọn file. Bản ghi gốc giữ ngôn ngữ nguồn. Dữ liệu chưa biết/chưa đầy đủ vẫn được ghi đúng, không chuyển thành 0 tốt.
 
-Các regression test dùng file/profile fixture riêng, Windows PowerShell 5.1 và Node. Chúng bao gồm xung đột khôi phục, purge đúng mục, lỗi journal, thay file ngay trước xóa, khóa writer, junction thật, import CSV cũ, dữ liệu thiếu, quoting Unicode, Restore Point giả lập, checksum, rollback bộ cài và extractor. Đợt tiếp theo bổ sung chuỗi gọi CLI không làm mất hàm của caller, đọc JSON/hash cùng một phiên bản byte, sửa lỗi cập nhật báo cáo và thử cây 2.048 file.
+Báo cáo thật, journal, đường dẫn máy và backup registry chỉ ở ngoài repository. Pages chỉ có trang chính và báo cáo giả lập. Không dùng báo cáo thật làm ví dụ công khai.
 
-Lệnh chuẩn: `python -B -X utf8 tools/build.py`, rồi `powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File tests/run.ps1`. CI Windows chạy cùng bộ kiểm tra với quyền repo chỉ đọc; không tự deploy/release.
+## Kiểm chứng và phát hành
 
-Kết quả nghiệm thu cuối cùng và các giới hạn nằm trong [kế hoạch](docs/plan/hardening.md), [ma trận hỗ trợ](docs/feat/support.md) và [hướng dẫn kiểm chứng](docs/ref/validation.md). Không suy ra Windows 10/11, ARM64, provider cloud, UAC thật hoặc mọi agent đều đã đạt từ các test fixture.
+Lệnh chuẩn: python -B -X utf8 tools/build.py, rồi powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File tests/run.ps1. Các kiểm thử dùng fixture riêng; Restore Point giả lập không chứng nhận dịch vụ thật.
 
-[Bằng chứng thực nghiệm](docs/research/hardening-validation.md) ghi 15 ca quarantine, 7 nhóm runtime, mô hình báo cáo, 7 ca đóng gói/cài đặt, 61 đầu ra build và các kiểm tra trình duyệt. Hai workflow GitHub trên commit triển khai `4680f1e` đều đạt, gồm kiểm tra checkout sạch sau chạy test.
+Validate chạy trên Windows. Pages chỉ triển khai tag của bản phát hành đã công bố, sau khi workflow Validate kiểm tra đúng tag và đối chiếu phiên bản. Bản phát hành tải lên các artifact được chọn rõ, có checksum; không phát hành nội dung thư mục làm việc.
 
-Các số liệu trên thuộc đợt triển khai ban đầu. Đợt ngày 29/10 đạt 16 ca quarantine, 10 nhóm runtime, mô hình báo cáo, bài thử cây 2.048 file/12 phiên và 7 ca đóng gói; 61 đầu ra khớp nguồn. Giao diện báo cáo EN/VI được thử với 37 phiên giả lập, chọn file qua nhiều trang, chặn chọn file đã xóa và hiển thị lỗi nhật ký; bố cục 390/1366 px không tràn ngang. [Kế hoạch mở rộng runtime](docs/plan/done/runtime-scale.md) đã hoàn tất; commit `f990623` đạt cả hai workflow Windows. Nhật ký chạy thật chứa thông tin riêng được giữ ngoài repository; kết quả của một máy không thay thế nghiệm thu VM hoặc mọi cấu hình hỗ trợ.
+[Bằng chứng hardening](docs/research/hardening-validation.md), [kiểm chứng giao diện](docs/research/bilingual-validation.md), [kế hoạch phát hành](docs/plan/bilingual-experience.md) và [ma trận hỗ trợ](docs/feat/support.md) phân biệt việc đã làm với giới hạn còn mở.
 
 ## Khi tiếp tục
 
-Đợt tối ưu path tiếp theo chuyển chuẩn hóa và vòng kiểm tra tổ tiên vào helper native dùng chung, giữ kiểm tra động và định danh handle. Bộ cục bộ đạt 16 ca quarantine, 11 nhóm runtime, model/scale và 7 ca đóng gói. Bản cài được kiểm checksum rồi tạo báo cáo từ nhật ký thật đầy đủ; audit và baseline gốc không đổi. Kết quả CI của revision mới nhất nằm trên PR.
+Chủ dự án chưa có VM và đã chọn giữ kiểm chứng VM ở trạng thái chưa xác minh. Không thay phép thử VM bằng thao tác hệ thống thật trên workstation. System Restore, nền tảng/filesystem/provider chưa thử và trợ năng đầy đủ phải có bằng chứng trước khi nâng mức công bố hỗ trợ hoặc gọi bản ổn định.
 
-Dùng [lệnh runtime](docs/ref/commands.md), [kiến trúc](docs/arch/project.md) và [hợp đồng thực thi](docs/arch/execution.md). Báo cáo audit gốc được giữ nguyên theo baseline trong `docs/research/audit-safety.md`; không sửa lại lịch sử để giả vờ lỗi chưa từng tồn tại.
-
-Các cổng VM/phần cứng/agent chưa thử phải giữ mở. Khi có VM dùng một lần và snapshot, mới kiểm chứng dịch vụ System Restore, rollback registry, lỗi quyền, file khóa, cloud placeholders và ma trận được quảng bá. Không tạo tag, release hoặc tuyên bố bản ổn định khi các cổng đó chưa đạt.
+Chưa có yêu cầu tạo tài khoản/backend, telemetry, dọn tự động định kỳ hoặc thêm adapter tối ưu hệ thống. Ưu tiên chất lượng luồng đã có và dữ liệu kiểm chứng trước khi mở rộng phạm vi.

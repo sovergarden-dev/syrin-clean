@@ -1,6 +1,6 @@
 # Execution and data contracts
 
-> updated 2026-10-29 · v3.6
+> updated 2026-10-29 · v4.0.0-preview.1
 
 The shared native path helper performs lexical validation, mapped-drive rejection, live ancestor-attribute checks and long-name resolution in one call. It does not cache mutable filesystem state. Missing destination suffixes are resolved without creating directories; mutation still verifies the final handle and file identity.
 
@@ -26,7 +26,7 @@ Audit schema 1 identifies the session, machine, system volume, generation time a
 
 Reports validate JSON and schema before replacing an existing output. Baselines require matching machine identity and schema. Legacy audit input is read through an explicit conservative adapter and is marked unverified; it is not silently upgraded on disk. Shared reports contain only an allowlist of aggregates and omit paths, commands, machine identity and raw collector records.
 
-Audit writes `audit-progress.json` before each collector and on completion; a timestamped progress record is not proof that its process is still running. Storage collectors receive a share of the requested total budget, and all partial results remain explicit. Reports include the complete loaded history, let the reader select a session and paginate its items, and retain selections across item pages. Only the current page is rendered. Decorative animation is capped at 24 frames per second and 250/500 points on narrow/wide viewports, with no automatic loop when paused, hidden, offscreen or reduced motion is enabled.
+Audit writes `audit-progress.json` before each collector and on completion; a timestamped progress record is not proof that its process is still running. Storage collectors receive a share of the requested total budget, and all partial results remain explicit. Reports include the complete loaded history, let the reader select a session and paginate/filter its items, and retain selections across pages, filters and language changes. Only the current page is rendered. The shared renderer initializes at 160/280 points for narrow/wide viewports. Automatic animation is capped at 24 frames per second and stops when paused, hidden, offscreen or reduced motion is enabled; direct manipulation is coalesced into animation frames.
 
 ## Boundaries
 

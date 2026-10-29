@@ -1,0 +1,698 @@
+{
+  "audit": {
+    "schemaVersion": 1,
+    "kind": "syrin-audit",
+    "meta": {
+      "sessionId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "machineId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "generatedUtc": "2026-10-29T00:00:00Z",
+      "systemDrive": "C:",
+      "reportMode": "3d",
+      "scope": "full",
+      "warnings": [],
+      "warningCodes": [
+        "support-unverified"
+      ]
+    },
+    "collectors": {
+      "system": {
+        "status": "complete",
+        "data": [
+          {
+            "model": "Example PC",
+            "windows": "Windows",
+            "architecture": "x64"
+          }
+        ],
+        "errors": [],
+        "durationMs": 0
+      },
+      "volumes": {
+        "status": "complete",
+        "data": [
+          {
+            "drive": "C:",
+            "volumeId": "example-volume",
+            "sizeBytes": 549755813888,
+            "freeBytes": 171798691840,
+            "isSystem": true
+          }
+        ],
+        "errors": [],
+        "durationMs": 0
+      },
+      "memory": {
+        "status": "complete",
+        "data": [
+          {
+            "availableBytes": 12884901888,
+            "committedBytes": 21474836480,
+            "commitLimitBytes": 42949672960,
+            "commitPercent": 50
+          }
+        ],
+        "errors": [],
+        "durationMs": 0
+      },
+      "startup": {
+        "status": "complete",
+        "data": [
+          {
+            "name": "Example application",
+            "enabled": true
+          }
+        ],
+        "errors": [],
+        "durationMs": 0
+      },
+      "events": {
+        "status": "partial",
+        "data": [
+          {
+            "provider": "Example provider",
+            "count": 2
+          }
+        ],
+        "errors": [
+          "Example: only part of the selected event window was available."
+        ],
+        "durationMs": 0
+      },
+      "security": {
+        "status": "complete",
+        "data": [
+          {
+            "realTimeProtection": true
+          }
+        ],
+        "errors": [],
+        "durationMs": 0
+      },
+      "radar": {
+        "status": "complete",
+        "data": [
+          {
+            "id": "cache",
+            "label": "Package caches",
+            "category": "cache",
+            "measuredBytes": 6442450944,
+            "cloudBytes": 0,
+            "estimatedReclaimableBytes": null,
+            "status": "complete",
+            "errors": []
+          },
+          {
+            "id": "app-data",
+            "label": "Application data",
+            "category": "app-data",
+            "measuredBytes": 19327352832,
+            "cloudBytes": 0,
+            "estimatedReclaimableBytes": null,
+            "status": "complete",
+            "errors": []
+          },
+          {
+            "id": "user-data",
+            "label": "Documents",
+            "category": "user-data",
+            "measuredBytes": 25769803776,
+            "cloudBytes": 0,
+            "estimatedReclaimableBytes": null,
+            "status": "complete",
+            "errors": []
+          },
+          {
+            "id": "vm",
+            "label": "Virtual disks",
+            "category": "vm",
+            "measuredBytes": 45097156608,
+            "cloudBytes": 0,
+            "estimatedReclaimableBytes": null,
+            "status": "complete",
+            "errors": []
+          }
+        ],
+        "errors": [],
+        "durationMs": 0
+      }
+    }
+  },
+  "baseline": {
+    "schemaVersion": 1,
+    "kind": "syrin-audit",
+    "meta": {
+      "sessionId": "dddddddddddddddddddddddddddddddd",
+      "machineId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "generatedUtc": "2026-10-28T00:00:00Z",
+      "systemDrive": "C:",
+      "reportMode": "3d",
+      "scope": "full",
+      "warnings": [],
+      "warningCodes": [
+        "support-unverified"
+      ]
+    },
+    "collectors": {
+      "system": {
+        "status": "complete",
+        "data": [
+          {
+            "model": "Example PC",
+            "windows": "Windows",
+            "architecture": "x64"
+          }
+        ],
+        "errors": [],
+        "durationMs": 0
+      },
+      "volumes": {
+        "status": "complete",
+        "data": [
+          {
+            "drive": "C:",
+            "volumeId": "example-volume",
+            "sizeBytes": 549755813888,
+            "freeBytes": 165356240896,
+            "isSystem": true
+          }
+        ],
+        "errors": [],
+        "durationMs": 0
+      },
+      "memory": {
+        "status": "complete",
+        "data": [
+          {
+            "availableBytes": 12884901888,
+            "committedBytes": 21474836480,
+            "commitLimitBytes": 42949672960,
+            "commitPercent": 50
+          }
+        ],
+        "errors": [],
+        "durationMs": 0
+      },
+      "startup": {
+        "status": "complete",
+        "data": [
+          {
+            "name": "Example application",
+            "enabled": true
+          }
+        ],
+        "errors": [],
+        "durationMs": 0
+      },
+      "events": {
+        "status": "partial",
+        "data": [
+          {
+            "provider": "Example provider",
+            "count": 2
+          }
+        ],
+        "errors": [
+          "Example: only part of the selected event window was available."
+        ],
+        "durationMs": 0
+      },
+      "security": {
+        "status": "complete",
+        "data": [
+          {
+            "realTimeProtection": true
+          }
+        ],
+        "errors": [],
+        "durationMs": 0
+      },
+      "radar": {
+        "status": "complete",
+        "data": [
+          {
+            "id": "cache",
+            "label": "Package caches",
+            "category": "cache",
+            "measuredBytes": 6442450944,
+            "cloudBytes": 0,
+            "estimatedReclaimableBytes": null,
+            "status": "complete",
+            "errors": []
+          },
+          {
+            "id": "app-data",
+            "label": "Application data",
+            "category": "app-data",
+            "measuredBytes": 19327352832,
+            "cloudBytes": 0,
+            "estimatedReclaimableBytes": null,
+            "status": "complete",
+            "errors": []
+          },
+          {
+            "id": "user-data",
+            "label": "Documents",
+            "category": "user-data",
+            "measuredBytes": 25769803776,
+            "cloudBytes": 0,
+            "estimatedReclaimableBytes": null,
+            "status": "complete",
+            "errors": []
+          },
+          {
+            "id": "vm",
+            "label": "Virtual disks",
+            "category": "vm",
+            "measuredBytes": 45097156608,
+            "cloudBytes": 0,
+            "estimatedReclaimableBytes": null,
+            "status": "complete",
+            "errors": []
+          }
+        ],
+        "errors": [],
+        "durationMs": 0
+      }
+    }
+  },
+  "proposals": null,
+  "history": [
+    {
+      "ok": true,
+      "sessionId": "cccccccccccccccccccccccccccccccc",
+      "createdUtc": "2026-10-29T00:00:00Z",
+      "totalItems": 64,
+      "items": [
+        {
+          "id": "00000000000000000000000000000001",
+          "code": "Q1",
+          "original": "D:\\Example\\package-cache\\sample-001.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000002",
+          "code": "Q2",
+          "original": "D:\\Example\\package-cache\\sample-002.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000003",
+          "code": "Q3",
+          "original": "D:\\Example\\package-cache\\sample-003.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000004",
+          "code": "Q4",
+          "original": "D:\\Example\\package-cache\\sample-004.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000005",
+          "code": "Q5",
+          "original": "D:\\Example\\package-cache\\sample-005.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000006",
+          "code": "Q6",
+          "original": "D:\\Example\\package-cache\\sample-006.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000007",
+          "code": "Q7",
+          "original": "D:\\Example\\package-cache\\sample-007.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000008",
+          "code": "Q8",
+          "original": "D:\\Example\\package-cache\\sample-008.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000009",
+          "code": "Q9",
+          "original": "D:\\Example\\package-cache\\sample-009.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "0000000000000000000000000000000a",
+          "code": "Q10",
+          "original": "D:\\Example\\package-cache\\sample-010.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "0000000000000000000000000000000b",
+          "code": "Q11",
+          "original": "D:\\Example\\package-cache\\sample-011.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "0000000000000000000000000000000c",
+          "code": "Q12",
+          "original": "D:\\Example\\package-cache\\sample-012.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "0000000000000000000000000000000d",
+          "code": "Q13",
+          "original": "D:\\Example\\package-cache\\sample-013.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "0000000000000000000000000000000e",
+          "code": "Q14",
+          "original": "D:\\Example\\package-cache\\sample-014.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "0000000000000000000000000000000f",
+          "code": "Q15",
+          "original": "D:\\Example\\package-cache\\sample-015.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000010",
+          "code": "Q16",
+          "original": "D:\\Example\\package-cache\\sample-016.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000011",
+          "code": "Q17",
+          "original": "D:\\Example\\package-cache\\sample-017.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000012",
+          "code": "Q18",
+          "original": "D:\\Example\\package-cache\\sample-018.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000013",
+          "code": "Q19",
+          "original": "D:\\Example\\package-cache\\sample-019.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000014",
+          "code": "Q20",
+          "original": "D:\\Example\\package-cache\\sample-020.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000015",
+          "code": "Q21",
+          "original": "D:\\Example\\package-cache\\sample-021.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000016",
+          "code": "Q22",
+          "original": "D:\\Example\\package-cache\\sample-022.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000017",
+          "code": "Q23",
+          "original": "D:\\Example\\package-cache\\sample-023.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000018",
+          "code": "Q24",
+          "original": "D:\\Example\\package-cache\\sample-024.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000019",
+          "code": "Q25",
+          "original": "D:\\Example\\package-cache\\sample-025.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "0000000000000000000000000000001a",
+          "code": "Q26",
+          "original": "D:\\Example\\package-cache\\sample-026.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "0000000000000000000000000000001b",
+          "code": "Q27",
+          "original": "D:\\Example\\package-cache\\sample-027.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "0000000000000000000000000000001c",
+          "code": "Q28",
+          "original": "D:\\Example\\package-cache\\sample-028.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "0000000000000000000000000000001d",
+          "code": "Q29",
+          "original": "D:\\Example\\package-cache\\sample-029.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "0000000000000000000000000000001e",
+          "code": "Q30",
+          "original": "D:\\Example\\package-cache\\sample-030.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "0000000000000000000000000000001f",
+          "code": "Q31",
+          "original": "D:\\Example\\package-cache\\sample-031.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000020",
+          "code": "Q32",
+          "original": "D:\\Example\\package-cache\\sample-032.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000021",
+          "code": "Q33",
+          "original": "D:\\Example\\package-cache\\sample-033.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000022",
+          "code": "Q34",
+          "original": "D:\\Example\\package-cache\\sample-034.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000023",
+          "code": "Q35",
+          "original": "D:\\Example\\package-cache\\sample-035.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000024",
+          "code": "Q36",
+          "original": "D:\\Example\\package-cache\\sample-036.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000025",
+          "code": "Q37",
+          "original": "D:\\Example\\package-cache\\sample-037.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000026",
+          "code": "Q38",
+          "original": "D:\\Example\\package-cache\\sample-038.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000027",
+          "code": "Q39",
+          "original": "D:\\Example\\package-cache\\sample-039.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000028",
+          "code": "Q40",
+          "original": "D:\\Example\\package-cache\\sample-040.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000029",
+          "code": "Q41",
+          "original": "D:\\Example\\package-cache\\sample-041.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "0000000000000000000000000000002a",
+          "code": "Q42",
+          "original": "D:\\Example\\package-cache\\sample-042.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "0000000000000000000000000000002b",
+          "code": "Q43",
+          "original": "D:\\Example\\package-cache\\sample-043.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "0000000000000000000000000000002c",
+          "code": "Q44",
+          "original": "D:\\Example\\package-cache\\sample-044.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "0000000000000000000000000000002d",
+          "code": "Q45",
+          "original": "D:\\Example\\package-cache\\sample-045.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "0000000000000000000000000000002e",
+          "code": "Q46",
+          "original": "D:\\Example\\package-cache\\sample-046.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "0000000000000000000000000000002f",
+          "code": "Q47",
+          "original": "D:\\Example\\package-cache\\sample-047.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000030",
+          "code": "Q48",
+          "original": "D:\\Example\\package-cache\\sample-048.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000031",
+          "code": "Q49",
+          "original": "D:\\Example\\package-cache\\sample-049.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000032",
+          "code": "Q50",
+          "original": "D:\\Example\\package-cache\\sample-050.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000033",
+          "code": "Q51",
+          "original": "D:\\Example\\package-cache\\sample-051.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000034",
+          "code": "Q52",
+          "original": "D:\\Example\\package-cache\\sample-052.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000035",
+          "code": "Q53",
+          "original": "D:\\Example\\package-cache\\sample-053.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000036",
+          "code": "Q54",
+          "original": "D:\\Example\\package-cache\\sample-054.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000037",
+          "code": "Q55",
+          "original": "D:\\Example\\package-cache\\sample-055.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000038",
+          "code": "Q56",
+          "original": "D:\\Example\\package-cache\\sample-056.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "00000000000000000000000000000039",
+          "code": "Q57",
+          "original": "D:\\Example\\package-cache\\sample-057.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "0000000000000000000000000000003a",
+          "code": "Q58",
+          "original": "D:\\Example\\package-cache\\sample-058.bin",
+          "state": "quarantined"
+        },
+        {
+          "id": "0000000000000000000000000000003b",
+          "code": "Q59",
+          "original": "D:\\Example\\package-cache\\sample-059.bin",
+          "state": "purged"
+        },
+        {
+          "id": "0000000000000000000000000000003c",
+          "code": "Q60",
+          "original": "D:\\Example\\package-cache\\sample-060.bin",
+          "state": "purged"
+        },
+        {
+          "id": "0000000000000000000000000000003d",
+          "code": "Q61",
+          "original": "D:\\Example\\package-cache\\sample-061.bin",
+          "state": "purged"
+        },
+        {
+          "id": "0000000000000000000000000000003e",
+          "code": "Q62",
+          "original": "D:\\Example\\package-cache\\sample-062.bin",
+          "state": "purged"
+        },
+        {
+          "id": "0000000000000000000000000000003f",
+          "code": "Q63",
+          "original": "D:\\Example\\package-cache\\sample-063.bin",
+          "state": "purged"
+        },
+        {
+          "id": "00000000000000000000000000000040",
+          "code": "Q64",
+          "original": "D:\\Example\\package-cache\\sample-064.bin",
+          "state": "purged"
+        }
+      ]
+    },
+    {
+      "ok": true,
+      "sessionId": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "createdUtc": "2026-10-28T00:00:00Z",
+      "totalItems": 2,
+      "items": [
+        {
+          "id": "11111111111111111111111111111111",
+          "code": "Q1",
+          "original": "D:\\Example\\cache\\restored.bin",
+          "state": "restored"
+        },
+        {
+          "id": "22222222222222222222222222222222",
+          "code": "Q2",
+          "original": "D:\\Example\\cache\\conflict.bin",
+          "state": "conflict"
+        }
+      ]
+    }
+  ],
+  "historyRoot": "D:\\ExampleQuarantine",
+  "language": "en",
+  "mode": "3d",
+  "shared": false,
+  "demo": true
+}
