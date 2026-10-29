@@ -5,7 +5,7 @@ compatibility: "Windows PowerShell 5.1. Di chuyển file thường trên cùng m
 metadata:
   version: "__VERSION__"
   language: vi
-  channel: development
+  channel: __CHANNEL__
 ---
 
 # Syrin clean

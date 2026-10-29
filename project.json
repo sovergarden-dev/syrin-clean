@@ -1,0 +1,7 @@
+{
+  "name": "syrin-clean",
+  "version": "4.0.0-preview.1",
+  "channel": "prerelease",
+  "repository": "https://github.com/sovergarden-dev/syrin-clean",
+  "homepage": "https://sovergarden-dev.github.io/syrin-clean/"
+}

@@ -1,8 +1,8 @@
 # Support and qualification
 
-> updated 2026-10-29 · v3.6
+> updated 2026-10-29 · v4.0.0-preview.1
 
-The hardening build is in development, not a stable release or a claim of universal compatibility. The owner explicitly deferred VM qualification because no disposable VM is available. Do not replace that qualification with system changes on a real workstation.
+The preview build is not a stable release or a claim of universal compatibility. The owner explicitly deferred VM qualification because no disposable VM is available and approved a public pre-release with Pages and offline HTML. Do not replace VM qualification with system changes on a real workstation.
 
 | Area | Implemented behavior | Verification boundary |
 |---|---|---|
@@ -15,7 +15,7 @@ The hardening build is in development, not a stable release or a claim of univer
 | Elevation | Quoted native arguments, UAC cancellation distinguished from other failures | Native child argument round-trip and a same-account read-only UAC run; real cancellation and alternate-account elevation remain unverified |
 | Installer | Checksums, preparation outside discovery roots, serialized update, retained backups, rollback | Both agent directories and a real failed second commit tested with an isolated profile |
 | Audit/report | Versioned collectors, explicit missing/partial states, volume identity, typed categories, guarded baselines | Fixture/model tests; a full machine audit across Windows versions and hardware remains separate |
-| HTML | Offline reports with complete loaded history, session selection, item pagination and bounded animation | Synthetic browser checks and data-model tests; not a claim of universal browser or accessibility conformance |
+| HTML | English-default bilingual landing; reports with in-place language changes, history search/filtering, persistent selections, embedded fonts and bounded animation | Synthetic browser checks, download hashes and data-model tests; native file-opening behavior and complete accessibility qualification remain separate |
 | Windows/architecture | Target Windows 10/11 with Windows PowerShell 5.1 | Current-host tests do not qualify all Windows editions, x64/ARM64, Admin/non-Admin or filesystems |
 | Agent integration | `.claude/skills` and `.agents/skills`; standalone runtime extraction | File installation verified; end-to-end behavior of every named agent/version remains unverified |
 

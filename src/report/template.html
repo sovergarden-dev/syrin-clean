@@ -1,20 +1,34 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Syrin clean report</title><style>/*__REPORT_CSS__*/</style></head>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="A local Syrin clean report of measurements, limitations and file-operation history.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src data:; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Syrin clean report</title>
+  <style>/*__REPORT_CSS__*/</style>
+</head>
 <body>
-<main>
-  <header><a class="brand" href="#top">Syrin clean</a><p id="subtitle"></p><h1 id="top"></h1><p id="identity"></p></header>
+<a class="skip-link" href="#top" id="skip-report">Skip to report</a>
+<main class="report-shell">
+  <header class="report-header"><a class="wordmark" href="#top"><svg viewBox="0 0 26 26" aria-hidden="true"><rect x="2" y="6" width="22" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><rect class="mark-fill" x="5" y="14" width="11" height="3" rx="1"/></svg>Syrin clean</a><div class="language-control"><label for="report-language" id="language-label" class="sr-only">Language</label><select id="report-language"><option value="en">English</option><option value="vi">Tiếng Việt</option></select></div></header>
+  <div id="demo-banner" class="demo-banner" hidden></div>
+  <div class="report-intro"><div><h1 id="top">Syrin clean report</h1><p id="identity"></p><p id="subtitle" class="small"></p></div><nav class="report-tools" aria-label="Report tools" id="report-tools"><a class="button button-secondary" href="#history" id="history-link">File history</a><button class="button button-secondary" id="print-report" type="button">Print summary</button><button class="button button-primary" id="share" type="button">Prepare shared export</button></nav></div>
   <div id="notice" class="notice" role="status"></div>
-  <nav class="toolbar" aria-label="Report tools"><button id="motion" type="button"></button><button id="share" type="button"></button><a href="#history" id="history-link"></a></nav>
-  <section aria-labelledby="summary-title"><h2 id="summary-title"></h2><div id="facts" class="facts"></div></section>
-  <section id="measurements" aria-labelledby="measurements-title"><h2 id="measurements-title"></h2><p id="measurement-note"></p><div class="measurements"><div id="scene"><canvas id="cloud" tabindex="0"></canvas><p id="scene-note"></p></div><div><label for="category" id="category-label"></label><select id="category"></select><div id="radar"></div></div></div></section>
-  <section id="comparison-section" hidden><h2 id="comparison-title"></h2><p id="comparison-note"></p><div id="comparison" class="facts"></div></section>
-  <section><h2 id="proposals-title"></h2><p id="proposal-note"></p><div id="proposals"></div></section>
-  <section id="history"><h2 id="history-title"></h2><p id="history-note"></p><div id="sessions"></div></section>
-  <section id="request-section" hidden><h2 id="request-title"></h2><textarea id="request" readonly rows="6"></textarea><button id="copy-request" type="button"></button><p id="request-status" role="status" aria-live="polite"></p></section>
-  <section><h2 id="details-title"></h2><div id="details"></div></section>
-  <footer id="footer"></footer>
+  <section class="report-section" aria-labelledby="summary-title"><h2 id="summary-title">Measurements and confidence</h2><div id="facts" class="facts"></div></section>
+  <section class="report-section" id="measurements" aria-labelledby="measurements-title"><div class="section-bar"><h2 id="measurements-title">Measured folder groups</h2><div class="category-control"><label for="category" id="category-label">Show category</label><select id="category"><option>All categories</option></select></div></div><p id="measurement-note" class="section-note"></p><div class="measurements"><figure id="scene" class="report-lens"><canvas id="cloud" tabindex="0" aria-label="Measured groups"></canvas><figcaption><p id="scene-note"></p><button id="motion" type="button">Pause animation</button></figcaption></figure><div id="radar"></div></div></section>
+  <section class="report-section" id="comparison-section" hidden><h2 id="comparison-title"></h2><p id="comparison-note" class="section-note"></p><div id="comparison" class="facts comparison-facts"></div></section>
+  <section class="report-section"><h2 id="proposals-title">Proposals</h2><p id="proposal-note" class="section-note"></p><div id="proposals"></div></section>
+  <section class="report-section" id="history"><h2 id="history-title">File operation history</h2><p id="history-note" class="section-note"></p><div class="history-tools" id="history-tools"><div class="field"><label for="history-session" id="session-label">Choose a session</label><select id="history-session"></select></div><div class="field"><label for="history-search" id="search-label">Find a file</label><input type="search" id="history-search" autocomplete="off" placeholder="Path, code or item ID"></div><div class="field"><label for="history-state" id="state-label">State</label><select id="history-state"></select></div></div><div id="sessions"></div></section>
+  <section class="report-section request-section" id="request-section" hidden><h2 id="request-title"></h2><p id="request-note"></p><textarea id="request" readonly rows="9" aria-label="Request for your agent"></textarea><button class="button button-primary" id="copy-request" type="button">Copy request</button><p id="request-status" role="status" aria-live="polite"></p></section>
+  <section class="report-section" id="collector-section"><h2 id="details-title">Collector details</h2><div id="details"></div></section>
+  <p id="print-note" class="print-only"></p>
+  <footer class="report-footer"><p id="footer"></p><p class="small">Syrin clean __VERSION__</p><details class="font-credits"><summary id="font-credits-title">Font licenses</summary><pre>__FONT_LICENSES__</pre></details></footer>
+  <noscript><p class="notice">This report needs JavaScript to display its embedded data. Ask your agent to review the original audit JSON if scripts are unavailable.</p></noscript>
 </main>
 <script type="application/json" id="syrin-data">__SYRIN_DATA__</script>
 <script type="module">/*__REPORT_JS__*/</script>
-</body></html>
+</body>
+</html>

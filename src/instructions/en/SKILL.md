@@ -5,7 +5,7 @@ compatibility: "Windows PowerShell 5.1. Local regular files on the same volume f
 metadata:
   version: "__VERSION__"
   language: en
-  channel: development
+  channel: __CHANNEL__
 ---
 
 # Syrin clean

@@ -1,6 +1,7 @@
-a06ac98268f8ed0f5cbdd19c9440ff8dbd212472b767b19dbde6d832fff8d286  dist/syrin-clean-skill-v3.6-en.zip
-3ad927d26c98e363fedd62a09ba83958e1eea6fdb2be3169fd6a8460d069b488  dist/syrin-clean-skill-v3.6-vi.zip
-fb544c058ef6c5a928b2c50b4edf919385a37ef90900a17ea83c8c4aca598d5e  prompts/syrin-clean-prompt-en-v3.6.md
-f61eab3a09957ab5fd47e13a2dd480818c0249fbaf5ee9fb040bc1d60c410e66  prompts/syrin-clean-prompt-vi-v3.6.md
-18c70757ee074b74467325842a8d40c19c83fff94426a1a2671a6423d38954ab  web/syrin-clean-en-v3.6.html
-18a8a7a36ff9f48b9081cb3711ac4a1123e96bcfe8587bf94831b631ca2e0203  web/syrin-clean-vi-v3.6.html
+5978fa853a49dfaefb6ea6a69013eaf94cc6439163e0c5488f4b060a68eaef4a  artifact-manifest.json
+17f28f763b7cfe9e2d29a786ec0dc106357be6e1bf0a3fcaecfd4fc154bc181d  syrin-clean-prompt-en-v4.0.0-preview.1.md
+c15b6846be2006dae2da8c5730b001cd6047385121f09dd19d1479c00dda0344  syrin-clean-prompt-vi-v4.0.0-preview.1.md
+6f52615d530f67a9fc69c1c7ff0f22d4f5298f59f0206d98137cba7c4ca34c44  syrin-clean-report-demo.html
+4257cd50afec1b6a76a0aa36715fd08b463da2895f5db35c2e658f7d7beb3477  syrin-clean-skill-v4.0.0-preview.1-en.zip
+60cb1e269784424f74495ba3106b399575d25cc6913d68a9d58033238731d07c  syrin-clean-skill-v4.0.0-preview.1-vi.zip
+e12d4e7c09d94d649d0831d7e247a6af7af286251c49de61840208e9c322b707  syrin-clean.html

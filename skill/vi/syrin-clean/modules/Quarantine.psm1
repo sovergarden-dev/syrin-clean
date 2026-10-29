@@ -85,7 +85,7 @@ function Add-SyrinEvent($Session,[string]$ItemId,[string]$State,[string]$ErrorTe
 function Get-SyrinStoredPath($Session,$Item,[string]$Root) {
   $path = Assert-SyrinLocalPath $Item.stored
   if ($Session.plan.operation -eq 'import') {
-    $legacy = Assert-SyrinLocalPath $Session.plan.legacyRoot
+    $legacy = Assert-SyrinSourcePath $Session.plan.legacyRoot @(Get-SyrinCloudRoots)
     $relative = $path.Substring($legacy.TrimEnd('\').Length).TrimStart('\')
     if (-not (Test-SyrinWithin $path $legacy) -or $relative -notmatch '^\d{8}-\d{6}\\') { throw 'Legacy stored path escaped its timestamp directory.' }
   } else {
@@ -119,7 +119,7 @@ function New-SyrinFilePlan {
       $items.Add([PSCustomObject]@{id=$id;original=$file.Path;stored=(Join-Path (Join-Path $sessionFolder 'files') $id);fingerprint=$file.Fingerprint;destination='';expectedState='planned'})
     }
   } elseif ($Operation -eq 'import') {
-    $LegacyRoot=Assert-SyrinLocalPath $LegacyRoot
+    $LegacyRoot=Assert-SyrinSourcePath $LegacyRoot $cloud
     if ([IO.Path]::GetFileName($LegacyRoot) -notin @('Syrin-Clean-Quarantine','PC-Optimize-Quarantine')) { throw 'Only named legacy quarantine roots can be imported.' }
     if ((Test-SyrinWithin $rootPath $LegacyRoot) -or (Test-SyrinWithin $LegacyRoot $rootPath)) { throw 'Import into a separate new root; legacy metadata is not rewritten.' }
     $seen=New-Object 'System.Collections.Generic.HashSet[string]'

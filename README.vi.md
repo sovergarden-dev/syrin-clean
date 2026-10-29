@@ -2,7 +2,7 @@
 
 **Kiểm tra Windows, xem bằng chứng, duyệt đúng thao tác file.**
 
-Đây là bộ skill và prompt song ngữ dùng chung runtime PowerShell. Nhánh hiện tại chứa **bản hardening đang phát triển, chưa phát hành ổn định**. Cấu hình chưa thử không được coi là đã chứng nhận.
+Đây là bộ skill và prompt song ngữ dùng chung runtime PowerShell. **4.0.0-preview.1 là bản pre-release**, còn các cổng kiểm chứng môi trường. Cấu hình chưa thử không được coi là đã chứng nhận.
 
 [English](README.md) · [Lệnh sử dụng](docs/ref/commands.md) · [Ma trận hỗ trợ](docs/feat/support.md) · [Kiểm chứng](docs/ref/validation.md) · [Lịch sử thay đổi](CHANGELOG.md)
 
@@ -19,7 +19,7 @@ Thao tác tự động hiện giới hạn ở vòng đời file mà runtime h�
 
 ## Bắt đầu bằng chỉ kiểm tra
 
-1. Tải [gói tiếng Việt](dist/syrin-clean-skill-v3.6-vi.zip) hoặc [gói tiếng Anh](dist/syrin-clean-skill-v3.6-en.zip) của nhánh này.
+1. Tải [gói tiếng Việt](dist/syrin-clean-skill-v4.0.0-preview.1-vi.zip) hoặc [gói tiếng Anh](dist/syrin-clean-skill-v4.0.0-preview.1-en.zip) của nhánh này.
 2. Nhờ agent kiểm tra gói rồi chạy `install.ps1` bằng Windows PowerShell 5.1. Trình cài chuẩn bị và xác minh trước khi thay; bản cũ được giữ ngoài thư mục nạp skill ở `%USERPROFILE%\.syrin-clean-installer`.
 3. Mở phiên agent mới và gửi: **Dùng skill syrin-clean để kiểm tra máy và lập đề xuất, chưa thực thi thay đổi.**
 4. Đọc bằng chứng và phần chưa đo được. Với thao tác file, xem đúng danh sách và xác nhận các mã đã chọn; không duyệt mơ hồ việc liên quan file cá nhân hoặc xóa hẳn.
@@ -28,9 +28,11 @@ Hai vị trí cài là `.claude/skills/syrin-clean` và `.agents/skills/syrin-cl
 
 ## Prompt độc lập và trang HTML
 
-[Prompt VI](prompts/syrin-clean-prompt-vi-v3.6.md) và [prompt EN](prompts/syrin-clean-prompt-en-v3.6.md) có cùng runtime được nhúng. Agent đọc phần PROMPT, trích bootstrap bằng lệnh filesystem rồi giải nén vào thư mục mới, trống; không chép Base64 vào ngữ cảnh model. Bootstrap kiểm tra mã băm và đường dẫn, không thực thi dọn dẹp.
+[Prompt VI](prompts/syrin-clean-prompt-vi-v4.0.0-preview.1.md) và [prompt EN](prompts/syrin-clean-prompt-en-v4.0.0-preview.1.md) có cùng runtime được nhúng. Agent đọc phần PROMPT, trích bootstrap bằng lệnh filesystem rồi giải nén vào thư mục mới, trống; không chép Base64 vào ngữ cảnh model. Bootstrap kiểm tra mã băm và đường dẫn, không thực thi dọn dẹp.
 
-Tải repo rồi mở `web/syrin-clean-vi-v3.6.html` hoặc `web/syrin-clean-en-v3.6.html`. Trang chỉ tạo câu mở đầu và tải gói, không chạy lệnh Windows. Font trang giới thiệu dùng mạng; báo cáo không cần tài nguyên ngoài.
+Mở [bản web](https://sovergarden-dev.github.io/syrin-clean/) hoặc tải [một file HTML offline](dist/syrin-clean.html). Mặc định English, chuyển EN/VI ngay trong trang và giữ hồ sơ đang nhập. Font, cả hai gói, bộ tạo prompt và [báo cáo giả lập](dist/syrin-clean-report-demo.html) đều được nhúng. Trang không chạy lệnh Windows. File đính kèm Releases được tải về; liên kết Pages mở bản web.
+
+Báo cáo cũng có nút EN/VI, tìm và lọc lịch sử, giữ lựa chọn qua các trang và bản in tóm tắt. Bản ghi gốc giữ ngôn ngữ nguồn. Hiệu ứng có giới hạn tải và nút tạm dừng.
 
 ## Dữ liệu riêng và giới hạn
 

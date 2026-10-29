@@ -213,6 +213,25 @@ try {
   Assert ($r.ok -and (Test-Path -LiteralPath $approvalSource) -and -not(Test-Path -LiteralPath $replacement.items[0].destination)) 'Execution used plan content changed after its approval digest was read'
   Pass 'approval and execution use the same plan snapshot'
 
+  $provider=Join-Path $fixture 'legacy-provider'
+  $cloudLegacy=Join-Path $provider 'PC-Optimize-Quarantine'
+  $cloudStored=File 'legacy-provider\PC-Optimize-Quarantine\20200101-010101\old.txt'
+  $cloudOriginal=Join-Path $fixture 'legacy-provider-restored.txt'
+  [PSCustomObject]@{Original=$cloudOriginal;Stored=$cloudStored;Bytes=8;Time='fixture'}|Export-Csv -LiteralPath (Join-Path $cloudLegacy 'manifest.csv') -NoTypeInformation
+  & $module {param($Path)$script:FixtureCloudRoots=@($Path)} $provider
+  try{
+    $rejected=$false;try{Plan @{Operation='import';LegacyRoot=$cloudLegacy;Root=(Join-Path $fixture 'cloud-import-storage')}|Out-Null}catch{$rejected=$true}
+    Assert $rejected 'A legacy root inside a known cloud provider was accepted'
+  }finally{& $module {$script:FixtureCloudRoots=@()}}
+  $p=Plan @{Operation='import';LegacyRoot=$cloudLegacy;Root=(Join-Path $fixture 'late-cloud-storage')};$r=Execute $p;Assert $r.ok 'Late cloud fixture import failed'
+  $restore=Plan @{Operation='restore';Root=$p.plan.root;SessionId=$p.plan.sessionId;ItemId=@($p.plan.items[0].id)}
+  & $module {param($Path)$script:FixtureCloudRoots=@($Path)} $provider
+  try{
+    $rejected=$false;try{$r=Execute $restore;$rejected=-not $r.ok}catch{$rejected=$true}
+    Assert ($rejected -and (Test-Path -LiteralPath $cloudStored) -and -not(Test-Path -LiteralPath $cloudOriginal)) 'Legacy restore ignored a newly registered cloud root'
+  }finally{& $module {$script:FixtureCloudRoots=@()}}
+  Pass 'legacy imports and restores retain source-policy checks'
+
   Write-Output "Quarantine tests: $script:count passed"
 } finally {
   foreach($key in $savedEnv.Keys){[Environment]::SetEnvironmentVariable($key,$savedEnv[$key],'Process')}

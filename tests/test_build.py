@@ -20,6 +20,22 @@ spec.loader.exec_module(build)
 
 
 class PackagingTests(unittest.TestCase):
+    def test_pages_staging_contains_only_public_artifacts(self):
+        module_spec = importlib.util.spec_from_file_location("syrin_publish", ROOT / "tools/publish_site.py")
+        publish = importlib.util.module_from_spec(module_spec)
+        module_spec.loader.exec_module(publish)
+        with tempfile.TemporaryDirectory(prefix="syrin-pages-test-") as temporary:
+            target = Path(temporary)
+            metadata = publish.stage(target)
+            self.assertEqual({path.name for path in target.iterdir()}, {"index.html", "report-demo.html", "version.json", ".nojekyll"})
+            self.assertEqual(metadata["version"], build.VERSION)
+            for name in ("index.html", "report-demo.html"):
+                self.assertEqual((target / name).read_bytes(), (ROOT / "web" / name).read_bytes())
+            with self.assertRaisesRegex(ValueError, "empty"):
+                publish.stage(target)
+        with self.assertRaisesRegex(ValueError, "outside"):
+            publish.stage(ROOT / "web")
+
     def test_page_contracts_have_accessible_tabs_and_unique_ids(self):
         class Elements(HTMLParser):
             def __init__(self):
@@ -27,11 +43,17 @@ class PackagingTests(unittest.TestCase):
                 self.elements = []
             def handle_starttag(self, tag, attributes):
                 self.elements.append((tag, dict(attributes)))
-        for language in build.LANGUAGES:
+        for name in ("index.html", "report-demo.html"):
             parser = Elements()
-            parser.feed((ROOT / f"web/syrin-clean-{language}-v3.6.html").read_text(encoding="utf-8"))
+            parser.feed((ROOT / "web" / name).read_text(encoding="utf-8"))
             ids = [a["id"] for _, a in parser.elements if "id" in a]
             self.assertEqual(len(ids), len(set(ids)))
+            self.assertEqual(next(a["lang"] for tag, a in parser.elements if tag == "html"), "en")
+            self.assertFalse([a for tag, a in parser.elements if tag == "script" and "src" in a])
+            self.assertFalse([a for tag, a in parser.elements if tag == "link" and a.get("rel") == "stylesheet"])
+            if name == "report-demo.html":
+                self.assertIn("report-language", ids)
+                continue
             tabs = [a for _, a in parser.elements if a.get("role") == "tab"]
             self.assertEqual(len(tabs), 2)
             self.assertEqual(sum(a.get("aria-selected") == "true" for a in tabs), 1)
@@ -48,7 +70,7 @@ class PackagingTests(unittest.TestCase):
         for name, data in outputs.items():
             self.assertEqual((ROOT / name).read_bytes(), data, name)
         for language in build.LANGUAGES:
-            data = (ROOT / f"dist/syrin-clean-skill-v3.6-{language}.zip").read_bytes()
+            data = (ROOT / f"dist/syrin-clean-skill-v{build.VERSION}-{language}.zip").read_bytes()
             with zipfile.ZipFile(io.BytesIO(data)) as bundle:
                 self.assertIsNone(bundle.testzip())
                 manifest = json.loads(bundle.read("bundle-manifest.json"))
@@ -57,14 +79,25 @@ class PackagingTests(unittest.TestCase):
                     self.assertEqual(hashlib.sha256(bundle.read(entry["path"])).hexdigest(), entry["sha256"])
                     if entry["path"].endswith((".ps1", ".psm1")):
                         self.assertTrue(bundle.read(entry["path"]).startswith(b"\xef\xbb\xbf"), entry["path"])
-            prompt = (ROOT / f"prompts/syrin-clean-prompt-{language}-v3.6.md").read_text(encoding="utf-8")
+            prompt = (ROOT / f"prompts/syrin-clean-prompt-{language}-v{build.VERSION}.md").read_text(encoding="utf-8")
             match = re.search(r"## Runtime bundle \(APPENDIX-RUNTIME\)\nSHA256: ([a-f0-9]{64})\n\n```base64\n(.*?)\n```", prompt, re.S)
             self.assertIsNotNone(match)
             self.assertEqual(base64.b64decode(match[2]), data)
             self.assertEqual(match[1], hashlib.sha256(data).hexdigest())
-            page = (ROOT / f"web/syrin-clean-{language}-v3.6.html").read_text(encoding="utf-8")
-            payload = json.loads(re.search(r"var skillZipEnB64 = (.*?);\n", page).group(1))
-            self.assertEqual(base64.b64decode(payload), (ROOT / "dist/syrin-clean-skill-v3.6-en.zip").read_bytes())
+            page = (ROOT / "web/index.html").read_text(encoding="utf-8")
+            payload = json.loads(re.search(r'<script type="application/json" id="syrin-page-data">(.*?)</script>', page, re.S).group(1))
+            self.assertEqual(base64.b64decode(payload["editions"][language]["zipBase64"]), data)
+            self.assertEqual(payload["editions"][language]["zipSha256"], hashlib.sha256(data).hexdigest())
+            self.assertEqual(base64.b64decode(payload["demoBase64"]), (ROOT / "web/report-demo.html").read_bytes())
+        self.assertEqual((ROOT / "web/index.html").read_bytes(), (ROOT / "dist/syrin-clean.html").read_bytes())
+        self.assertEqual((ROOT / "web/report-demo.html").read_bytes(), (ROOT / "dist/syrin-clean-report-demo.html").read_bytes())
+        release_manifest = json.loads((ROOT / "dist/artifact-manifest.json").read_text(encoding="utf-8"))
+        names = {entry["path"] for entry in release_manifest["files"]}
+        self.assertEqual(len(names), 6)
+        self.assertTrue(all(Path(name).name == name for name in names))
+        checksums = dict(line.split("  ", 1)[::-1] for line in (ROOT / "dist/SHA256SUMS.txt").read_text(encoding="utf-8").splitlines())
+        self.assertEqual(set(checksums), names | {"artifact-manifest.json"})
+        self.assertEqual(checksums["artifact-manifest.json"], hashlib.sha256((ROOT / "dist/artifact-manifest.json").read_bytes()).hexdigest())
 
     def test_allowlist_rejects_unknown_files_without_packaging_them(self):
         with tempfile.TemporaryDirectory(prefix="syrin-build-test-") as temporary:
@@ -86,7 +119,7 @@ class WindowsPackageTests(unittest.TestCase):
         self.directory = tempfile.TemporaryDirectory(prefix="syrin-package-test-")
         self.root = Path(self.directory.name)
         self.package = self.root / "package"
-        with zipfile.ZipFile(ROOT / "dist/syrin-clean-skill-v3.6-en.zip") as bundle:
+        with zipfile.ZipFile(ROOT / f"dist/syrin-clean-skill-v{build.VERSION}-en.zip") as bundle:
             bundle.extractall(self.package)
         self.profile = self.root / "profile"
         self.profile.mkdir()
@@ -154,7 +187,7 @@ class WindowsPackageTests(unittest.TestCase):
 
     def test_prompt_extractor_matches_package_and_rejects_traversal(self):
         destination = self.root / "extracted"
-        result = self.powershell(ROOT / "src/extract-runtime.ps1", "-PromptFile", ROOT / "prompts/syrin-clean-prompt-en-v3.6.md", "-OutDir", destination)
+        result = self.powershell(ROOT / "src/extract-runtime.ps1", "-PromptFile", ROOT / f"prompts/syrin-clean-prompt-en-v{build.VERSION}.md", "-OutDir", destination)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual((destination / "bundle-manifest.json").read_bytes(), (self.package / "bundle-manifest.json").read_bytes())
         buffer = io.BytesIO()

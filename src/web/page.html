@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f5ef">
+  <meta name="description" content="Inspect your Windows PC, review the evidence and approve exact file operations with Syrin clean.">
+  <meta name="referrer" content="no-referrer">
+  <title>Syrin clean | Know what your PC needs</title>
+  <link rel="canonical" href="__HOME_URL__">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Crect x='2' y='6' width='22' height='14' rx='3' fill='%23f3f5ef' stroke='%23172e25' stroke-width='2'/%3E%3Crect x='5' y='14' width='11' height='3' rx='1' fill='%23116c49'/%3E%3C/svg%3E">
+  <style>/*__PAGE_CSS__*/</style>
+</head>
+<body>
+<a class="skip-link" href="#main" data-i18n="skip">__I18N_skip__</a>
+<header class="site-header">
+  <div class="shell header-inner">
+    <a class="wordmark" href="#top" aria-label="Syrin clean">
+      <svg viewBox="0 0 26 26" aria-hidden="true"><rect x="2" y="6" width="22" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><rect class="mark-fill" x="5" y="14" width="11" height="3" rx="1"/></svg>Syrin clean
+    </a>
+    <nav class="site-nav" aria-label="__I18N_navigation__" data-i18n-aria="navigation"><a href="#how" data-i18n="navHow">__I18N_navHow__</a><a href="#start" data-i18n="navInstall">__I18N_navInstall__</a><a href="#customize" data-i18n="navCustomize">__I18N_navCustomize__</a><a href="#vow" data-i18n="navSafety">__I18N_navSafety__</a></nav>
+    <div class="language-control"><label for="language" class="sr-only" data-i18n="language">__I18N_language__</label><select id="language"><option value="en" selected>English</option><option value="vi">Tiếng Việt</option></select></div>
+  </div>
+</header>
+<main id="main">
+  <section class="hero shell" id="top" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <h1 id="hero-title" data-i18n="heroTitle">__I18N_heroTitle__</h1>
+      <p class="hero-intro" data-i18n="heroIntro">__I18N_heroIntro__</p>
+      <div class="actions hero-actions"><button class="button button-primary" type="button" data-dl="zip" data-i18n="getStarted">__I18N_getStarted__</button><a class="button button-quiet" id="openDemo" href="report-demo.html" target="_blank" rel="noopener noreferrer" data-i18n="openDemo">__I18N_openDemo__</a></div>
+      <p class="hero-context" data-i18n="heroContext">__I18N_heroContext__</p>
+      <p class="release-context"><span class="release-label" data-i18n="preview">__I18N_preview__</span><span id="versionBadge">__VERSION__</span></p>
+    </div>
+    <figure class="hero-visual">
+      <div class="lens-stage"><canvas id="reviewLens" tabindex="0" aria-label="__I18N_lensAria__" data-i18n-aria="lensAria"></canvas><svg class="lens-static" viewBox="0 0 500 440" aria-hidden="true"><ellipse cx="250" cy="220" rx="175" ry="80"/><ellipse cx="250" cy="190" rx="140" ry="60"/><ellipse cx="250" cy="250" rx="140" ry="60"/></svg><div class="lens-corner" aria-hidden="true"><span>S</span><span>C</span></div></div>
+      <div class="lens-controls" role="group" aria-label="__I18N_previewSteps__" data-i18n-aria="previewSteps"><button type="button" data-stage="0" aria-pressed="true" data-i18n="stageInspect">__I18N_stageInspect__</button><button type="button" data-stage="1" aria-pressed="false" data-i18n="stageReview">__I18N_stageReview__</button><button type="button" data-stage="2" aria-pressed="false" data-i18n="stageQuarantine">__I18N_stageQuarantine__</button><button type="button" data-stage="3" aria-pressed="false" data-i18n="stageRecover">__I18N_stageRecover__</button></div>
+      <figcaption><p id="stageStatus" data-i18n="stage0">__I18N_stage0__</p><button class="motion-control" id="motion" type="button" aria-pressed="true" data-i18n="pause">__I18N_pause__</button></figcaption>
+    </figure>
+  </section>
+
+  <section class="workflow shell section" id="how" aria-labelledby="how-title">
+    <div class="section-heading"><h2 id="how-title" data-i18n="howTitle">__I18N_howTitle__</h2><p data-i18n="howIntro">__I18N_howIntro__</p></div>
+    <div class="workflow-ledger">
+      <article><span class="step-number" aria-hidden="true">1</span><div><h3 data-i18n="inspectTitle">__I18N_inspectTitle__</h3><p data-i18n="inspectText">__I18N_inspectText__</p></div></article>
+      <article><span class="step-number" aria-hidden="true">2</span><div><h3 data-i18n="reviewTitle">__I18N_reviewTitle__</h3><p data-i18n="reviewText">__I18N_reviewText__</p></div></article>
+      <article><span class="step-number" aria-hidden="true">3</span><div><h3 data-i18n="recoverTitle">__I18N_recoverTitle__</h3><p data-i18n="recoverText">__I18N_recoverText__</p></div></article>
+    </div>
+  </section>
+
+  <section class="install-band section" id="start" aria-labelledby="install-title">
+    <div class="shell install-grid">
+      <div><h2 id="install-title" data-i18n="installTitle">__I18N_installTitle__</h2><p class="section-intro" data-i18n="installIntro">__I18N_installIntro__</p><p class="support-note" data-i18n="supportNote">__I18N_supportNote__</p><a class="text-link" href="__REPO_URL__/blob/main/docs/feat/support.md" target="_blank" rel="noopener noreferrer" data-i18n="supportLink">__I18N_supportLink__</a></div>
+      <div class="install-content">
+        <div class="download-row"><div><h3 data-i18n="skillTitle">__I18N_skillTitle__</h3><p data-i18n="skillText">__I18N_skillText__</p></div><button class="button button-primary" id="downloadSkill" data-dl="zip" type="button" data-i18n="downloadSkill">__I18N_downloadSkill__</button></div>
+        <details class="install-instructions"><summary data-i18n="installHelp">__I18N_installHelp__</summary><ol><li data-i18n="installStep1">__I18N_installStep1__</li><li data-i18n="installStep2">__I18N_installStep2__</li><li data-i18n="installStep3">__I18N_installStep3__</li></ol><pre id="installMsg"></pre><button class="button button-secondary" id="copyInstall" type="button" data-i18n="copyInstall">__I18N_copyInstall__</button></details>
+        <div class="download-row alternative"><div><h3 data-i18n="standaloneTitle">__I18N_standaloneTitle__</h3><p data-i18n="standaloneText">__I18N_standaloneText__</p></div><button class="button button-secondary" data-dl="md" type="button" data-i18n="downloadMarkdown">__I18N_downloadMarkdown__</button></div>
+        <p class="small" data-i18n="packageLanguage">__I18N_packageLanguage__</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="shell section profile-section" id="customize" aria-labelledby="profile-title">
+    <div class="section-heading"><h2 id="profile-title" data-i18n="profileTitle">__I18N_profileTitle__</h2><p data-i18n="profileIntro">__I18N_profileIntro__</p></div>
+    <div class="profile-grid">
+      <div class="profile-form">
+        <div class="fields">
+          <div class="field"><label for="optRole" data-i18n="roleLabel">__I18N_roleLabel__</label><select id="optRole"><option value="auto" selected data-i18n="roleAuto">__I18N_roleAuto__</option><option value="gaming" data-i18n="roleGaming">__I18N_roleGaming__</option><option value="dev" data-i18n="roleDev">__I18N_roleDev__</option><option value="creator" data-i18n="roleCreator">__I18N_roleCreator__</option><option value="office" data-i18n="roleOffice">__I18N_roleOffice__</option><option value="laptop" data-i18n="roleLaptop">__I18N_roleLaptop__</option><option value="lowspec" data-i18n="roleLowspec">__I18N_roleLowspec__</option><option value="vm" data-i18n="roleVm">__I18N_roleVm__</option></select></div>
+          <div class="field"><label for="optScope" data-i18n="scopeLabel">__I18N_scopeLabel__</label><select id="optScope"><option value="full" selected data-i18n="scopeFull">__I18N_scopeFull__</option><option value="cleanup" data-i18n="scopeCleanup">__I18N_scopeCleanup__</option><option value="speed" data-i18n="scopeSpeed">__I18N_scopeSpeed__</option><option value="health" data-i18n="scopeHealth">__I18N_scopeHealth__</option></select></div>
+          <div class="field"><label for="optAggressiveness" data-i18n="cleanupLabel">__I18N_cleanupLabel__</label><select id="optAggressiveness"><option value="balanced" selected data-i18n="balanced">__I18N_balanced__</option><option value="conservative" data-i18n="conservative">__I18N_conservative__</option><option value="deep" data-i18n="deep">__I18N_deep__</option></select></div>
+          <div class="field"><label for="optMode" data-i18n="modeLabel">__I18N_modeLabel__</label><select id="optMode"><option value="approve" selected data-i18n="modeApprove">__I18N_modeApprove__</option><option value="audit" data-i18n="modeAudit">__I18N_modeAudit__</option></select></div>
+        </div>
+        <details class="advanced"><summary data-i18n="advanced">__I18N_advanced__</summary><div class="fields">
+          <div class="field"><label for="optBudget" data-i18n="budgetLabel">__I18N_budgetLabel__</label><select id="optBudget"><option value="lean" data-i18n="budgetLean">__I18N_budgetLean__</option><option value="balanced" selected data-i18n="balanced">__I18N_balanced__</option><option value="thorough" data-i18n="budgetThorough">__I18N_budgetThorough__</option></select></div>
+          <div class="field"><label for="optReport" data-i18n="reportLabel">__I18N_reportLabel__</label><select id="optReport"><option value="r3d" selected data-i18n="report3d">__I18N_report3d__</option><option value="simple" data-i18n="reportSimple">__I18N_reportSimple__</option><option value="none" data-i18n="reportNone">__I18N_reportNone__</option></select></div>
+          <div class="field"><label for="optDrive" data-i18n="driveLabel">__I18N_driveLabel__</label><input id="optDrive" placeholder="__I18N_drivePlaceholder__" data-i18n-placeholder="drivePlaceholder" autocomplete="off"><small data-i18n="driveHelp">__I18N_driveHelp__</small></div>
+          <div class="field"><label for="optProtect" data-i18n="protectLabel">__I18N_protectLabel__</label><input id="optProtect" placeholder="__I18N_protectPlaceholder__" data-i18n-placeholder="protectPlaceholder" autocomplete="off"></div>
+          <div class="field wide"><label for="optNote" data-i18n="noteLabel">__I18N_noteLabel__</label><textarea id="optNote" rows="2" placeholder="__I18N_notePlaceholder__" data-i18n-placeholder="notePlaceholder" autocomplete="off"></textarea></div>
+        </div></details>
+        <div class="actions profile-actions"><button class="button button-secondary" id="tryAudit" type="button" data-i18n="tryAudit">__I18N_tryAudit__</button><button class="button button-quiet" id="resetCustom" type="button" data-i18n="reset">__I18N_reset__</button></div>
+        <p class="small muted" data-i18n="profilePrivacy">__I18N_profilePrivacy__</p>
+      </div>
+      <div class="message-workbench">
+        <div class="tabs" role="tablist" aria-label="__I18N_promptFormat__" data-i18n-aria="promptFormat"><button class="tab" id="tab-starter" type="button" role="tab" aria-selected="true" aria-controls="p-starter" tabindex="0" data-tab="p-starter" data-i18n="starterTab">__I18N_starterTab__</button><button class="tab" id="tab-full" type="button" role="tab" aria-selected="false" aria-controls="p-full" tabindex="-1" data-tab="p-full" data-i18n="fullTab">__I18N_fullTab__</button></div>
+        <div id="p-starter" role="tabpanel" aria-labelledby="tab-starter" class="panel"><p class="message-hint" data-i18n="starterHint">__I18N_starterHint__</p><pre id="starterMsg" tabindex="0"></pre><button class="button button-primary" id="copyStarter" type="button" data-i18n="copyStarter">__I18N_copyStarter__</button></div>
+        <div id="p-full" role="tabpanel" aria-labelledby="tab-full" class="panel" hidden><p class="message-hint" data-i18n="fullHint">__I18N_fullHint__</p><pre id="superPrompt" tabindex="0"></pre><div class="actions"><button class="button button-primary" id="copyPrompt" type="button" data-i18n="copyPrompt">__I18N_copyPrompt__</button><button class="button button-secondary" id="downloadPrompt" type="button" data-i18n="downloadMarkdown">__I18N_downloadMarkdown__</button></div><p id="wordCount" class="small muted"></p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="shell section first-run" id="first-run"><h2 data-i18n="firstTitle">__I18N_firstTitle__</h2><p data-i18n="firstText">__I18N_firstText__</p><a class="text-link" href="#customize" data-i18n="firstAction">__I18N_firstAction__</a></section>
+
+  <section class="safety-band section" id="vow" aria-labelledby="safety-title"><div class="shell safety-grid"><div><h2 id="safety-title" data-i18n="safetyTitle">__I18N_safetyTitle__</h2><p data-i18n="safetyIntro">__I18N_safetyIntro__</p></div><dl class="safety-ledger"><div><dt data-i18n="safetyReviewTitle">__I18N_safetyReviewTitle__</dt><dd data-i18n="safetyReview">__I18N_safetyReview__</dd></div><div><dt data-i18n="safetyRecoveryTitle">__I18N_safetyRecoveryTitle__</dt><dd data-i18n="safetyRecovery">__I18N_safetyRecovery__</dd></div><div><dt data-i18n="safetySystemTitle">__I18N_safetySystemTitle__</dt><dd data-i18n="safetySystem">__I18N_safetySystem__</dd></div><div><dt data-i18n="safetyPrivacyTitle">__I18N_safetyPrivacyTitle__</dt><dd data-i18n="safetyPrivacy">__I18N_safetyPrivacy__</dd></div></dl></div></section>
+
+  <section class="shell section learn-section" id="learn" aria-labelledby="learn-title"><h2 id="learn-title" data-i18n="learnTitle">__I18N_learnTitle__</h2><div class="questions">
+    <details><summary data-i18n="faqSpaceTitle">__I18N_faqSpaceTitle__</summary><p data-i18n="faqSpace">__I18N_faqSpace__</p></details>
+    <details><summary data-i18n="faqSpeedTitle">__I18N_faqSpeedTitle__</summary><p data-i18n="faqSpeed">__I18N_faqSpeed__</p></details>
+    <details><summary data-i18n="faqOfflineTitle">__I18N_faqOfflineTitle__</summary><p data-i18n="faqOffline">__I18N_faqOffline__</p><a id="downloadHtml" class="button button-secondary" href="__HTML_DOWNLOAD_URL__" data-i18n="downloadHtml">__I18N_downloadHtml__</a></details>
+    <details><summary data-i18n="faqSupportTitle">__I18N_faqSupportTitle__</summary><p data-i18n="faqSupport">__I18N_faqSupport__</p><a href="__REPO_URL__/blob/main/docs/feat/support.md" target="_blank" rel="noopener noreferrer" data-i18n="supportLink">__I18N_supportLink__</a></details>
+    <details><summary data-i18n="auditCommandTitle">__I18N_auditCommandTitle__</summary><p data-i18n="auditCommandText">__I18N_auditCommandText__</p><pre id="auditCmds"></pre><div class="actions"><button class="button button-secondary" id="copyCmds" type="button" data-i18n="copyCommand">__I18N_copyCommand__</button><button class="button button-quiet" id="downloadCmds" type="button" data-i18n="downloadSkill">__I18N_downloadSkill__</button></div></details>
+    <details><summary data-i18n="creditsTitle">__I18N_creditsTitle__</summary><p data-i18n="creditsText">__I18N_creditsText__</p><div class="credits-links"><a href="https://github.com/nutlope/hallmark" target="_blank" rel="noopener noreferrer">Hallmark</a><a href="https://github.com/pbakaus/impeccable" target="_blank" rel="noopener noreferrer">Impeccable</a></div><pre class="license-text">__FONT_LICENSES__</pre></details>
+  </div></section>
+  <noscript><section class="shell section"><h2>Downloads without JavaScript</h2><p>Download a package from GitHub. Interactive profiles and embedded offline downloads need JavaScript.</p><a href="__RELEASE_URL__">Open GitHub Releases</a></section></noscript>
+</main>
+<footer class="site-footer"><div class="shell"><a class="wordmark" href="#top">Syrin clean</a><p data-i18n="footerText">__I18N_footerText__</p><nav aria-label="__I18N_projectLinks__" data-i18n-aria="projectLinks"><a href="__REPO_URL__" target="_blank" rel="noopener noreferrer" data-i18n="source">__I18N_source__</a><a href="__RELEASE_URL__" target="_blank" rel="noopener noreferrer" data-i18n="releases">__I18N_releases__</a><a href="__REPO_URL__/blob/main/docs/feat/support.md" target="_blank" rel="noopener noreferrer" data-i18n="supportLink">__I18N_supportLink__</a></nav><p class="small muted" data-i18n="previewNote">__I18N_previewNote__</p></div></footer>
+<div id="toast" role="status" aria-live="polite" class="toast" hidden></div>
+<script type="application/json" id="syrin-page-data">__PAGE_DATA__</script>
+<script type="module">/*__PAGE_JS__*/</script>
+</body>
+</html>

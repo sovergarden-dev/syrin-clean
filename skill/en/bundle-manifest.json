@@ -1,10 +1,15 @@
 {
   "schemaVersion": 1,
   "package": "syrin-clean",
-  "version": "3.6",
+  "version": "4.0.0-preview.1",
   "language": "en",
-  "channel": "development",
+  "channel": "prerelease",
   "files": [
+    {
+      "path": "FONT-LICENSES.txt",
+      "sha256": "3fb3006269bf6569977a1ba614fe788bd5d2cb279861ba3925500ee3787751c4",
+      "bytes": 8801
+    },
     {
       "path": "INSTALL.txt",
       "sha256": "6ab5a8c68f2a576a0c22b499e6171752c6fe7521a9ff87e84ac7f3f9bd4c2372",
@@ -22,8 +27,8 @@
     },
     {
       "path": "syrin-clean/SKILL.md",
-      "sha256": "9b6bb729c1586a58bbb3165980a2b718724c481fa6de0b948d59b1ed7b2c47d9",
-      "bytes": 6106
+      "sha256": "35044ccb563fe7b88e87c6f4eac752f62e9b226f65bf181aa8a88b5ea1aefc20",
+      "bytes": 6117
     },
     {
       "path": "syrin-clean/assets/audit.schema.json",
@@ -42,8 +47,8 @@
     },
     {
       "path": "syrin-clean/assets/report-template.html",
-      "sha256": "372d8d15b0f6868b9d12966bad3f12fce08d0a6a9808a559e2bdedad4c150ea3",
-      "bytes": 32855
+      "sha256": "5c0e3991107576c08fefa63e72b3db7d6084d587220b14733514fcc0142d689b",
+      "bytes": 375449
     },
     {
       "path": "syrin-clean/modules/Audit.psm1",
@@ -57,8 +62,8 @@
     },
     {
       "path": "syrin-clean/modules/Quarantine.psm1",
-      "sha256": "8014546910fcc39e93ad0c2582af5d14fb56fdd784f0445c7988a38bbd7a23ef",
-      "bytes": 24897
+      "sha256": "2d5019c03a175d6e359da48bb147317d42dd034c99ade5b644e1f46337d2031d",
+      "bytes": 24929
     },
     {
       "path": "syrin-clean/modules/Report.psm1",
@@ -87,8 +92,8 @@
     },
     {
       "path": "syrin-clean/references/support.md",
-      "sha256": "a1e892b0878e3f34ac10e5dfac16b9f348987443754375eee1c6b92d9886cb86",
-      "bytes": 4397
+      "sha256": "e2f5e144b5b40faefeb9393cbcdca10bddc0fa887906f7bc09efb1886d0826f5",
+      "bytes": 4550
     },
     {
       "path": "syrin-clean/scripts/audit.ps1",
@@ -122,8 +127,8 @@
     },
     {
       "path": "syrin-clean/skill-manifest.json",
-      "sha256": "c39661698daafd60005ffc4f0755d7ea10cb97489818767e44f994a171572830",
-      "bytes": 3256
+      "sha256": "cd018c928b4be45071fdea09d84bb0f81374c00221896006eeedbe229a61bbf8",
+      "bytes": 3269
     }
   ]
 }
