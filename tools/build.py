@@ -57,6 +57,7 @@ def archive(files):
     with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as bundle:
         for name, data in sorted(files.items()):
             info = zipfile.ZipInfo(name, date_time=(2026, 10, 28, 0, 0, 0))
+            info.create_system = 0
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o644 << 16
             bundle.writestr(info, data)

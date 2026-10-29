@@ -2,6 +2,12 @@
 
 All notable changes to this project. Dates are 2026.
 
+## [Unreleased]
+
+### Fixed
+- Fix ZIP creator metadata for portable generation while preserving the published Windows artifact bytes.
+- Deploy the site staged by the validated Windows release job, verify it against published asset digests and support explicit redeployment of an existing tag.
+
 ## [4.0.0-preview.1] - 2026-10-29
 
 ### Added

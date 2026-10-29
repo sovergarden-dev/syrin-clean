@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 import zipfile
 from html.parser import HTMLParser
 from pathlib import Path
@@ -20,6 +21,17 @@ spec.loader.exec_module(build)
 
 
 class PackagingTests(unittest.TestCase):
+    def test_archive_metadata_does_not_depend_on_host_defaults(self):
+        original = zipfile.ZipInfo.__init__
+        def unix_default(info, *args, **kwargs):
+            original(info, *args, **kwargs)
+            info.create_system = 3
+        with patch.object(zipfile.ZipInfo, "__init__", unix_default):
+            data = build.archive({"fixture.txt": b"portable fixture"})
+        with zipfile.ZipFile(io.BytesIO(data)) as bundle:
+            self.assertEqual(bundle.getinfo("fixture.txt").create_system, 0)
+            self.assertEqual(bundle.read("fixture.txt"), b"portable fixture")
+
     def test_pages_staging_contains_only_public_artifacts(self):
         module_spec = importlib.util.spec_from_file_location("syrin_publish", ROOT / "tools/publish_site.py")
         publish = importlib.util.module_from_spec(module_spec)
