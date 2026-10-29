@@ -6,33 +6,33 @@
   "files": [
     {
       "path": "dist/syrin-clean-skill-v3.6-en.zip",
-      "sha256": "6cc7e199828d4b46d66048482c4246eb2be98474335d9d976f0a32f354557d9d",
-      "bytes": 57861
+      "sha256": "a06ac98268f8ed0f5cbdd19c9440ff8dbd212472b767b19dbde6d832fff8d286",
+      "bytes": 57855
     },
     {
       "path": "dist/syrin-clean-skill-v3.6-vi.zip",
-      "sha256": "c6925657469f53c2330755f272e5d18acfd0b11bae7eec35d4edacb04a34fb2e",
-      "bytes": 58630
+      "sha256": "3ad927d26c98e363fedd62a09ba83958e1eea6fdb2be3169fd6a8460d069b488",
+      "bytes": 58618
     },
     {
       "path": "prompts/syrin-clean-prompt-en-v3.6.md",
-      "sha256": "655a56e4986fbfc0a9dd6ff02683ab911f5dc3053d3555cb1aaca5c02bd7ca88",
-      "bytes": 92655
+      "sha256": "fb544c058ef6c5a928b2c50b4edf919385a37ef90900a17ea83c8c4aca598d5e",
+      "bytes": 92647
     },
     {
       "path": "prompts/syrin-clean-prompt-vi-v3.6.md",
-      "sha256": "c565f71964c95b27681d42e289d764ed7b1c907210b9acff3398d9413d1f55ba",
-      "bytes": 95661
+      "sha256": "f61eab3a09957ab5fd47e13a2dd480818c0249fbaf5ee9fb040bc1d60c410e66",
+      "bytes": 95645
     },
     {
       "path": "web/syrin-clean-en-v3.6.html",
-      "sha256": "9a7c996b027b45cce7626f63f6b2164b81d7675354ca9a62e16daa3ec86bcf53",
-      "bytes": 268568
+      "sha256": "18c70757ee074b74467325842a8d40c19c83fff94426a1a2671a6423d38954ab",
+      "bytes": 268552
     },
     {
       "path": "web/syrin-clean-vi-v3.6.html",
-      "sha256": "d45782441527622383e3e2f4306ea4051520fc2c77f796ab30fae7c0541e7f6d",
-      "bytes": 366382
+      "sha256": "18a8a7a36ff9f48b9081cb3711ac4a1123e96bcfe8587bf94831b631ca2e0203",
+      "bytes": 366342
     }
   ]
 }

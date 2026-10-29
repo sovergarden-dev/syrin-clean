@@ -52,13 +52,13 @@
     },
     {
       "path": "syrin-clean/modules/IO.psm1",
-      "sha256": "6d5d2051ec1f7eec788ced818826a7e9c729b9ecef3dcae0271f9d8dfae8e061",
-      "bytes": 20511
+      "sha256": "221dc10908067ef80d829bead0664bcc23393b701465909b6cf5fa10ad9a1d04",
+      "bytes": 20522
     },
     {
       "path": "syrin-clean/modules/Quarantine.psm1",
-      "sha256": "8d3a3a110b7cfaa60e538e3f3b55a9df3d17bf2fe5428d0d143abad22d1b4cdc",
-      "bytes": 24960
+      "sha256": "8014546910fcc39e93ad0c2582af5d14fb56fdd784f0445c7988a38bbd7a23ef",
+      "bytes": 24897
     },
     {
       "path": "syrin-clean/modules/Report.psm1",
@@ -122,7 +122,7 @@
     },
     {
       "path": "syrin-clean/skill-manifest.json",
-      "sha256": "2c4d2763e86da788dc074bd5020b46c5bed04ac63c279a37ce66a3e770b72288",
+      "sha256": "c39661698daafd60005ffc4f0755d7ea10cb97489818767e44f994a171572830",
       "bytes": 3256
     }
   ]

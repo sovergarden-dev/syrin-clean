@@ -25,6 +25,7 @@ All notable changes to this project. Dates are 2026.
 - Group advanced page options, prioritize the introduction on mobile and add controllable report animation.
 
 ### Fixed
+- Bind approval validation, execution and persisted session plans to one captured document so concurrent plan replacement cannot change a reviewed restore destination.
 - Preserve caller IO commands across nested runtime entry points instead of force-reloading shared modules.
 - Pass a true null backup path to .NET when replacing reports/state in Windows PowerShell 5.1; cover report regeneration and locked-file preservation with regression tests.
 - Prevent whole-root purge, dropped restore conflicts, unjournaled transfers, cloud-prefix mistakes and unsafe plan/root overlap.

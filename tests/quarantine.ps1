@@ -191,6 +191,28 @@ try {
   Assert ([IO.File]::ReadAllText($p.plan.items[0].stored) -eq 'original') 'History validation changed stored data'
   Pass 'history verifies raw plan bytes and the journal hash chain'
 
+  $approvalSource=File 'approval-race\source.txt';$approvalRoot=Join-Path $fixture 'approval-storage'
+  $p=Plan @{Path=@($approvalSource);Root=$approvalRoot};$r=Execute $p;Assert $r.ok 'Approval-race setup failed'
+  $restore=Plan @{Operation='restore';Root=$approvalRoot;SessionId=$p.plan.sessionId;ItemId=@($p.plan.items[0].id)}
+  $replacement=$restore.plan|ConvertTo-Json -Depth 24|ConvertFrom-Json
+  $replacement.items[0].destination=Join-Path $fixture 'unapproved-destination.txt'
+  $race=[PSCustomObject]@{armed=$true;changed=$false;path=$restore.planFile;text=($replacement|ConvertTo-Json -Depth 24)}
+  $digestModules=@($module,(Get-Module -All IO|Select-Object -First 1))
+  foreach($targetModule in $digestModules){
+    & $targetModule {param($Race)
+      $script:DigestRace=$Race;$script:BeforeDigest=(Get-Command Get-SyrinDigest).ScriptBlock
+      function script:Get-SyrinDigest([byte[]]$Bytes){
+        $digest=& $script:BeforeDigest $Bytes
+        if($script:DigestRace.armed){$script:DigestRace.armed=$false;[IO.File]::WriteAllText($script:DigestRace.path,$script:DigestRace.text,[Text.UTF8Encoding]::new($false));$script:DigestRace.changed=$true}
+        return $digest
+      }
+    } $race
+  }
+  try{$r=Execute $restore}finally{foreach($targetModule in $digestModules){& $targetModule {Set-Item -LiteralPath Function:Get-SyrinDigest -Value $script:BeforeDigest}}}
+  Assert $race.changed 'Approval race was not exercised'
+  Assert ($r.ok -and (Test-Path -LiteralPath $approvalSource) -and -not(Test-Path -LiteralPath $replacement.items[0].destination)) 'Execution used plan content changed after its approval digest was read'
+  Pass 'approval and execution use the same plan snapshot'
+
   Write-Output "Quarantine tests: $script:count passed"
 } finally {
   foreach($key in $savedEnv.Keys){[Environment]::SetEnvironmentVariable($key,$savedEnv[$key],'Process')}

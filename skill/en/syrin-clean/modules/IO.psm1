@@ -260,7 +260,7 @@ function Read-SyrinJsonDocument([string]$Path) {
   if ([string]::IsNullOrWhiteSpace($text)) { throw "Empty JSON: $Path" }
   try { $value=ConvertFrom-Json -InputObject $text -ErrorAction Stop }
   catch { throw "Invalid JSON in $Path. Check the file format; input content is not echoed." }
-  return [PSCustomObject]@{value=$value;digest=(Get-SyrinDigest $bytes)}
+  return [PSCustomObject]@{value=$value;text=$text;digest=(Get-SyrinDigest $bytes)}
 }
 
 function Read-SyrinJson([string]$Path) {

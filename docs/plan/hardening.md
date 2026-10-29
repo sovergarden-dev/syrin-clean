@@ -13,6 +13,7 @@ Xử lý F01–F04 trước các tính năng dọn mới.
 - [x] Khi move/copy/journal thất bại, trả trạng thái thật và giữ đủ thông tin để phục hồi; mã thoát thể hiện lỗi hoặc hoàn thành một phần.
 - [x] Kiểm tra đường dẫn cloud theo quan hệ thư mục thật, tổ tiên/hậu duệ, symlink/junction, file offline và reparse root; provider chưa nhận diện phải được nêu rõ.
 - [x] Sau đo lịch sử lớn: chuyển vòng chuẩn hóa/kiểm tra tổ tiên sang helper native, giữ nguyên chặn đường dẫn và kiểm tra handle; toàn bộ regression đạt và bản đã cài tạo lại báo cáo thật đầy đủ mà không thay audit/baseline gốc.
+- [x] Review trước merge: ràng buộc kiểm tra digest, thực thi và bản kế hoạch lưu trong phiên vào cùng một lần đọc; fixture tái hiện đích khôi phục bị đổi trước sửa và giữ đúng đích đã duyệt sau sửa; bộ kiểm thử đầy đủ đạt.
 
 Nghiệm thu: file ngoài phạm vi không bị đụng; conflict không mất journal; lỗi sau từng bước không tạo file mồ côi; chạy lại không làm lặp thao tác; QuarantineRoot tùy chọn có cùng nghĩa trong cả ba mode. Bộ kiểm thử tự động chỉ xóa file fixture trong môi trường cách ly. Lượt sử dụng thật cần kế hoạch và sự duyệt riêng của chủ máy; bằng chứng riêng không đưa vào repository.
 

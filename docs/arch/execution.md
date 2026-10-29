@@ -16,7 +16,7 @@ Each planning/execution operation resolves its protected reference paths and clo
 
 An owned root has a versioned marker and an exclusive process lock. Install staging and backups are kept outside active agent skill-discovery directories and protected by a separate profile-level update lock. Sessions retain an immutable plan and append-only, atomically written event records. Replay derives each item's state. Events never replace the plan's trusted paths. Interrupted operations reconcile against file identity; ambiguity becomes a conflict, not a guessed success. Restore never overwrites an existing file and supports a separate renamed destination. Purge retains metadata for history.
 
-Journal and plan JSON are parsed and hashed from the same byte read, including the original BOM. History replay retains ownership, digest, sequence and containment checks.
+Journal and plan JSON are parsed and hashed from the same byte read, including the original BOM. Execution and new session creation use that captured plan value and decoded text instead of rereading a mutable plan path after approval validation. History replay retains ownership, digest, sequence and containment checks.
 
 Legacy CSV journals are never automatically migrated. An explicit import command validates containment and previews the items, then creates a new journal without moving files. This includes still-stored items in old `manifest-restored-*` files. Unknown files remain untouched.
 

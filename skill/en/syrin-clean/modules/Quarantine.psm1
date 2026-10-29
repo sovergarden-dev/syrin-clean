@@ -173,12 +173,11 @@ function New-SyrinFilePlan {
   return [PSCustomObject]@{ok=$true;planFile=$planPath;approval=(Get-SyrinDigest ([IO.File]::ReadAllBytes($planPath)));plan=[PSCustomObject]$plan}
 }
 
-function New-SyrinSession([string]$Root,$Marker,$Plan,[string]$PlanFile) {
+function New-SyrinSession([string]$Root,$Marker,$Plan,[string]$PlanText) {
   $folder=Get-SyrinSessionPath $Root $Plan.sessionId
   [void][IO.Directory]::CreateDirectory($folder)
   foreach ($name in @('events','files','approvals')) { [void][IO.Directory]::CreateDirectory((Join-Path $folder $name)) }
-  $planText=[IO.File]::ReadAllText($PlanFile,[Text.Encoding]::UTF8)
-  Write-SyrinAtomicText (Join-Path $folder 'plan.json') $planText -CreateOnly
+  Write-SyrinAtomicText (Join-Path $folder 'plan.json') $PlanText -CreateOnly
   $digest=Get-SyrinDigest ([IO.File]::ReadAllBytes((Join-Path $folder 'plan.json')))
   $header=[ordered]@{schemaVersion=1;sessionId=$Plan.sessionId;rootId=$Marker.rootId;ownerSid=(Get-SyrinOwner);createdUtc=$Plan.createdUtc;planDigest=$digest}
   Write-SyrinAtomicJson (Join-Path $folder 'session.json') $header -CreateOnly
@@ -188,9 +187,10 @@ function New-SyrinSession([string]$Root,$Marker,$Plan,[string]$PlanFile) {
 function Invoke-SyrinFilePlan {
   param([string]$PlanFile,[string]$Approval,[string[]]$ItemId)
   $planPath=Assert-SyrinLocalPath $PlanFile
-  $digest=Get-SyrinDigest ([IO.File]::ReadAllBytes($planPath))
+  $document=Read-SyrinJsonDocument $planPath
+  $digest=$document.digest
   if ($Approval -notmatch '^[a-f0-9]{64}$' -or $digest -cne $Approval) { throw 'Approval digest does not match. Review the current plan again.' }
-  $plan=Read-SyrinJson $planPath
+  $plan=$document.value
   if ($plan.schemaVersion -ne 1 -or $plan.kind -ne 'syrin-file-plan' -or $plan.ownerSid -ne (Get-SyrinOwner)) { throw 'Invalid plan schema or owner.' }
   if ($plan.operation -notin @('quarantine','restore','purge','resume','import')) { throw 'Unsupported operation.' }
   if (-not $ItemId.Count -or @($ItemId | Select-Object -Unique).Count -ne $ItemId.Count) { throw 'An explicit unique selection of item IDs is required.' }
@@ -204,7 +204,7 @@ function Invoke-SyrinFilePlan {
   try {
     $folder=Get-SyrinSessionPath $root $plan.sessionId
     if (Test-Path -LiteralPath (Join-Path $folder 'session.json')) { $session=Read-SyrinSession $root $plan.sessionId }
-    elseif ($plan.operation -in @('quarantine','import')) { $session=New-SyrinSession $root $marker $plan $planPath }
+    elseif ($plan.operation -in @('quarantine','import')) { $session=New-SyrinSession $root $marker $plan $document.text }
     else { throw 'Session does not exist.' }
     if ($plan.operation -in @('quarantine','import') -and $session.plan.planId -ne $plan.planId) { throw 'Session plan mismatch.' }
     foreach($requested in $selected){
