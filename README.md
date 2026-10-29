@@ -50,7 +50,7 @@ python -B -X utf8 tools/build.py
 powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File tests/run.ps1
 ```
 
-`python tools/build.py --check` validates without changing files. Packaging uses an explicit allowlist, manifests, checksums and deterministic ZIP metadata. The same checks run in the [Windows CI workflow](.github/workflows/check.yml). When a release is published, the [Pages workflow](.github/workflows/pages.yml) validates that tag through the same Windows suite, verifies its version and publishes only the two public HTML files and deployment metadata. Releases are explicitly published with the verified assets; raw machine reports are excluded.
+`python tools/build.py --check` validates without changing files. Packaging uses an explicit allowlist, manifests, checksums and deterministic ZIP metadata. The same checks run in the [Windows CI workflow](.github/workflows/check.yml). When a release is published, the [Pages workflow](.github/workflows/pages.yml) validates that tag through the same Windows suite, transfers its staged HTML as an artifact, checks the published release digests and publishes only the public site and deployment metadata. Releases are explicitly published with the verified assets; raw machine reports are excluded.
 
 | Canonical source | Responsibility |
 |---|---|

@@ -24,7 +24,7 @@ Báo cáo thật, journal, đường dẫn máy và backup registry chỉ ở ng
 
 Lệnh chuẩn: python -B -X utf8 tools/build.py, rồi powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File tests/run.ps1. Các kiểm thử dùng fixture riêng; Restore Point giả lập không chứng nhận dịch vụ thật.
 
-Validate chạy trên Windows. Pages chỉ triển khai tag của bản phát hành đã công bố, sau khi workflow Validate kiểm tra đúng tag và đối chiếu phiên bản. Bản phát hành tải lên các artifact được chọn rõ, có checksum; không phát hành nội dung thư mục làm việc.
+Validate chạy trên Windows. Pages chỉ triển khai tag của bản phát hành đã công bố. Windows kiểm tra và đóng gói thư mục site theo allowlist; Linux nhận artifact, đối chiếu checksum với Release rồi triển khai. Bản phát hành tải lên các artifact được chọn rõ, có checksum; không phát hành nội dung thư mục làm việc.
 
 [Bằng chứng hardening](docs/research/hardening-validation.md), [kiểm chứng giao diện](docs/research/bilingual-validation.md), [kế hoạch phát hành](docs/plan/bilingual-experience.md) và [ma trận hỗ trợ](docs/feat/support.md) phân biệt việc đã làm với giới hạn còn mở.
 

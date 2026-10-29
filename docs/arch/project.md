@@ -22,7 +22,7 @@ The builder constructs the complete output in memory, checks source/package allo
 
 The landing's JSON payload embeds both packages and the synthetic report. Inline modules include the shared canvas code without runtime imports. Font files and their licenses are local canonical inputs; the output contains data URLs and license text rather than external font requests. The report uses a network-denying content security policy. Language switches update labels while retaining profile values, the active tab and report selection/filter state.
 
-Pages runs from a published release tag, reuses the complete Windows validation workflow, verifies tag/version identity and stages `index.html`, `report-demo.html`, `version.json` and `.nojekyll` through an explicit allowlist. It never copies the repository root or local session directories. Public report examples are synthetic; real reports stay outside the checkout.
+Pages runs from a published release tag, reuses the complete Windows validation workflow and stages `index.html`, `report-demo.html`, `version.json` and `.nojekyll` through an explicit allowlist. The Windows job uploads that allowlisted site. Linux deployment downloads it and checks the HTML against the published release asset digests instead of rebuilding platform-specific packages. An explicit dispatch can redeploy an existing published tag. It never copies the repository root or local session directories. Public report examples are synthetic; real reports stay outside the checkout.
 
 ## Runtime boundaries
 
