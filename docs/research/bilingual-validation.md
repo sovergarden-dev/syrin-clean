@@ -1,6 +1,6 @@
 # Bilingual HTML and preview validation
 
-Status: local verification complete; hosted validation and publication pending, 2026-10-29.
+Status: completed and amended after deployment recovery, 2026-10-29.
 
 ## Start time
 
@@ -21,8 +21,8 @@ Read the pinned [Hallmark](https://github.com/nutlope/hallmark/tree/8f6969f8922c
 - [x] Report language/search/state controls preserve selections and exact item IDs across pages. Purged rows remain disabled; empty filters explain how to recover.
 - [x] Actual desktop/mobile browser checks, download comparisons, keyboard focus and pause/offscreen state checks.
 - [x] Final full local regression suite: 18 quarantine cases, 11 runtime groups, report and landing model checks, the scale fixture and eight packaging/delivery tests passed. The 65 generated outputs match their sources, including flat release checksums and legacy source-policy checks.
-- [ ] Clean-checkout CI on the delivery revision.
-- [ ] Live Pages and release downloads match the final artifacts and version metadata.
+- [x] Clean-checkout CI on the delivery revision and Windows/Ubuntu checks on the deployment repair.
+- [x] Live HTTPS Pages, all eight downloaded release assets and actual live-browser package/Markdown downloads match the final artifacts and version metadata.
 
 ## Result and verification
 
@@ -40,4 +40,12 @@ Initial English/VI ZIP downloads matched their generated artifacts. Both default
 
 ## Decision
 
-Action: [preview release plan](../plan/bilingual-experience.md), [visual system](../../DESIGN.md), [architecture](../arch/project.md) and [support matrix](../feat/support.md). Publish only a pre-release after current-head CI and live artifact checks. The 4.0 preview marks the new reviewed-plan command and delivery contracts rather than implying stable environment qualification.
+Action: [completed preview release plan](../plan/done/bilingual-experience.md), [visual system](../../DESIGN.md), [architecture](../arch/project.md) and [support matrix](../feat/support.md). The pre-release is published after current-head CI and live artifact checks. The 4.0 preview marks the new reviewed-plan command and delivery contracts rather than implying stable environment qualification.
+
+## Amendments
+
+- 2026-10-29: [PR #2](https://github.com/sovergarden-dev/syrin-clean/pull/2) merged at `da2b0c9467de388bf875c4ed0cf6423887383305`, which is the immutable `4.0.0-preview.1` tag. Its [main validation](https://github.com/sovergarden-dev/syrin-clean/actions/runs/40824349809) and [tag validation](https://github.com/sovergarden-dev/syrin-clean/actions/runs/40825577982) passed. All eight release assets were downloaded and checked against GitHub's SHA256 values; the flat checksum file covers the six payloads and the manifest.
+- 2026-10-29: the original [Pages run](https://github.com/sovergarden-dev/syrin-clean/actions/runs/40825594707) failed first because the environment allowed only main, then because ZIP creator metadata differed on Linux. The exact release tag was added to the environment policy. A regression reproduced the platform default mismatch, and `ZipInfo.create_system` is now fixed to the existing Windows value. No published asset or tag was replaced.
+- 2026-10-29: [PR #3](https://github.com/sovergarden-dev/syrin-clean/pull/3) merged at `24ca1cc` after both Windows and portable-artifact jobs passed. The [successful recovery](https://github.com/sovergarden-dev/syrin-clean/actions/runs/40829293196) revalidated the published tag on Windows, transferred its allowlisted site and checked both HTML files against the published release digests before deployment. The old failed run remains part of the record.
+- 2026-10-29: live HTTPS returned 200 for the landing and sample. The landing SHA256 is `e12d4e7c09d94d649d0831d7e247a6af7af286251c49de61840208e9c322b707`; the sample SHA256 is `6f52615d530f67a9fc69c1c7ff0f22d4f5298f59f0206d98137cba7c4ca34c44`. `version.json` reports the published tag and revision `da2b0c9`. CUA confirmed the English-default live page, VI switching, a separate sample-report tab, successful copy feedback and no sampled console errors. Live-browser EN/VI ZIPs and VI Markdown matched the published files.
+- 2026-10-29: the installed preview was verified at both agent locations and generated a complete private report from the prior approved history without new file operations or changes to the original audit/baseline. Machine-specific timing, identifiers, reports and installer backups remain private. The local QA server and its test tabs were closed; the live site is the user-facing output.

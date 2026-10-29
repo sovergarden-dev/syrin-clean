@@ -1,6 +1,6 @@
 # Bilingual HTML experience and preview release
 
-Status: in progress, 2026-10-29. The owner approved merging PR #1 and publishing GitHub Pages plus a bilingual offline HTML asset in a pre-release. PR #1 merged as `f4d1d35` after the approval-snapshot regression was fixed in `856b16a` and both CI workflows passed.
+Status: completed, 2026-10-29. The owner approved merging PR #1 and publishing GitHub Pages plus a bilingual offline HTML asset in a pre-release. PR #1 merged as `f4d1d35`; PR #2 delivered the preview at `da2b0c9`; PR #3 repaired deployment at `24ca1cc`. The published tag and its eight assets remain unchanged.
 
 ## Scope
 
@@ -9,7 +9,7 @@ Status: in progress, 2026-10-29. The owner approved merging PR #1 and publishing
 - [x] Add in-place report language switching, useful history search/state filtering and a clearly synthetic public report. Preserve unknown/partial data, selection identity, sharing restrictions and full offline history.
 - [x] Produce a deterministic standalone HTML, sample report, both skill packages, prompts, checksums and an allowlisted Pages build. Do not publish machine reports.
 - [x] Verify local model/package/runtime regressions, both languages, downloads, controls, desktop/mobile layouts and pause/offscreen state through the supported browser tools. System reduced-motion changes and native file-opening remain explicitly separate.
-- [ ] Review and integrate the new source, pass CI, publish a preview release and Pages, then verify the live files and actual download hashes.
+- [x] Review and integrate the new source, pass Windows/Ubuntu CI, publish the preview and Pages, then verify the live files and actual download hashes. [Release](https://github.com/sovergarden-dev/syrin-clean/releases/tag/4.0.0-preview.1), [web app](https://sovergarden-dev.github.io/syrin-clean/), [successful deployment](https://github.com/sovergarden-dev/syrin-clean/actions/runs/40829293196).
 
 Files: replace `src/web/page.en.html` and `page.vi.html` with `page.html`; update `page.js`, `page.css`, locale data, `src/report/*`, `tools/build.py`, relevant tests and documentation. Add shared tokens/fonts and licensing, a synthetic demo, a Pages workflow and an allowlisted publishing helper. Generated artifacts follow the builder; obsolete generated edition HTML is retired when the unified artifact replaces it.
 
@@ -22,3 +22,5 @@ The release remains explicitly experimental because VM/System Restore, broader p
 - Reference packages were read in a temporary directory, not installed globally. Impeccable's launcher is unavailable in this project, so project context is read directly. Hallmark's static checks may run locally; all browser interaction uses the host's supported CUA API rather than its Puppeteer render driver. The review is performed in this thread, not claimed as a fresh subagent review.
 
 The owner selected Pages plus an offline asset after the distinction between a release download and a hosted HTML page was explained. The browser decides whether a GitHub link opens a new tab; page-owned external/sample links request a new tab without automatic pop-ups.
+
+The first deployment exposed a tag environment policy and a platform-dependent ZIP metadata field. Recovery stages on Windows and verifies the transferred site against published release digests before Linux deploys it. The exact preview tag is permitted by the Pages environment; future release tags need the intended environment policy. The [validation record](../../research/bilingual-validation.md) retains the failed attempts and the successful recovery rather than treating them as an uninterrupted green run.

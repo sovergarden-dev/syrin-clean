@@ -70,6 +70,8 @@ When `-QuarantineRoot` is supplied, all loaded sessions/items are embedded in th
 
 From a validated clean checkout, `python -B -X utf8 tools/publish_site.py <empty-directory-outside-checkout>` stages only the two HTML files, `.nojekyll` and `version.json`. It refuses nonempty staging destinations and never stages session data. GitHub Pages opens the hosted page; release attachments download as files. Opening an attachment afterward depends on the user's browser and file association.
 
+The release workflow stages on Windows after validation, then deploys the transferred artifact after checking the published release digests. To redeploy an existing published tag explicitly, run `gh workflow run pages.yml --ref main -f release_tag=<published-tag>`. The `github-pages` environment must allow the intended deployment ref; do not remove its protection rules to force a deployment.
+
 ## Elevation and Restore Point helper
 
 For a native PowerShell call, use an argument array. From another shell, write a request JSON containing `script` and `arguments`, then call `run-elevated.ps1 -RequestFile <json>`. This avoids shell-specific array parsing. `-NoElevate` runs under the existing token and does not drop privileges if the caller is already elevated.

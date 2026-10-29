@@ -1,6 +1,6 @@
 # Syrin clean: bàn giao
 
-Trạng thái: PR #1 đã merge vào main ở f4d1d35, sau khi sửa lỗi đọc lại kế hoạch ở 856b16a và đạt hai workflow. Công việc hiện tại chuẩn bị 4.0.0-preview.1 với GitHub Pages và HTML offline theo lựa chọn của chủ dự án. Đây vẫn là pre-release; các cổng VM/môi trường chưa đạt không bị đóng thay.
+Trạng thái: 4.0.0-preview.1 đã được phát hành với GitHub Pages và HTML offline. PR #1, #2 và #3 đã merge. Trang HTTPS và các file tải về đã được đối chiếu checksum; tag da2b0c9 và các asset đã công bố được giữ nguyên. Main có sửa công cụ đóng gói/triển khai sau phát hành. Đây vẫn là pre-release; các cổng VM/môi trường chưa đạt không bị đóng thay.
 
 ## Nguồn chuẩn
 
@@ -26,7 +26,9 @@ Lệnh chuẩn: python -B -X utf8 tools/build.py, rồi powershell.exe -NoProfil
 
 Validate chạy trên Windows. Pages chỉ triển khai tag của bản phát hành đã công bố. Windows kiểm tra và đóng gói thư mục site theo allowlist; Linux nhận artifact, đối chiếu checksum với Release rồi triển khai. Bản phát hành tải lên các artifact được chọn rõ, có checksum; không phát hành nội dung thư mục làm việc.
 
-[Bằng chứng hardening](docs/research/hardening-validation.md), [kiểm chứng giao diện](docs/research/bilingual-validation.md), [kế hoạch phát hành](docs/plan/bilingual-experience.md) và [ma trận hỗ trợ](docs/feat/support.md) phân biệt việc đã làm với giới hạn còn mở.
+[Bằng chứng hardening](docs/research/hardening-validation.md), [kiểm chứng giao diện](docs/research/bilingual-validation.md), [kế hoạch phát hành](docs/plan/done/bilingual-experience.md) và [ma trận hỗ trợ](docs/feat/support.md) phân biệt việc đã làm với giới hạn còn mở.
+
+[Mở trang web](https://sovergarden-dev.github.io/syrin-clean/) · [Release](https://github.com/sovergarden-dev/syrin-clean/releases/tag/4.0.0-preview.1) · [Triển khai đã xác minh](https://github.com/sovergarden-dev/syrin-clean/actions/runs/40829293196).
 
 ## Khi tiếp tục
 

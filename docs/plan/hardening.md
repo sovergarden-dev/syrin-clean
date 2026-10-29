@@ -1,6 +1,6 @@
 # Kế hoạch tăng độ tin cậy cho Syrin clean
 
-Trạng thái: **đã review và merge; các cổng nghiệm thu môi trường vẫn mở**. Baseline `a0752aa`, ngày 2026-10-28; [PR #1 đã merge](https://github.com/sovergarden-dev/syrin-clean/pull/1) ở `f4d1d35` sau kiểm thử cục bộ và CI. [Kế hoạch HTML song ngữ](bilingual-experience.md) theo dõi bản preview tiếp theo. Nguồn: [báo cáo kiểm tra](../research/audit-safety.md) và [bằng chứng](../research/audit-evidence.json). Đích: thao tác đúng phạm vi, có đường phục hồi được kiểm chứng và báo cáo không biến dữ liệu thiếu thành kết luận tốt.
+Trạng thái: **đã review và merge; các cổng nghiệm thu môi trường vẫn mở**. Baseline `a0752aa`, ngày 2026-10-28; [PR #1 đã merge](https://github.com/sovergarden-dev/syrin-clean/pull/1) ở `f4d1d35` sau kiểm thử cục bộ và CI. [Kế hoạch HTML song ngữ đã hoàn tất](done/bilingual-experience.md) ghi bản preview được phát hành. Nguồn: [báo cáo kiểm tra](../research/audit-safety.md) và [bằng chứng](../research/audit-evidence.json). Đích: thao tác đúng phạm vi, có đường phục hồi được kiểm chứng và báo cáo không biến dữ liệu thiếu thành kết luận tốt.
 
 ## 1. Khép kín vòng đời file
 

@@ -1,7 +1,7 @@
 # Documentation
 
 - [Product context](../PRODUCT.md) and [visual system](../DESIGN.md).
-- [Bilingual HTML and preview release plan](plan/bilingual-experience.md).
+- [Completed bilingual HTML and preview release](plan/done/bilingual-experience.md).
 - [Bilingual HTML validation](research/bilingual-validation.md).
 
 - [English quick start](../README.md) and [Vietnamese quick start](../README.vi.md).
