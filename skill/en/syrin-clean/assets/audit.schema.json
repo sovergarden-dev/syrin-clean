@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Syrin clean audit",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "kind",
+    "meta",
+    "collectors"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "kind": {
+      "const": "syrin-audit"
+    },
+    "meta": {
+      "type": "object",
+      "required": [
+        "sessionId",
+        "generatedUtc",
+        "machineId",
+        "systemDrive",
+        "reportMode",
+        "scope"
+      ],
+      "properties": {
+        "sessionId": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{32}$"
+        },
+        "generatedUtc": {
+          "type": "string"
+        },
+        "machineId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "systemDrive": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reportMode": {
+          "enum": [
+            "3d",
+            "simple",
+            "none"
+          ]
+        },
+        "scope": {
+          "enum": [
+            "full",
+            "health",
+            "speed",
+            "cleanup"
+          ]
+        }
+      }
+    },
+    "collectors": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "status",
+          "data",
+          "errors"
+        ],
+        "properties": {
+          "status": {
+            "enum": [
+              "complete",
+              "partial",
+              "failed",
+              "unavailable"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

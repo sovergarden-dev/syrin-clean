@@ -9,3 +9,19 @@ PC-Optimize-*/
 Thumbs.db
 __pycache__/
 .vscode/
+
+# Private runtime outputs; never include these in a source commit.
+audit.json
+audit-progress.json
+baseline.json
+proposals.json
+proposals.csv
+state.json
+session.json
+file-plan.json
+recovery-plan.json
+restorepoint.json
+report.html
+audit-report.html
+share-report.html
+.syrin-clean-installer/

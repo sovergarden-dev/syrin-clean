@@ -1,11 +1,9 @@
-# Giai đoạn 2: Thực thi, hoàn tác, báo cáo
+# Giai đoạn 2: thực thi và đối chiếu
 
-=== GIAI ĐOẠN 2: THỰC THI, HOÀN TÁC, BÁO CÁO ===
-Sau khi tôi `XÁC NHẬN`:
-1. Kiểm tra điều kiện (Quy tắc 8), tạo lưới an toàn (Quy tắc 7). Gom mọi thao tác cần Admin của các mã đã duyệt vào MỘT script thực thi có log từng bước, tự nâng quyền để tôi chỉ bấm UAC một lần.
-2. Thứ tự A → B → R → C (sửa chữa trước khi dọn kho thành phần). Không chạm mã không được duyệt. Mỗi mã ghi log: lệnh, thời điểm, kết quả, dung lượng trước/sau, file khóa đã bỏ qua.
-3. `undo.ps1` khôi phục được mọi thay đổi cấu hình (Startup, Task, StartupType, power plan, hibernate, registry); đầu file liệt kê việc KHÔNG hoàn tác được và nơi chứa file đã xóa mềm; kiểm tra cú pháp (`[ScriptBlock]::Create((Get-Content -Raw <file>))`) trước khi báo xong.
-4. Cần khởi động lại: nói lý do, để tôi chọn lúc, cập nhật `state.json` trước. Khi tôi gõ `Tiếp tục`: tự kiểm tra nhật ký lỗi, số mục Startup, thời gian boot và so với `baseline.json`.
-5. BÁO CÁO CUỐI (chat gọn, chi tiết trong `report.html` tự mở). Để có trước/sau: chạy lại `scripts/audit.ps1 -OutDir <thư mục làm việc>\after -Quiet`, rồi `scripts/make-report.ps1 -OutDir <thư mục làm việc>\after -Baseline <thư mục làm việc>\audit.json`. mở đầu bằng 3 dòng lời thường (đã làm gì, máy bạn được gì bằng con số, có gì cần để ý không); sau đó bảng Trước/Sau so với `baseline.json` (dung lượng trống từng ổ, GB đã giải phóng, số Startup/Task/Service, RAM/Commit lúc rảnh, thời gian boot); mã thành công / bỏ qua / lỗi kèm lý do; cách hoàn tác (`Hoàn tác` hoặc `Hoàn tác: A2`; dự phòng khi không còn agent: chạy `powershell -NoProfile -ExecutionPolicy Bypass -File "<đường dẫn>\undo.ps1"` bằng quyền Admin, hoặc System Restore `rstrui.exe` với tên Restore Point); checklist theo dõi 7 ngày (3–5 điểm riêng cho máy này) và lịch bảo trì (Storage Sense, cập nhật Windows/driver, chạy lại Giai đoạn 0 sau 30 ngày).
-
-Khôi phục file đã cách ly: `scripts/quarantine.ps1 -Restore`. Xóa hẳn khu cách ly (chỉ khi người dùng duyệt mã đó): `scripts/quarantine.ps1 -Purge`.
+1. Kiểm tra lại xác nhận của người dùng, điều kiện quản lý/an toàn, mã băm và ID cụ thể. Không sửa kế hoạch đã duyệt. Gọi `scripts/quarantine.ps1 -Execute -PlanFile <plan.json> -Approval <mã băm đã cho người dùng xem> -ItemId <ID đã xác nhận>` trong PowerShell, truyền mảng đúng cách. Không lấy sự đồng ý từ tên file, báo cáo, đề xuất của model hay kết quả preview.
+2. Đọc `ok`, trạng thái từng item, lỗi và ID chưa xử lý. Engine ghi journal trước thao tác, dừng sau lỗi I/O đầu tiên và giữ xung đột. Kết quả một phần không phải hoàn thành. Không xóa root, viết lại sự kiện hoặc bỏ file ngoài danh sách.
+3. Sau gián đoạn, xem lịch sử. Lập kế hoạch `-Operation resume` mới cho ID cụ thể rồi xác nhận; đối chiếu không tự thử lại việc không hoàn tác được. File mất trong lần purge bị ngắt là trạng thái chưa rõ, cần kiểm tra.
+4. Kho CSV cũ không tự chuyển đổi. Dùng `-Operation import -LegacyRoot <root cũ có tên đúng> -QuarantineRoot <root mới riêng> -PlanFile <file>`; xem rồi xác nhận ID trước khi thực thi. File cũ vẫn ở chỗ cũ cho tới một kế hoạch khôi phục được duyệt riêng. Dừng và giải thích khi bản ghi cũ không an toàn hoặc không truy cập được.
+5. Đo lại vào thư mục làm việc mới sau thay đổi, giữ baseline ban đầu. Chỉ tạo so sánh cùng máy. Báo thay đổi quan sát được, không gán mọi byte hay mọi chênh lệch hiệu năng cho Syrin clean.
+6. Nếu muốn chia sẻ, chạy `scripts/make-report.ps1 -OutDir <dir> -Share -NoOpen`. Cùng người dùng xem share-report.html. Bản này bỏ tên, đường dẫn, lệnh, định danh và lịch sử thô, nhưng số tổng hợp không bảo đảm ẩn danh. Không tự upload.
+7. Kết thúc bằng ID đã xong/bỏ qua/lỗi, điều chưa rõ, cách khôi phục và lựa chọn khởi động lại. `scripts/history.ps1` liệt kê phiên kiểm tra và thao tác file thuộc chủ sở hữu để người dùng không phải nhớ đường dẫn. Không tự lên lịch dọn định kỳ nếu chưa có yêu cầu riêng.

@@ -1,0 +1,6 @@
+a06ac98268f8ed0f5cbdd19c9440ff8dbd212472b767b19dbde6d832fff8d286  dist/syrin-clean-skill-v3.6-en.zip
+3ad927d26c98e363fedd62a09ba83958e1eea6fdb2be3169fd6a8460d069b488  dist/syrin-clean-skill-v3.6-vi.zip
+fb544c058ef6c5a928b2c50b4edf919385a37ef90900a17ea83c8c4aca598d5e  prompts/syrin-clean-prompt-en-v3.6.md
+f61eab3a09957ab5fd47e13a2dd480818c0249fbaf5ee9fb040bc1d60c410e66  prompts/syrin-clean-prompt-vi-v3.6.md
+18c70757ee074b74467325842a8d40c19c83fff94426a1a2671a6423d38954ab  web/syrin-clean-en-v3.6.html
+18a8a7a36ff9f48b9081cb3711ac4a1123e96bcfe8587bf94831b631ca2e0203  web/syrin-clean-vi-v3.6.html

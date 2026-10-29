@@ -6,3 +6,11 @@
 - [Changelog](../CHANGELOG.md), [contributing](../CONTRIBUTING.md) and [security](../SECURITY.md).
 - [Original version](history/README.md) and [design references](references/README.md).
 - [Completed rename](plan/done/syrin-clean.md).
+- [Safety audit and upgrade recommendations](research/audit-safety.md).
+- [Hardening implementation validation](research/hardening-validation.md).
+- [Proposed hardening plan](plan/hardening.md).
+- [Completed runtime scale and composition](plan/done/runtime-scale.md).
+
+- [Execution and data contracts](arch/execution.md).
+
+- [Runtime commands](ref/commands.md), [validation](ref/validation.md) and [support matrix](feat/support.md).

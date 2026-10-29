@@ -1,0 +1,27 @@
+{
+  "language": "vi",
+  "locale": "vi-VN",
+  "words": "từ",
+  "copied": "Đã sao chép",
+  "downloaded": "Đã tải",
+  "starter": "Dùng skill syrin-clean để kiểm tra máy và lập đề xuất. Bắt đầu bằng các bước chỉ đọc.\n",
+  "skillDownloaded": "Đã tải. Kiểm tra và cài gói đầy đủ, sau đó mở phiên agent mới.",
+  "promptDownloaded": "Đã tải prompt với cùng bộ runtime như skill.",
+  "auditOnly": "Đã chọn chỉ kiểm tra. Sao chép câu mở đầu bên dưới.",
+  "copyFailure": "Chưa truy cập được clipboard. Nội dung đã được chọn; hãy sao chép thủ công.",
+  "scene": [
+    "Cách quy trình hoạt động",
+    "Xem dữ liệu đã đo",
+    "Duyệt đúng file và hậu quả",
+    "Chỉ làm đúng lựa chọn đã xác nhận",
+    "Xem kết quả và lựa chọn khôi phục"
+  ],
+  "pageOverflow": "Trang tràn ngang ",
+  "textOverflow": "Chữ tràn khung",
+  "outside": "Ra ngoài màn hình",
+  "overlap": "Chồng lên nhau",
+  "sceneOverlap": "Chữ chạm cảnh",
+  "layout": "Kiểm tra bố cục",
+  "issues": "vấn đề",
+  "noIssues": "không có lỗi"
+}

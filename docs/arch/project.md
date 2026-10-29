@@ -2,33 +2,38 @@
 
 > updated 2026-10-28 · v3.6
 
-Syrin clean is a bilingual Windows maintenance skill and prompt toolkit. A compatible AI agent executes the workflow; the HTML pages configure and distribute it. There is no desktop executable, backend or package-manager dependency.
+Syrin clean is a bilingual skill/prompt toolkit with a shared PowerShell runtime and offline HTML reports. The hardening changes are unreleased. The supported mutation surface is the file lifecycle; system tuning and repair remain advisory pending validated adapters and VM qualification.
 
-## Sources and generated artifacts
+## Sources and build
 
-| Source | Role | Output |
-|---|---|---|
-| `skill/{vi,en}/syrin-clean/` | Skill entry point, phase references, PowerShell scripts and report template | Language-specific skill ZIPs |
-| `skill/{vi,en}/install.ps1` | Copies the skill into the user's agent skill directories | Included in each ZIP |
-| `src/prompt-template.{vi,en}.txt` | Full prompt with a profile placeholder | Standalone Markdown prompts and embedded browser prompts |
-| `web/syrin-clean-{vi,en}-v3.6.html` | Page layout, profile choices, local downloads and visual scene | Updated in place by the build |
-| `tools/build.py` | Packages the two editions and updates embedded data | `dist/`, `prompts/` and `web/` |
+| Source | Output |
+|---|---|
+| `src/runtime/modules` and `scripts` | Identical native runtime in both skill packages |
+| `src/instructions/{en,vi}` | Skill policy/references and the same full prompt content |
+| `src/report` | Shared report asset bundled with the runtime |
+| `src/web` | One landing script/style set, localized markup and profile data |
+| `src/install.ps1` | Same transactional installer in both editions |
+| `src/extract-runtime.ps1` | Standalone prompt bootstrap |
+| `tools/build.py` | Skill trees, ZIPs, Markdown, embedded payloads, manifests and SHA256SUMS |
 
-The two skill editions share identical scripts and report templates. Their skill instructions and phase references are translated separately. Changes to common assets must be applied to both editions before building.
+The builder constructs the complete output in memory, checks source/package allowlists and JavaScript, then atomically replaces changed files. `--check` compares without writing. Generated artifacts are not hand-edited. ZIP metadata is deterministic. Checksums detect corruption and mismatches; they do not establish publisher authenticity by themselves.
 
-The build stores both ZIP payloads in the Vietnamese page and the English ZIP in the English page. Each generated prompt embeds the audit script, report template and report builder as appendices A, B and C. The build validates page JavaScript when Node.js is available. It does not execute a system audit or cleanup.
+## Runtime boundaries
 
-## Runtime workflow
+- `IO.psm1`: local canonical paths, reparse/recall/protected-path checks, 128-bit file identity, checked native rename/deletion, durable atomic writes and argument quoting.
+- `Quarantine.psm1`: immutable plans, explicit selections, owned roots, writer locks, append-only journal replay, conflict recovery and explicit legacy import.
+- `Audit.psm1`: read-only named collectors, child-process budgets, typed categories and explicit incomplete/error states.
+- `Report.psm1`: input/schema validation, baseline identity, proposal data, history and aggregate-only sharing.
+- `Windows.psm1`: process elevation and Restore Point verification with registry rollback. Real system qualification is still pending.
 
-1. The agent reads `SKILL.md` and the current phase reference. `audit.ps1` gathers machine metadata and writes JSON plus a simple HTML report.
-2. The agent prepares coded proposals and waits for approval, a dry run and confirmation.
-3. For approved changes, the agent uses the elevation helper, restore-point helper and quarantine script as needed. It records state, backups and undo commands in the working directory.
-4. `make-report.ps1` combines the recorded audit, proposals and optional baseline into a bilingual offline report. The report uses Canvas; the landing page uses WebGL with a Canvas fallback.
+Planning has no file-transfer side effects. Execution binds to exact plan bytes and item IDs. Native file operations check identity and metadata on the handle used for the operation; purge never recurses a root. File transfers are same-volume and do not overwrite an existing destination. The journal and immutable source plan remain the recovery record.
 
-Approval is enforced by agent instructions, not by a central execution engine. Running a PowerShell helper directly bypasses the conversational workflow. Runtime validation across Windows editions and architectures remains listed in [HANDOFF.md](../../HANDOFF.md).
+Reports consume versioned data, not label-based guesses. Missing collectors are unknown, app/VM/user data are not caches, and comparison requires matching machine/volume identity. The browser cannot execute PowerShell; history controls prepare requests for the agent. Aggregate exports omit raw private fields and are never automatically uploaded.
 
-## Identity and existing data
+## Compatibility and migration
 
-The display name is **Syrin clean**, the skill and repository slug is `syrin-clean`, and artifact version 3.6 is retained from the imported handoff. New working folders use `Syrin-Clean-<timestamp>`; new quarantine roots use `Syrin-Clean-Quarantine`.
+Version 3.6 filenames are retained as the imported baseline while development work accumulates under Unreleased. The new journal/audit formats have their own schema versions. Legacy CSV journals are imported only by a reviewed explicit operation into separate owned storage; old records are not rewritten. Legacy audit JSON is display-only and marked unverified.
 
-Renaming the source does not move previously created working folders, installed skills or quarantined data. To restore an older quarantine, explicitly pass its existing directory to `quarantine.ps1 -Restore -QuarantineRoot <existing-directory>`. Continue interrupted sessions from their original state files. The historical v2.0 document stays unchanged for reference.
+Installer staging and prior versions live under `%USERPROFILE%\.syrin-clean-installer`, outside active skill-discovery roots. The active directories are switched only after both staged copies verify; failures roll back completed switches. Backups and failed staging remain available rather than being recursively erased.
+
+See [execution contracts](execution.md), [commands](../ref/commands.md), [support](../feat/support.md) and [validation](../ref/validation.md).

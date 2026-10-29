@@ -1,222 +1,214 @@
 <!doctype html>
-<html lang="vi" id="root">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Syrin clean</title>
-<style>
-:root { --g: #0b0f0e; --g2: #121816; --g3: #1b2421; --g4: #24302c; --ink: #eef2ee; --ink2: #aab6b0; --acc: #34d399; --red: #ff6060; --amb: #f5b83d; --ease: cubic-bezier(.2,.7,.2,1);
-  --f: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif; --fd: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif; }
-* { box-sizing: border-box; }
-body { margin: 0; background: var(--g); color: var(--ink); font-family: var(--f); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
-.frame { max-width: 1400px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 48px); }
-h1, h2, h3 { font-family: var(--fd); letter-spacing: -.02em; margin: 0; line-height: 1.15; }
-h1 { font-size: clamp(1.9rem, 4.4vw, 3.4rem); font-weight: 700; }
-h2 { font-size: clamp(1.3rem, 2.4vw, 1.9rem); font-weight: 700; margin-bottom: 14px; }
-.top { padding: clamp(28px, 5vw, 56px) 0 20px; }
-.top p { color: var(--ink2); margin: 8px 0 0; }
-.scene { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(16px, 3vw, 40px); align-items: start; }
-.cw { position: relative; height: min(68vh, 640px); min-height: 320px; background: var(--g2); border-radius: 18px; overflow: hidden; }
-.cw canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: pan-y; }
-.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--g); padding: 8px 12px; border-radius: 10px; font-size: 14px; font-weight: 600; opacity: 0; transform: translate(-50%, -120%); transition: opacity .15s; max-width: 260px; }
-.tip small { display: block; font-weight: 500; opacity: .75; overflow-wrap: anywhere; }
-.key { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; font-size: 14px; color: var(--ink2); }
-.key i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
-.legend .total { font-family: var(--fd); font-size: clamp(2.2rem, 4vw, 3.2rem); font-weight: 700; line-height: 1; color: var(--acc); margin: 4px 0 6px; font-variant-numeric: tabular-nums; }
-.rl { list-style: none; margin: 18px 0 0; padding: 0; max-height: min(52vh, 520px); overflow: auto; }
-.rl li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 9px 10px; border-radius: 10px; cursor: default; transition: background-color .2s; }
-.rl li:hover, .rl li.hl { background: var(--g3); }
-.rl .n { font-weight: 600; overflow-wrap: anywhere; }
-.rl .v { font-variant-numeric: tabular-nums; font-weight: 700; }
-.rl .b { grid-column: 1 / -1; height: 6px; background: var(--g3); border-radius: 3px; overflow: hidden; }
-.rl .b i { display: block; height: 100%; border-radius: 3px; }
-section { margin-top: clamp(40px, 6vw, 72px); }
-.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
-.fact { background: var(--g2); border-radius: 14px; padding: 14px 16px; }
-.fact b { display: block; font-size: 13px; font-weight: 600; color: var(--ink2); }
-.fact span { font-size: 18px; font-weight: 700; overflow-wrap: anywhere; }
-.fact.warn span { color: var(--amb); } .fact.bad span { color: var(--red); } .fact.ok span { color: var(--acc); }
-.cmp { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
-.cmp div { background: var(--g2); border-radius: 14px; padding: 16px; }
-.cmp b { display: block; color: var(--ink2); font-size: 13px; }
-.cmp span { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.ts { overflow-x: auto; border-radius: 14px; background: var(--g2); }
-table { border-collapse: collapse; width: 100%; font-size: 14px; }
-th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--g4); vertical-align: top; }
-th { background: var(--g3); font-weight: 700; white-space: nowrap; }
-td { overflow-wrap: anywhere; } tr:last-child td { border-bottom: 0; }
-td.r { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-details { background: var(--g2); border-radius: 14px; margin-top: 10px; }
-details > summary { cursor: pointer; padding: 14px 18px; font-weight: 700; }
-details > div { padding: 0 12px 14px; }
-footer { margin: 64px 0 32px; color: var(--ink2); font-size: 14px; }
-.empty { color: var(--ink2); }
-@media (max-width: 860px) { .scene { grid-template-columns: minmax(0, 1fr); } .cw { height: 52vh; } .rl { max-height: none; } }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
-</style>
-</head>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Syrin clean report</title><style>:root{color-scheme:dark;--bg:#0b110f;--panel:#141e19;--text:#e6eee9;--muted:#a8b9af;--line:#34473c;--accent:#5ce0ac;--warn:#ffd17b;--bad:#ff9e9e;--radius:12px;--space:24px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 system-ui,"Segoe UI",sans-serif}main{max-width:1280px;margin:auto;padding:32px 24px}header{padding-bottom:24px}.brand{font-weight:800;font-size:20px;color:var(--accent);text-decoration:none}h1{font-size:clamp(28px,5vw,52px);line-height:1.15;margin:20px 0 8px;overflow-wrap:anywhere}h2{font-size:24px;margin:0 0 12px}h3{font-size:18px}p{color:var(--muted);margin:8px 0}section{margin-top:36px}button,select,textarea{font:inherit}button,select{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px 14px;max-width:100%}button{cursor:pointer}button:hover{border-color:var(--accent)}button:disabled{opacity:.6;cursor:default}:focus-visible{outline:3px solid var(--accent);outline-offset:3px}a{color:var(--accent)}.toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.notice{border-left:4px solid var(--warn);background:var(--panel);padding:16px;white-space:pre-line}.notice:empty{display:none}.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px}.fact{padding:16px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius)}.fact b,.fact strong{display:block}.fact strong{font-size:25px;margin:8px 0}.fact small{color:var(--muted)}.fact[data-quality="partial"],.fact[data-quality="unavailable"],.fact[data-quality="failed"]{border-color:var(--warn)}.measurements{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space)}#cloud{display:block;width:100%;height:380px;touch-action:pan-y}#scene-note{font-size:14px}#category{display:block;margin:8px 0 16px}.radar-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.radar-row b,.radar-row small{display:block;overflow-wrap:anywhere}.radar-row small{color:var(--muted)}.table-wrap{overflow:auto;max-width:100%;border:1px solid var(--line);border-radius:var(--radius)}table{border-collapse:collapse;min-width:100%;font-size:14px}th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;max-width:420px;overflow-wrap:anywhere}th{background:var(--panel)}details{border:1px solid var(--line);border-radius:var(--radius);margin:12px 0;padding:16px}summary{cursor:pointer;font-weight:650}details .table-wrap{margin-top:16px}.errors{color:var(--warn);white-space:pre-wrap;overflow-wrap:anywhere}.session{background:var(--panel);padding:18px;margin:12px 0;border-radius:var(--radius)}.session code{overflow-wrap:anywhere}.selection{display:flex;gap:12px;align-items:start;padding:8px 0}.selection input{margin-top:6px}textarea{display:block;width:100%;background:var(--panel);color:var(--text);border:1px solid var(--line);padding:14px;margin:12px 0;border-radius:8px;resize:vertical;overflow-wrap:anywhere}footer{margin-top:48px;border-top:1px solid var(--line);padding-top:20px;color:var(--muted);font-size:14px}[hidden]{display:none!important}
+@media(max-width:700px){main{padding:24px 16px}.measurements{grid-template-columns:minmax(0,1fr)}#scene{order:2}#cloud{height:280px}.toolbar{align-items:stretch}h2{font-size:22px}}
+@media print{body{background:white;color:black}.toolbar,#scene,#request-section{display:none}main{max-width:none}.fact,details,.session{background:white;break-inside:avoid}.table-wrap{overflow:visible}p,small,footer{color:#333}}
+.selection span{min-width:0;overflow-wrap:anywhere}
+</style></head>
 <body>
-<div class="frame">
-  <header class="top"><h1 id="machine" data-t="title"></h1><p id="sub"></p></header>
-  <div class="scene">
-    <div><div class="cw" id="cw"><canvas id="c"></canvas><div class="tip" id="tip"></div></div>
-      <div class="key"><span><i style="background:var(--ink)"></i><b data-t="k1"></b></span><span><i style="background:var(--red)"></i><b data-t="k2"></b></span><span><i style="background:var(--amb)"></i><b data-t="k3"></b></span><span data-t="k4"></span></div></div>
-    <aside class="legend"><h2 data-t="where"></h2><div class="total" id="rt">0 GB</div><div id="rtn" class="empty"></div><ol class="rl" id="rl"></ol></aside>
-  </div>
-  <section><h2 data-t="state"></h2><div class="facts" id="facts"></div></section>
-  <section id="cmpS" hidden><h2 data-t="ba"></h2><div class="cmp" id="cmp"></div></section>
-  <section id="propS" hidden><h2 data-t="props"></h2><div class="ts" id="prop"></div></section>
-  <section><h2 data-t="details"></h2><div id="det"></div></section>
-  <footer data-t="foot"></footer>
-</div>
-<script>
-var LANG = /*__LANG__*/'vi';
-var L = {
-  vi: { title: 'Báo cáo máy', none: 'Chưa có dữ liệu kiểm tra', none2: 'Hãy chạy audit.ps1 trước rồi tạo lại báo cáo.', pc: 'Máy tính này', ram: 'GB RAM', at: 'Kiểm tra lúc',
-    k1: 'Dữ liệu khác trên ổ hệ thống', k2: 'Rác, bộ đệm có thể dọn', k3: 'Dữ liệu cá nhân, chỉ liệt kê', k4: 'Kéo để xoay, rê chuột để xem tên',
-    where: 'Những chỗ đang chiếm chỗ', state: 'Tình trạng máy', ba: 'Trước và sau', props: 'Đề xuất', details: 'Chi tiết',
-    foot: 'Tạo bởi skill syrin-clean từ dữ liệu chỉ-đọc trên chính máy này. Không có dữ liệu nào được gửi ra ngoài.',
-    found: 'Rác và bộ đệm tìm thấy (chưa tính dữ liệu cá nhân). Đây là dung lượng đo được, không phải tất cả đều nên xóa.', nothing: 'Không tìm thấy nhóm nào từ 0,1 GB trở lên.',
-    drive: 'Ổ {d}: còn trống', commit: 'Bộ nhớ đang cam kết', free: 'còn trống', startup: 'App tự mở khi bật máy', items: 'mục', errors: 'Lỗi nghiêm trọng 7 ngày', times: 'lần',
-    defOn: 'Đang bật', defOff: 'Không bật thời gian thực', reboot: 'Chờ khởi động lại', yes: 'Có', no: 'Không', bin: 'Thùng rác', rp: 'Restore Point gần nhất', rpNone: 'Chưa thấy', up: 'Máy đã chạy liên tục', hours: 'giờ',
-    freed: 'Đã giải phóng', left: 'Rác còn lại', apps: 'App tự mở', empty: 'Không có dữ liệu.',
-    dVol: 'Các ổ đĩa', dHealth: 'Sức khỏe ổ vật lý', dLarge: 'File lớn nhất trong thư mục của bạn', dStart: 'App tự mở khi bật máy', dApps: 'Phần mềm nặng nhất', dEv: 'Lỗi trong nhật ký 7 ngày', dAll: 'Tất cả vị trí đã đo',
-    cDrive: 'Ổ', cName: 'Tên', cFs: 'Hệ tệp', cSize: 'Tổng GB', cFree: 'Trống GB', cPct: 'Trống %', cMod: 'Sửa lần cuối', cPath: 'Đường dẫn', cOn: 'Đang bật', cHive: 'Phạm vi', cCmd: 'Lệnh', cPub: 'Nhà phát hành', cInst: 'Ngày cài', cCount: 'Số lần', cSrc: 'Nguồn, mã', cItem: 'Mục', cCloud: 'Chỉ trên cloud', cDone: 'Đo xong', dec: ',' , locale: 'vi-VN' },
-  en: { title: 'PC report', none: 'No audit data yet', none2: 'Run audit.ps1 first, then build the report again.', pc: 'This PC', ram: 'GB RAM', at: 'Checked at',
-    k1: 'Other data on the system drive', k2: 'Junk and caches you can clean', k3: 'Personal data, listed only', k4: 'Drag to rotate, hover to see names',
-    where: 'What is taking up space', state: 'Machine status', ba: 'Before and after', props: 'Proposals', details: 'Details',
-    foot: 'Made by the syrin-clean skill from read-only data on this machine. Nothing was sent anywhere.',
-    found: 'Junk and caches found (personal data not included). This is measured size; not all of it should be deleted.', nothing: 'No group of 0.1 GB or more was found.',
-    drive: 'Drive {d}: free', commit: 'Committed memory', free: 'free', startup: 'Apps that start with Windows', items: 'items', errors: 'Critical errors, 7 days', times: 'times',
-    defOn: 'On', defOff: 'Real-time protection off', reboot: 'Restart pending', yes: 'Yes', no: 'No', bin: 'Recycle Bin', rp: 'Latest Restore Point', rpNone: 'None found', up: 'Running continuously', hours: 'hours',
-    freed: 'Freed', left: 'Junk left', apps: 'Startup apps', empty: 'No data.',
-    dVol: 'Drives', dHealth: 'Physical disk health', dLarge: 'Largest files in your folders', dStart: 'Apps that start with Windows', dApps: 'Largest programs', dEv: 'Errors in the 7-day log', dAll: 'Every location measured',
-    cDrive: 'Drive', cName: 'Name', cFs: 'File system', cSize: 'Size GB', cFree: 'Free GB', cPct: 'Free %', cMod: 'Last modified', cPath: 'Path', cOn: 'Enabled', cHive: 'Scope', cCmd: 'Command', cPub: 'Publisher', cInst: 'Installed', cCount: 'Count', cSrc: 'Source, ID', cItem: 'Item', cCloud: 'Cloud only', cDone: 'Complete', dec: '.', locale: 'en-US' }
+<main>
+  <header><a class="brand" href="#top">Syrin clean</a><p id="subtitle"></p><h1 id="top"></h1><p id="identity"></p></header>
+  <div id="notice" class="notice" role="status"></div>
+  <nav class="toolbar" aria-label="Report tools"><button id="motion" type="button"></button><button id="share" type="button"></button><a href="#history" id="history-link"></a></nav>
+  <section aria-labelledby="summary-title"><h2 id="summary-title"></h2><div id="facts" class="facts"></div></section>
+  <section id="measurements" aria-labelledby="measurements-title"><h2 id="measurements-title"></h2><p id="measurement-note"></p><div class="measurements"><div id="scene"><canvas id="cloud" tabindex="0"></canvas><p id="scene-note"></p></div><div><label for="category" id="category-label"></label><select id="category"></select><div id="radar"></div></div></div></section>
+  <section id="comparison-section" hidden><h2 id="comparison-title"></h2><p id="comparison-note"></p><div id="comparison" class="facts"></div></section>
+  <section><h2 id="proposals-title"></h2><p id="proposal-note"></p><div id="proposals"></div></section>
+  <section id="history"><h2 id="history-title"></h2><p id="history-note"></p><div id="sessions"></div></section>
+  <section id="request-section" hidden><h2 id="request-title"></h2><textarea id="request" readonly rows="6"></textarea><button id="copy-request" type="button"></button><p id="request-status" role="status" aria-live="polite"></p></section>
+  <section><h2 id="details-title"></h2><div id="details"></div></section>
+  <footer id="footer"></footer>
+</main>
+<script type="application/json" id="syrin-data">__SYRIN_DATA__</script>
+<script type="module">const list = value => Array.isArray(value) ? value : [];
+const first = value => list(value)[0] || {};
+const number = value => typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
+export const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const categories = ['cache','app-data','user-data','vm','system','unknown'];
+
+export function normalizeAudit(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) throw Error('Invalid audit object');
+  if (input.schemaVersion === 1 && input.kind === 'syrin-audit' && input.meta && input.collectors) return input;
+  if (input.schemaVersion !== undefined || !input.meta || !Array.isArray(input.system) || !Array.isArray(input.volumes)) throw Error('Unsupported audit format');
+  const legacy = (data) => ({status:'partial',data:list(data),errors:['Legacy measurements have no collector provenance.']});
+  return {schemaVersion:1,kind:'syrin-audit',legacy:true,meta:{sessionId:'',machineId:null,systemDrive:null,generatedUtc:input.meta.GeneratedAt,reportMode:'simple',warnings:[]},collectors:{
+    system:legacy(input.system.map(x=>({model:x.MakerModel,windows:x.Windows,architecture:x.Arch,ramBytes:number(x.RAM_GB) === null ? null : x.RAM_GB*2**30}))),
+    volumes:legacy(input.volumes.map(x=>({drive:String(x.DriveLetter)+':',sizeBytes:number(x.SizeGB) === null ? null : x.SizeGB*2**30,freeBytes:number(x.FreeGB) === null ? null : x.FreeGB*2**30}))),
+    radar:legacy(list(input.radar).map((x,i)=>({id:'legacy-'+i,label:x.Item,path:x.Path,category:'unknown',measuredBytes:number(x.GB) === null ? null : x.GB*2**30,cloudBytes:number(x.CloudOnlyGB) === null ? null : x.CloudOnlyGB*2**30,status:'partial',estimatedReclaimableBytes:null}))),
+    startup:legacy(input.startup_run),events:legacy(input.events)
+  }};
+}
+
+export function createView(input, baseline=null) {
+  const audit=normalizeAudit(input);
+  const collector=name=>audit.collectors[name] || {status:'unavailable',data:[],errors:[]};
+  const volumes=list(collector('volumes').data);
+  const systemVolume=volumes.find(v=>String(v.drive).toUpperCase() === String(audit.meta.systemDrive || '').toUpperCase()) || null;
+  const radar=list(collector('radar').data).filter(x=>x && number(x.measuredBytes)!==null).map(x=>({...x,category:categories.includes(x.category)?x.category:'unknown'}));
+  const totals=Object.fromEntries(categories.map(c=>[c,radar.filter(x=>x.category===c).reduce((s,x)=>s+x.measuredBytes,0)]));
+  const startup=collector('startup');
+  const unknownStartup=list(startup.data).filter(x=>typeof x.enabled!=='boolean').length;
+  const startupCount=startup.status==='complete' && !unknownStartup ? list(startup.data).filter(x=>x.enabled).length : null;
+  const events=collector('events');
+  const eventCount=events.status==='complete' && list(events.data).every(x=>number(x.count)!==null) ? list(events.data).reduce((s,x)=>s+x.count,0) : null;
+  const estimates=radar.map(x=>number(x.estimatedReclaimableBytes));
+  const reclaimable=estimates.length && estimates.every(x=>x!==null) ? estimates.reduce((a,b)=>a+b,0) : null;
+  let comparison=null;
+  if(baseline){
+    const before=normalizeAudit(baseline);
+    if(!audit.meta.machineId || before.meta.machineId!==audit.meta.machineId || before.legacy || audit.legacy) throw Error('Baseline machine or schema mismatch');
+    const previous=list(before.collectors.volumes?.data).find(x=>systemVolume?.volumeId && x.volumeId===systemVolume.volumeId);
+    if(previous && number(previous.freeBytes)!==null && number(systemVolume.freeBytes)!==null && collector('volumes').status==='complete' && before.collectors.volumes.status==='complete') comparison={before:previous.freeBytes,after:systemVolume.freeBytes,delta:systemVolume.freeBytes-previous.freeBytes};
+  }
+  const memoryAvailable=number(first(collector('memory').data).availableBytes);
+  const security=first(collector('security').data),defender=typeof security.realTimeProtection==='boolean'?security.realTimeProtection:null;
+  return {audit,collector,system:first(collector('system').data),systemVolume,radar,totals,startupCount,unknownStartup,eventCount,reclaimable,memoryAvailable,defender,comparison,incomplete:Object.entries(audit.collectors).filter(([,x])=>x.status!=='complete').map(([k])=>k)};
+}
+
+const copy={
+  en:{report:'Read-only report',pc:'This PC',summary:'Measurements and confidence',unknown:'Not measured',partial:'Partial or unverified',complete:'Measured',startup:'Enabled startup items',events:'Critical errors in 7 days',space:'System volume free space',estimate:'Estimated reclaimable space',measured:'Measured folder groups',measurementNote:'Logical folder sizes are not promises of recoverable disk space. Application data, virtual disks and personal files are not junk. Partial scans are lower bounds.',all:'All categories',category:'Show category',cache:'Caches', 'app-data':'Application data','user-data':'Personal data',vm:'Virtual machines',system:'System data', 'unknown-category':'Unclassified',comparison:'Before and after',comparisonNote:'Observed free-space change can include activity outside Syrin clean.',before:'Before',after:'After',delta:'Observed change',proposals:'Proposals',proposalNote:'A report does not authorize changes. Review the files, consequences and plan reference; the agent executes only the items you confirm.',empty:'No data available.',history:'File operation history',historyNote:'Select stored items to ask your agent for a new restore plan. This page never executes commands.',restore:'Prepare restore request',details:'Collector details',pause:'Pause 3D',resume:'Enable 3D',scene:'Measured groups; use the table for exact values. Arrow keys or drag rotate the scene.',share:'Prepare a private-data-reduced export',request:'Request for your agent',copy:'Copy request',copied:'Copied.',manual:'Copy the text manually; clipboard access was unavailable.',footer:'Generated locally by Syrin clean. No automatic upload. Your agent/provider may process command output externally. Restore and purge have different consequences; review each plan.',incomplete:'Collectors not fully measured: ',legacy:'Legacy data is unverified. New audits use explicit categories and collector status.',shared:'Aggregate-only export: raw paths, commands, names and history were omitted. Review before sharing.',limited:'Only the first items are shown. Ask the agent for the complete session list.',beforeApproval:'Create a plan only; do not execute it until I confirm the exact plan and item IDs.'},
+  vi:{report:'Báo cáo chỉ đọc',pc:'Máy tính này',summary:'Số liệu và mức độ tin cậy',unknown:'Chưa đo được',partial:'Chưa đầy đủ hoặc chưa xác minh',complete:'Đã đo',startup:'Mục khởi động đang bật',events:'Lỗi nghiêm trọng trong 7 ngày',space:'Ổ hệ thống còn trống',estimate:'Dung lượng thu hồi ước tính',measured:'Các nhóm thư mục đã đo',measurementNote:'Kích thước logic của thư mục không phải cam kết dung lượng sẽ giải phóng. Dữ liệu ứng dụng, ổ máy ảo và file cá nhân không phải rác. Số đo chưa đầy đủ chỉ là mức tối thiểu đã thấy.',all:'Tất cả nhóm',category:'Hiển thị nhóm',cache:'Bộ đệm','app-data':'Dữ liệu ứng dụng','user-data':'Dữ liệu cá nhân',vm:'Máy ảo',system:'Dữ liệu hệ thống','unknown-category':'Chưa phân loại',comparison:'Trước và sau',comparisonNote:'Thay đổi dung lượng trống có thể gồm hoạt động ngoài Syrin clean.',before:'Trước',after:'Sau',delta:'Thay đổi quan sát được',proposals:'Đề xuất',proposalNote:'Báo cáo không cấp quyền thay đổi. Xem file, hậu quả và mã kế hoạch; agent chỉ thực thi đúng các mục bạn xác nhận.',empty:'Chưa có dữ liệu.',history:'Lịch sử thao tác file',historyNote:'Chọn mục đang lưu để nhờ agent lập kế hoạch khôi phục mới. Trang này không thực thi lệnh.',restore:'Tạo yêu cầu khôi phục',details:'Chi tiết bộ thu thập',pause:'Tạm dừng 3D',resume:'Bật 3D',scene:'Các nhóm đã đo; xem bảng để biết số chính xác. Dùng phím mũi tên hoặc kéo để xoay.',share:'Tạo yêu cầu xuất bản đã lược thông tin riêng',request:'Yêu cầu gửi agent',copy:'Sao chép yêu cầu',copied:'Đã sao chép.',manual:'Hãy sao chép phần chữ; trình duyệt chưa cho truy cập clipboard.',footer:'Syrin clean tạo báo cáo cục bộ, không tự upload. Agent/nhà cung cấp có thể xử lý đầu ra lệnh ngoài máy. Khôi phục và xóa hẳn có hậu quả khác nhau; hãy xem từng kế hoạch.',incomplete:'Các bộ thu thập chưa đo đầy đủ: ',legacy:'Dữ liệu cũ chưa được xác minh. Lần kiểm tra mới có phân loại và trạng thái đo rõ ràng.',shared:'Bản chỉ gồm số tổng hợp: đã bỏ đường dẫn, lệnh, tên riêng và lịch sử thô. Xem lại trước khi chia sẻ.',limited:'Chỉ hiện các mục đầu tiên. Nhờ agent liệt kê đầy đủ phiên để chọn tiếp.',beforeApproval:'Chỉ lập kế hoạch; chưa thực thi cho đến khi tôi xác nhận đúng kế hoạch và ID.'}
 };
-var T = L[LANG] || L.vi;
-document.getElementById('root').lang = LANG === 'en' ? 'en' : 'vi';
-Array.prototype.forEach.call(document.querySelectorAll('[data-t]'), function (e) { e.textContent = T[e.getAttribute('data-t')] || ''; });
-var A = /*__AUDIT__*/null;
-var BASE = /*__BASELINE__*/null;
-var PR = /*__PROPOSALS__*/null;
-(function () {
-  function $(id) { return document.getElementById(id); }
-  function arr(x) { return Array.isArray(x) ? x : (x == null ? [] : [x]); }
-  function first(x) { return arr(x)[0] || {}; }
-  function num(v) { var n = parseFloat(v); return isFinite(n) ? n : 0; }
-  function gb(v) { var n = num(v); return (n >= 100 ? n.toFixed(0) : n.toFixed(1)).replace('.', T.dec) + ' GB'; }
-  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
-  function dt(v) { if (v == null) return ''; var m = /Date\((-?\d+)/.exec(String(v)); var d = m ? new Date(+m[1]) : new Date(v); return isNaN(d) ? String(v) : d.toLocaleString(T.locale); }
-  if (!A) { $('machine').textContent = T.none; $('sub').textContent = T.none2; return; }
-  var sys = first(A.system), meta = first(A.meta), mem = first(A.memory);
-  $('machine').textContent = (sys.MakerModel || T.pc).trim();
-  $('sub').textContent = [sys.Windows, sys.Version, sys.Edition, sys.Arch, sys.RAM_GB ? String(sys.RAM_GB).replace('.', T.dec) + ' ' + T.ram : '', meta.GeneratedAt ? T.at + ' ' + dt(meta.GeneratedAt) : ''].filter(Boolean).join(' · ');
-  var vols = arr(A.volumes), sd = (meta.OutDir || '').slice(0, 1).toUpperCase();
-  var sv = vols.filter(function (v) { return String(v.DriveLetter).toUpperCase() === 'C'; })[0] || vols[0] || {};
-  var radar = arr(A.radar).filter(function (r) { return num(r.GB) >= 0.1; }).sort(function (a, b) { return num(b.GB) - num(a.GB); });
-  function personal(r) { return /CA NHAN|CHI LIET KE|iPhone|Captures/i.test(r.Item || ''); }
-  var total = radar.reduce(function (s, r) { return s + (personal(r) ? 0 : num(r.GB)); }, 0);
-  $('rt').textContent = gb(total);
-  $('rtn').textContent = radar.length ? T.found : T.nothing;
-  var maxGB = radar.length ? num(radar[0].GB) : 1;
-  var rl = $('rl');
-  radar.forEach(function (r, i) {
-    var li = document.createElement('li'); li.setAttribute('data-i', i);
-    var col = personal(r) ? 'var(--amb)' : 'rgb(255,' + Math.round(88 + 70 * (radar.length > 1 ? i / (radar.length - 1) : 0)) + ',' + Math.round(96 - 20 * (radar.length > 1 ? i / (radar.length - 1) : 0)) + ')';
-    li.innerHTML = '<span class="n">' + esc(r.Item) + '</span><span class="v">' + gb(r.GB) + '</span><span class="b"><i style="width:' + Math.max(2, num(r.GB) / maxGB * 100).toFixed(1) + '%;background:' + col + '"></i></span>';
-    li.title = r.Path || '';
-    li.addEventListener('mouseenter', function () { hl = i; kick(); });
-    li.addEventListener('mouseleave', function () { hl = -1; kick(); });
-    rl.appendChild(li);
-  });
-  /* facts */
-  var fx = [], ev = arr(A.events).reduce(function (s, e) { return s + num(e.Count); }, 0), st = arr(A.startup_run), def = first(A.defender), rb = first(A.recycle_bin), rp = arr(A.restore_points);
-  if (sv.DriveLetter) fx.push([T.drive.replace('{d}', sv.DriveLetter), gb(sv.FreeGB) + ' (' + String(sv.FreePct).replace('.', T.dec) + '%)', num(sv.FreePct) < 10 ? 'bad' : num(sv.FreePct) < 20 ? 'warn' : 'ok']);
-  if (mem.CommitPct != null) fx.push([T.commit, mem.CommitPct + '% · ' + T.free + ' ' + gb(mem.Available_GB), num(mem.CommitPct) > 85 ? 'bad' : num(mem.CommitPct) > 70 ? 'warn' : 'ok']);
-  fx.push([T.startup, st.filter(function (s) { return s.Enabled !== false; }).length + ' ' + T.items, st.length > 12 ? 'warn' : 'ok']);
-  fx.push([T.errors, ev + ' ' + T.times, ev > 50 ? 'warn' : 'ok']);
-  if (def.RealTimeProtectionEnabled != null) fx.push(['Microsoft Defender', def.RealTimeProtectionEnabled ? T.defOn : T.defOff, def.RealTimeProtectionEnabled ? 'ok' : 'warn']);
-  if (sys.PendingReboot != null) fx.push([T.reboot, sys.PendingReboot ? T.yes : T.no, sys.PendingReboot ? 'warn' : 'ok']);
-  if (rb.GB != null) fx.push([T.bin, gb(rb.GB) + ' · ' + (rb.Items || 0) + ' ' + T.items, '']);
-  fx.push([T.rp, rp.length ? dt(rp[rp.length - 1].Created) : T.rpNone, rp.length ? 'ok' : 'warn']);
-  if (sys.Uptime_h != null) fx.push([T.up, String(sys.Uptime_h).replace('.', T.dec) + ' ' + T.hours, num(sys.Uptime_h) > 168 ? 'warn' : '']);
-  $('facts').innerHTML = fx.map(function (f) { return '<div class="fact ' + f[2] + '"><b>' + esc(f[0]) + '</b><span>' + esc(f[1]) + '</span></div>'; }).join('');
-  /* before / after */
-  if (BASE) {
-    var bv = arr(BASE.volumes).filter(function (v) { return String(v.DriveLetter).toUpperCase() === String(sv.DriveLetter).toUpperCase(); })[0] || {};
-    var br = arr(BASE.radar).reduce(function (s, r) { return s + (personal(r) ? 0 : num(r.GB)); }, 0);
-    var items = [[T.drive.replace('{d}', sv.DriveLetter || ''), gb(bv.FreeGB) + ' → ' + gb(sv.FreeGB)], [T.freed, gb(Math.max(0, num(sv.FreeGB) - num(bv.FreeGB)))], [T.left, gb(br) + ' → ' + gb(total)], [T.apps, arr(BASE.startup_run).length + ' → ' + st.length]];
-    $('cmp').innerHTML = items.map(function (x) { return '<div><b>' + esc(x[0]) + '</b><span>' + esc(x[1]) + '</span></div>'; }).join('');
-    $('cmpS').hidden = false;
+
+export function formatBytes(value,lang='en') {return number(value)===null ? copy[lang].unknown : (value/2**30).toLocaleString(lang==='vi'?'vi-VN':'en-US',{maximumFractionDigits:2})+' GiB';}
+
+export function historyPage(items,page=0,pageSize=50) {
+  const rows=list(items),size=Number.isInteger(pageSize)&&pageSize>0?pageSize:50;
+  const pages=Math.max(1,Math.ceil(rows.length/size));
+  const current=Math.max(0,Math.min(Number.isInteger(page)?page:0,pages-1));
+  const start=current*size,end=Math.min(start+size,rows.length);
+  return {items:rows.slice(start,end),page:current,pages,total:rows.length,start,end};
+}
+
+Object.assign(copy.en,{chooseSession:'Choose a session',previousPage:'Previous files',nextPage:'Next files',page:'Page',files:'files',selected:'Selected',sessionCount:'Sessions',reducedMotion:'Motion is disabled by your system preference.'});
+Object.assign(copy.vi,{chooseSession:'Chọn phiên',previousPage:'File trước',nextPage:'File tiếp',page:'Trang',files:'file',selected:'Đã chọn',sessionCount:'Số phiên',reducedMotion:'Hiệu ứng chuyển động đang tắt theo tùy chọn hệ thống.'});
+
+Object.assign(copy.en,{memory:'Available memory',defender:'Defender real-time protection',on:'Active',off:'Not active',securityNote:'Defender status only; other security software may be active.'});
+Object.assign(copy.vi,{memory:'Bộ nhớ còn dùng được',defender:'Bảo vệ thời gian thực của Defender',on:'Đang bật',off:'Chưa bật',securityNote:'Đây là trạng thái Defender; có thể đang dùng phần mềm bảo mật khác.'});
+
+Object.assign(copy.en,{
+  collectorNames:{system:'System',volumes:'Volumes',memory:'Memory',startup:'Startup',events:'Event log',security:'Defender',cpu:'Processor',gpu:'Graphics',ram:'RAM modules',disks:'Physical disks',diskHealth:'Disk health',power:'Power plan',battery:'Battery',restorePoints:'Restore points',processes:'Processes',tasks:'Startup tasks',services:'Services',apps:'Applications',radar:'Storage groups',largeFiles:'Large files'},
+  states:{planned:'Planned',moving:'Transfer needs reconciliation',quarantined:'In quarantine',restoring:'Restore needs reconciliation',restored:'Restored',conflict:'Name conflict',failed:'Needs attention',purging:'Purge needs reconciliation',purged:'Permanently deleted'},
+  qualities:{complete:'Measured',partial:'Partial',unavailable:'Unavailable',failed:'Failed'},
+  proposalColumns:{id:'Code',title:'Action',evidence:'Evidence',benefit:'Expected benefit',loss:'What you lose',risk:'Review level',undo:'Recovery'},
+  risks:{low:'Low',review:'Review carefully',high:'High'},
+  undoLabels:{reversible:'While recovery data remains intact',partial:'Partial',irreversible:'Cannot be undone','not-applicable':'Not applicable'}
+});
+Object.assign(copy.vi,{
+  collectorNames:{system:'Hệ thống',volumes:'Các ổ đĩa',memory:'Bộ nhớ',startup:'Khởi động',events:'Nhật ký lỗi',security:'Defender',cpu:'Bộ xử lý',gpu:'Đồ họa',ram:'Thanh RAM',disks:'Ổ vật lý',diskHealth:'Sức khỏe ổ',power:'Chế độ nguồn',battery:'Pin',restorePoints:'Điểm khôi phục',processes:'Tiến trình',tasks:'Tác vụ khởi động',services:'Dịch vụ',apps:'Ứng dụng',radar:'Nhóm dung lượng',largeFiles:'File lớn'},
+  states:{planned:'Đã lập kế hoạch',moving:'Đang chuyển, cần đối chiếu',quarantined:'Đang cách ly',restoring:'Đang khôi phục, cần đối chiếu',restored:'Đã khôi phục',conflict:'Trùng tên',failed:'Cần xử lý lỗi',purging:'Đang xóa hẳn, cần đối chiếu',purged:'Đã xóa hẳn'},
+  qualities:{complete:'Đã đo',partial:'Chưa đầy đủ',unavailable:'Chưa khả dụng',failed:'Có lỗi'},
+  proposalColumns:{id:'Mã',title:'Việc làm',evidence:'Bằng chứng',benefit:'Bạn được gì',loss:'Bạn mất gì',risk:'Mức cần xem xét',undo:'Khôi phục'},
+  risks:{low:'Thấp',review:'Cần xem kỹ',high:'Cao'},
+  undoLabels:{reversible:'Khi file và journal còn nguyên',partial:'Một phần',irreversible:'Không hoàn tác được','not-applicable':'Không áp dụng'}
+});
+function localDate(value,lang){const date=new Date(value);return Number.isNaN(date.getTime())?String(value||''):date.toLocaleString(lang==='vi'?'vi-VN':'en-US');}
+
+function renderScene(canvas,rows,button,T){
+  const context=canvas.getContext('2d');if(!context){button.disabled=true;return}
+  const media=matchMedia('(prefers-reduced-motion: reduce)');
+  let enabled=!media.matches,visible=false,frame=0,timer=0,lastTime=0,rotation=.4,drag=false,lastX=0,width=0,height=0;
+  const interval=1000/24;
+  const palette={cache:'#5ce0ac','app-data':'#94bfff','user-data':'#ffd17b',vm:'#c8a4ff',system:'#a8b9af',unknown:'#ff9e9e'};
+  const budget=innerWidth<700?250:500,sum=rows.reduce((n,x)=>n+x.measuredBytes,0)||1;
+  const points=[];let seed=7;const random=()=>{seed=seed*16807%2147483647;return(seed-1)/2147483646};
+  rows.forEach((row,i)=>{const angle=i*2.399963,y=1-2*(i+.5)/Math.max(1,rows.length),radius=Math.sqrt(1-y*y),count=Math.max(8,Math.round(budget*row.measuredBytes/sum));for(let j=0;j<count&&points.length<budget;j++){const a=random()*Math.PI*2,r=Math.cbrt(random())*.18;points.push([Math.cos(angle)*radius+r*Math.cos(a),y+r*(random()-.5),Math.sin(angle)*radius+r*Math.sin(a),palette[row.category]])}});
+  const projected=points.map(()=>({x:0,y:0,z:0,k:0,color:''}));
+  function draw(){
+    const dpr=Math.min(devicePixelRatio||1,2);context.setTransform(dpr,0,0,dpr,0,0);context.clearRect(0,0,width,height);
+    const c=Math.cos(rotation),s=Math.sin(rotation),scale=Math.min(width,height)*.32;
+    for(let i=0;i<points.length;i++){const[x,y,z,color]=points[i],xx=x*c-z*s,zz=x*s+z*c,k=2.8/(2.8+zz),p=projected[i];p.x=width/2+xx*scale*k;p.y=height/2+y*scale*k;p.z=zz;p.k=k;p.color=color}
+    projected.sort((a,b)=>b.z-a.z);
+    for(const p of projected){context.globalAlpha=.35+.6*(1-(p.z+1.3)/2.6);context.fillStyle=p.color;context.fillRect(p.x,p.y,Math.max(1.5,2*p.k),Math.max(1.5,2*p.k))}
+    context.globalAlpha=1;
   }
-  /* tables */
-  function table(rows, cols, max) {
-    rows = arr(rows); if (!rows.length) return '<p class="empty" style="padding:4px 6px">' + T.empty + '</p>';
-    cols = (cols || Object.keys(rows[0])).map(function (c) { return Array.isArray(c) ? c : [c, c]; });
-    var h = '<div class="ts"><table><thead><tr>' + cols.map(function (c) { return '<th>' + esc(c[1]) + '</th>'; }).join('') + '</tr></thead><tbody>';
-    rows.slice(0, max || 30).forEach(function (r) { h += '<tr>' + cols.map(function (c) { var k = c[0], v = r[k]; var isN = typeof v === 'number'; return '<td' + (isN ? ' class="r"' : '') + '>' + esc(/Date\(/.test(String(v)) ? dt(v) : (isN ? String(v).replace('.', T.dec) : v)) + '</td>'; }).join('') + '</tr>'; });
-    return h + '</tbody></table></div>';
+  function cancel(){if(frame)cancelAnimationFrame(frame);if(timer)clearTimeout(timer);frame=0;timer=0}
+  function active(){return visible&&!document.hidden&&enabled&&!media.matches&&!drag}
+  function schedule(){if(active())timer=setTimeout(()=>{timer=0;frame=requestAnimationFrame(tick)},interval)}
+  function tick(now){frame=0;if(!active())return;if(lastTime)rotation+=Math.min((now-lastTime)/1000,.1)*.18;lastTime=now;draw();schedule()}
+  function paint(){if(!frame&&visible&&!document.hidden)frame=requestAnimationFrame(()=>{frame=0;draw()})}
+  function update(){
+    cancel();lastTime=0;button.disabled=media.matches;button.title=media.matches?T.reducedMotion:'';button.textContent=enabled?T.pause:T.resume;button.setAttribute('aria-pressed',String(enabled));
+    if(visible&&!document.hidden){draw();schedule()}
   }
-  if (PR && arr(PR).length) { $('prop').outerHTML = table(PR, null, 200); $('propS').hidden = false; }
-  var D = [
-    [T.dVol, table(vols, [['DriveLetter', T.cDrive], ['FileSystemLabel', T.cName], ['FileSystem', T.cFs], ['SizeGB', T.cSize], ['FreeGB', T.cFree], ['FreePct', T.cPct]])],
-    [T.dHealth, table(A.disks) + table(A.disk_health)],
-    [T.dLarge, table(A.large_files, [['GB', 'GB'], ['LastWriteTime', T.cMod], ['FullName', T.cPath]])],
-    [T.dStart, table(A.startup_run, [['Name', T.cName], ['Enabled', T.cOn], ['Hive', T.cHive], ['Command', T.cCmd]])],
-    [T.dApps, table(A.apps, [['DisplayName', T.cName], ['EstimatedGB', 'GB'], ['Publisher', T.cPub], ['InstallDate', T.cInst]])],
-    [T.dEv, table(A.events, [['Count', T.cCount], ['Name', T.cSrc]])],
-    [T.dAll, table(A.radar, [['Item', T.cItem], ['GB', 'GB'], ['CloudOnlyGB', T.cCloud], ['Complete', T.cDone], ['Path', T.cPath]], 100)]
-  ];
-  $('det').innerHTML = D.map(function (d) { return '<details><summary>' + esc(d[0]) + '</summary><div>' + d[1] + '</div></details>'; }).join('');
-  /* 3D scene built from the real measurements */
-  var cv = $('c'), ctx = cv.getContext && cv.getContext('2d'), tip = $('tip'), wrap = $('cw');
-  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var seed = 7; function rnd() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
-  function inS(r) { var x, y, z; do { x = rnd() * 2 - 1; y = rnd() * 2 - 1; z = rnd() * 2 - 1; } while (x * x + y * y + z * z > 1); return [x * r, y * r, z * r]; }
-  var pts = [], cl = [], hl = -1, budget = 4200;
-  var used = Math.max(0, num(sv.SizeGB) - num(sv.FreeGB)), other = Math.max(0, used - total);
-  var nOther = Math.min(1800, Math.max(200, Math.round(Math.sqrt(other) * 90)));
-  for (var i = 0; i < nOther; i++) { var q = inS(0.42); pts.push([q[0], q[1], q[2], -1, 0.01 + rnd() * 0.012]); }
-  var gold = 2.399963;
-  radar.forEach(function (r, k) {
-    var t = radar.length > 1 ? k / (radar.length - 1) : 0.5, yy = 1 - 2 * t, rr = Math.sqrt(1 - yy * yy), th = gold * k;
-    var rad = 0.06 + 0.16 * Math.sqrt(num(r.GB) / maxGB), dist = Math.max(1.12, 0.42 + rad + 0.3), c = [Math.cos(th) * rr * dist, yy * dist * 0.82, Math.sin(th) * rr * dist];
-    var hue = radar.length > 1 ? k / (radar.length - 1) : 0; cl.push({ c: c, r: rad, p: personal(r), item: r, col: personal(r) ? '255,196,64' : '255,' + Math.round(88 + 70 * hue) + ',' + Math.round(96 - 20 * hue) });
-    var n = Math.min(700, Math.max(24, Math.round(Math.sqrt(num(r.GB)) * 70)));
-    for (var j = 0; j < n && pts.length < budget + nOther; j++) { var q2 = inS(rad); pts.push([c[0] + q2[0], c[1] + q2[1], c[2] + q2[2], k, 0.011 + rnd() * 0.014]); }
-  });
-  var W = 0, H = 0, dpr = 1, ry = 0.5, rx = 0.32, vel = 0, drag = false, lx = 0, mx = -1, my = -1, raf = 0, proj = [];
-  function size() { dpr = Math.min(window.devicePixelRatio || 1, 2); W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; }
-  function P(x, y, z) { var cy = Math.cos(ry), sy = Math.sin(ry), cx = Math.cos(rx), sx = Math.sin(rx); var x1 = x * cy - z * sy, z1 = x * sy + z * cy, y1 = y * cx - z1 * sx, z2 = y * sx + z1 * cx, k = 2.8 / (2.8 + z2), S = Math.min(W, H) * 0.3; return [W / 2 + x1 * S * k, H / 2 - y1 * S * k, z2, k, S]; }
-  function draw() {
-    if (!ctx || !W) return;
-    var out = pts.map(function (p, i) { var q = P(p[0], p[1], p[2]); return [q[0], q[1], q[2], q[3] * q[4] * p[4], p[3]]; });
-    out.sort(function (a, b) { return b[2] - a[2]; });
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
-    out.forEach(function (o) {
-      var a = Math.max(0.15, Math.min(1, 0.25 + 0.75 * (1 - (o[2] + 1.3) / 2.6)));
-      var c = o[4] < 0 ? '226,234,229' : cl[o[4]].col;
-      var s = Math.max(1.2, o[3] * (o[4] === hl ? 1.8 : 1));
-      if (hl >= 0 && o[4] !== hl) a *= 0.35;
-      ctx.fillStyle = 'rgba(' + c + ',' + a.toFixed(3) + ')'; ctx.fillRect(o[0] - s / 2, o[1] - s / 2, s, s);
-    });
-    proj = cl.map(function (c) { return P(c.c[0], c.c[1], c.c[2]); });
-    var show = hl;
-    if (show < 0 && mx >= 0) { var bd = 46; proj.forEach(function (q, i) { var d = Math.hypot(q[0] - mx, q[1] - my); if (d < bd) { bd = d; show = i; } }); }
-    if (show >= 0 && cl[show]) { var q = proj[show], it = cl[show].item; tip.innerHTML = esc(it.Item) + ' · ' + gb(it.GB) + '<small>' + esc(it.Path || '') + '</small>'; tip.style.left = q[0] + 'px'; tip.style.top = q[1] + 'px'; tip.style.opacity = 1; } else tip.style.opacity = 0;
-    Array.prototype.forEach.call(rl.children, function (li, i) { li.classList.toggle('hl', i === show); });
-  }
-  function tick() { raf = 0; if (!reduce && !drag) ry += 0.0025; ry += vel; vel *= 0.92; draw(); if (!reduce || Math.abs(vel) > 0.0005 || drag) raf = requestAnimationFrame(tick); }
-  function kick() { if (!raf) raf = requestAnimationFrame(tick); }
-  if (ctx) {
-    size(); window.addEventListener('resize', function () { size(); kick(); });
-    cv.addEventListener('pointerdown', function (e) { drag = true; lx = e.clientX; try { cv.setPointerCapture(e.pointerId); } catch (x) {} kick(); });
-    cv.addEventListener('pointermove', function (e) { var r = cv.getBoundingClientRect(); mx = e.clientX - r.left; my = e.clientY - r.top; if (drag) { vel += (e.clientX - lx) * 0.002; lx = e.clientX; } kick(); });
-    cv.addEventListener('pointerup', function () { drag = false; }); cv.addEventListener('pointercancel', function () { drag = false; });
-    cv.addEventListener('pointerleave', function () { mx = -1; kick(); });
-    kick();
-  }
-})();
+  function resize(){width=canvas.clientWidth;height=canvas.clientHeight;const dpr=Math.min(devicePixelRatio||1,2);canvas.width=width*dpr;canvas.height=height*dpr;update()}
+  new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;update()}).observe(canvas);
+  button.addEventListener('click',()=>{enabled=!enabled;update()});document.addEventListener('visibilitychange',update);media.addEventListener('change',()=>{enabled=!media.matches;update()});window.addEventListener('resize',resize);
+  canvas.addEventListener('pointerdown',e=>{drag=true;lastX=e.clientX;cancel();canvas.setPointerCapture(e.pointerId)});
+  canvas.addEventListener('pointermove',e=>{if(drag){rotation+=(e.clientX-lastX)*.008;lastX=e.clientX;paint()}});
+  canvas.addEventListener('pointerup',()=>{drag=false;update()});canvas.addEventListener('pointercancel',()=>{drag=false;update()});
+  canvas.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();rotation+=(e.key==='ArrowLeft'?-.12:.12);draw()}});
+  resize();
+}
+
+function renderReport(payload){
+  const lang=payload.language==='vi'?'vi':'en',T=copy[lang],$=id=>document.getElementById(id),esc=escapeHtml;
+  document.documentElement.lang=lang;
+  const view=createView(payload.audit,payload.baseline);const gb=n=>formatBytes(n,lang);
+  const labels={'subtitle':'report','summary-title':'summary','measurements-title':'measured','measurement-note':'measurementNote','category-label':'category','comparison-title':'comparison','comparison-note':'comparisonNote','proposals-title':'proposals','proposal-note':'proposalNote','history-title':'history','history-note':'historyNote','details-title':'details','scene-note':'scene','share':'share','request-title':'request','copy-request':'copy','history-link':'history','footer':'footer'};
+  for(const[id,key]of Object.entries(labels))$(id).textContent=T[key];
+  $('top').textContent=view.system.model||T.pc;
+  $('identity').textContent=[view.system.windows,view.system.edition,view.system.architecture,localDate(view.audit.meta.generatedUtc,lang)].filter(Boolean).join(' · ');
+  const messages=lang==='vi'?{'agent-privacy':'Agent hoặc nhà cung cấp có thể xử lý đầu ra lệnh ngoài máy.','support-unverified':'Các cấu hình, filesystem và provider chưa thử vẫn chưa được xác minh.'}:{'agent-privacy':'Your agent/provider may process command output outside this device.','support-unverified':'Untested configurations, filesystems and providers remain unverified.'};
+  const warnings=[...list(view.audit.meta.warnings),...list(view.audit.meta.warningCodes).map(code=>messages[code]).filter(Boolean)];if(view.audit.legacy)warnings.unshift(T.legacy);if(payload.shared)warnings.unshift(T.shared);if(view.incomplete.length)warnings.push(T.incomplete+view.incomplete.map(name=>T.collectorNames[name]||name).join(', '));$('notice').textContent=warnings.join('\n');
+  const fact=(title,value,quality,detail='')=>'<div class="fact" data-quality="'+esc(quality)+'"><b>'+esc(title)+'</b><strong>'+esc(value)+'</strong><small>'+esc(detail|| (quality==='complete'?T.complete:T.partial))+'</small></div>';
+  $('facts').innerHTML=fact(T.space,view.systemVolume?view.systemVolume.drive+' '+gb(view.systemVolume.freeBytes):T.unknown,view.systemVolume?view.collector('volumes').status:'unavailable')+fact(T.startup,view.startupCount??T.unknown,view.startupCount===null?'unavailable':'complete',view.unknownStartup?view.unknownStartup+' '+T.unknown:'')+fact(T.events,view.eventCount??T.unknown,view.eventCount===null?'unavailable':view.collector('events').status)+fact(T.estimate,gb(view.reclaimable),view.reclaimable===null?'unavailable':'complete');
+  $('facts').innerHTML+=fact(T.memory,gb(view.memoryAvailable),view.memoryAvailable===null?'unavailable':view.collector('memory').status)+fact(T.defender,view.defender===null?T.unknown:view.defender?T.on:T.off,view.defender===null?'unavailable':view.collector('security').status,T.securityNote);
+  $('category').innerHTML='<option value="all">'+T.all+'</option>'+categories.map(c=>'<option value="'+c+'">'+esc(T[c==='unknown'?'unknown-category':c])+'</option>').join('');
+  function showRadar(){const chosen=$('category').value;const rows=view.radar.filter(x=>chosen==='all'||x.category===chosen);$('radar').innerHTML=rows.length?rows.map(x=>'<div class="radar-row"><div><b>'+esc(x.label)+'</b><small>'+esc(T[x.category==='unknown'?'unknown-category':x.category])+' · '+esc(x.status==='complete'?T.complete:T.partial)+'</small></div><span>'+esc(gb(x.measuredBytes))+'</span></div>').join(''):'<p>'+T.empty+'</p>'}
+  $('category').addEventListener('change',showRadar);showRadar();
+  if(payload.mode==='3d'&&view.radar.length){$('cloud').setAttribute('aria-label',T.scene);renderScene($('cloud'),view.radar,$('motion'),T)}else{$('scene').hidden=true;$('motion').hidden=true}
+  if(view.comparison){$('comparison-section').hidden=false;const c=view.comparison;$('comparison').innerHTML=fact(T.before,gb(c.before),'complete')+fact(T.after,gb(c.after),'complete')+fact(T.delta,(c.delta>=0?'+':'−')+gb(Math.abs(c.delta)),'complete')}
+  function table(rows,columns){if(!rows.length)return '<p>'+T.empty+'</p>';const keys=columns||Object.keys(rows[0]);return '<div class="table-wrap"><table><thead><tr>'+keys.map(k=>'<th scope="col">'+esc(k)+'</th>').join('')+'</tr></thead><tbody>'+rows.slice(0,200).map(row=>'<tr>'+keys.map(k=>'<td>'+esc(typeof row[k]==='object'?JSON.stringify(row[k]):row[k]??T.unknown)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'+(rows.length>200?'<p>'+T.limited+'</p>':'')}
+  const proposalRows=list(payload.proposals?.items).map(item=>{if(payload.proposals.schemaVersion!==1)return item;const row={};for(const[key,label]of Object.entries(T.proposalColumns))row[label]=key==='risk'?(T.risks[item[key]]||item[key]):key==='undo'?(T.undoLabels[item[key]]||item[key]):item[key];return row});
+  $('proposals').innerHTML=table(proposalRows);
+  $('details').innerHTML=Object.entries(view.audit.collectors).map(([name,c])=>'<details><summary>'+esc(T.collectorNames[name]||name)+' · '+esc(T.qualities[c.status]||c.status)+'</summary><p class="errors">'+esc(list(c.errors).join('\n'))+'</p>'+table(list(c.data))+'</details>').join('');
+  function request(action){$('request').value=T.beforeApproval+'\n'+JSON.stringify(action,null,2);$('request-section').hidden=false;$('request').focus();$('request-status').textContent=''}
+  const sessions=list(payload.history),selections=new Map();
+  $('sessions').textContent='';
+  if(sessions.length){
+    const toolbar=document.createElement('div');toolbar.className='toolbar';
+    const label=document.createElement('label');label.htmlFor='history-session';label.textContent=T.chooseSession+' ('+sessions.length+')';
+    const picker=document.createElement('select');picker.id='history-session';
+    sessions.forEach((session,index)=>{const option=document.createElement('option');option.value=String(index);option.textContent=(index+1)+'. '+localDate(session.createdUtc,lang)+' · '+String(session.sessionId).slice(0,12);picker.appendChild(option)});
+    const body=document.createElement('div');toolbar.append(label,picker);$('sessions').append(toolbar,body);
+    let activeSession=0,pageIndex=0;
+    function showSession(){
+      body.textContent='';const session=sessions[activeSession],box=document.createElement('div');box.className='session';
+      const identity=document.createElement('code');identity.textContent=session.sessionId;box.appendChild(identity);
+      if(!session.ok){const error=document.createElement('p');error.className='errors';error.textContent=session.error;box.appendChild(error);body.appendChild(box);return}
+      if(!selections.has(session.sessionId))selections.set(session.sessionId,new Set());
+      const selected=selections.get(session.sessionId),page=historyPage(session.items,pageIndex);pageIndex=page.page;
+      const status=document.createElement('p');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
+      status.textContent=T.page+' '+(page.page+1)+'/'+page.pages+' · '+(page.total?page.start+1:0)+'–'+page.end+'/'+page.total+' '+T.files;box.appendChild(status);
+      const selectedStatus=document.createElement('p'),restore=document.createElement('button');restore.type='button';restore.textContent=T.restore;
+      function updateSelection(){selectedStatus.textContent=T.selected+': '+selected.size+' '+T.files;restore.disabled=selected.size===0}
+      for(const item of page.items){
+        const row=document.createElement('label');row.className='selection';const checkbox=document.createElement('input');checkbox.type='checkbox';
+        checkbox.disabled=!['quarantined','conflict','failed'].includes(item.state)||!/^[a-f0-9]{32}$/.test(item.id||'');checkbox.checked=selected.has(item.id);
+        checkbox.addEventListener('change',()=>{if(checkbox.checked)selected.add(item.id);else selected.delete(item.id);updateSelection()});
+        const text=document.createElement('span');text.textContent=(item.code?item.code+' · ':'')+(item.original||item.id)+' · '+(T.states[item.state]||item.state);row.append(checkbox,text);box.appendChild(row);
+      }
+      const navigation=document.createElement('div');navigation.className='toolbar';
+      for(const[direction,text,id,disabled]of [[-1,T.previousPage,'history-prev',page.page===0],[1,T.nextPage,'history-next',page.page+1>=page.pages]]){
+        const button=document.createElement('button');button.id=id;button.type='button';button.textContent=text;button.disabled=disabled;
+        button.addEventListener('click',()=>{pageIndex+=direction;showSession();const focus=$(id);if(!focus.disabled)focus.focus();else picker.focus()});navigation.appendChild(button);
+      }
+      box.appendChild(navigation);
+      if(session.totalItems>page.total){const warning=document.createElement('p');warning.textContent=T.limited;box.appendChild(warning)}
+      restore.addEventListener('click',()=>{if(selected.size)request({operation:'restore',root:payload.historyRoot,sessionId:session.sessionId,itemIds:[...selected]})});
+      updateSelection();box.append(selectedStatus,restore);body.appendChild(box);
+    }
+    picker.addEventListener('change',()=>{activeSession=Number(picker.value);pageIndex=0;showSession()});showSession();
+  }else{$('sessions').textContent=T.empty}
+  $('share').hidden=Boolean(payload.shared);$('share').addEventListener('click',()=>request({operation:'share-report',auditSessionId:view.audit.meta.sessionId,upload:false}));
+  $('copy-request').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('request').value);$('request-status').textContent=T.copied}catch{$('request').select();$('request-status').textContent=T.manual}});
+}
+
+if(typeof document!=='undefined'){
+  try{renderReport(JSON.parse(document.getElementById('syrin-data').textContent))}
+  catch(error){document.getElementById('notice').textContent='Report could not be rendered: '+error.message;document.getElementById('top').textContent='Syrin clean';}
+}
 </script>
-</body>
-</html>
+</body></html>
