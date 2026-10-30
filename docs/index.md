@@ -17,7 +17,7 @@
 - [Completed journal replay and report progress](plan/done/journal-progress.md).
 - [Journal replay performance and progress validation](research/journal-validation.md).
 - [Completed HTML interaction checks](plan/done/html-qualification.md) and [their qualification limits](research/html-interaction-validation.md).
-- [Next preview delivery](plan/preview-refresh.md).
+- [Completed preview refresh](plan/done/preview-refresh.md) and [publication verification](research/preview-two-verification.md).
 
 - [Execution and data contracts](arch/execution.md).
 

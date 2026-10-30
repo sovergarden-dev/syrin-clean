@@ -1,6 +1,6 @@
 # Syrin clean: bàn giao
 
-Trạng thái: 4.0.0-preview.1 đã được phát hành với GitHub Pages và HTML offline. PR #1, #2 và #3 đã merge. Trang HTTPS và các file tải về đã được đối chiếu checksum; tag da2b0c9 và các asset đã công bố được giữ nguyên. Main có sửa công cụ đóng gói/triển khai sau phát hành. Đây vẫn là pre-release; các cổng VM/môi trường chưa đạt không bị đóng thay.
+Trạng thái: 4.0.0-preview.2 đã được phát hành với GitHub Pages và HTML offline sau khi PR #4 merge. Tag trỏ tới `3e3dcf1`; tám asset, hai HTML công khai và bản ZIP tải qua giao diện đã được đối chiếu checksum. Các asset của preview trước giữ nguyên. Đây vẫn là pre-release; các cổng VM/môi trường chưa đạt không bị đóng thay.
 
 ## Nguồn chuẩn
 
@@ -28,11 +28,11 @@ Validate chạy trên Windows. Pages chỉ triển khai tag của bản phát h�
 
 [Bằng chứng hardening](docs/research/hardening-validation.md), [kiểm chứng giao diện](docs/research/bilingual-validation.md), [kế hoạch phát hành](docs/plan/done/bilingual-experience.md) và [ma trận hỗ trợ](docs/feat/support.md) phân biệt việc đã làm với giới hạn còn mở.
 
-[Mở trang web](https://sovergarden-dev.github.io/syrin-clean/) · [Release](https://github.com/sovergarden-dev/syrin-clean/releases/tag/4.0.0-preview.1) · [Triển khai đã xác minh](https://github.com/sovergarden-dev/syrin-clean/actions/runs/40829293196).
+[Mở trang web](https://sovergarden-dev.github.io/syrin-clean/) · [Release](https://github.com/sovergarden-dev/syrin-clean/releases/tag/4.0.0-preview.2) · [Triển khai đã xác minh](https://github.com/sovergarden-dev/syrin-clean/actions/runs/40994400227).
 
 ## Khi tiếp tục
 
-Nhánh `codex/journal-progress` đã hoàn tất tối ưu đọc journal và tiến độ tạo báo cáo tại máy, chưa phát hành mới. Hai lượt đo tuần tự trên 18.840 event giảm trung bình khoảng 41% thời gian; lịch sử đầu ra khớp hoàn toàn. Gói sinh mới đã tạo lại báo cáo thật với đầy đủ 37 phiên và không có lỗi lịch sử. Xem [bằng chứng và giới hạn phép đo](docs/research/journal-validation.md); raw log và báo cáo máy vẫn ở ngoài repository. Bản cài toàn cục và các asset/tag đã công bố không được thay bằng bản phát triển này.
+Tối ưu đọc journal, tiến độ báo cáo và sửa ngữ nghĩa nút chuyển động đã nằm trong preview 2. Hai lượt đo tuần tự trên 18.840 event giảm trung bình khoảng 41% thời gian; lịch sử đầu ra khớp hoàn toàn. Hai bản skill tiếng Việt trên máy đã được cập nhật qua installer có backup; bản vừa cài tạo lại báo cáo đủ 37 phiên/4.710 item, không lỗi lịch sử và giữ nguyên audit gốc. Xem [phép đo](docs/research/journal-validation.md), [kiểm chứng giao diện](docs/research/html-interaction-validation.md) và [bằng chứng phát hành](docs/research/preview-two-verification.md). Raw log, báo cáo máy và định danh backup vẫn ở ngoài repository. Commit ghi chép sau phát hành trên main không thay đổi tag hay các asset đã công bố.
 
 Chủ dự án chưa có VM và đã chọn giữ kiểm chứng VM ở trạng thái chưa xác minh. Không thay phép thử VM bằng thao tác hệ thống thật trên workstation. System Restore, nền tảng/filesystem/provider chưa thử và trợ năng đầy đủ phải có bằng chứng trước khi nâng mức công bố hỗ trợ hoặc gọi bản ổn định.
 
