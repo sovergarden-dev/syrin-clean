@@ -32,6 +32,8 @@ Validate chạy trên Windows. Pages chỉ triển khai tag của bản phát h�
 
 ## Khi tiếp tục
 
+Nhánh `codex/journal-progress` đã hoàn tất tối ưu đọc journal và tiến độ tạo báo cáo tại máy, chưa phát hành mới. Hai lượt đo tuần tự trên 18.840 event giảm trung bình khoảng 41% thời gian; lịch sử đầu ra khớp hoàn toàn. Gói sinh mới đã tạo lại báo cáo thật với đầy đủ 37 phiên và không có lỗi lịch sử. Xem [bằng chứng và giới hạn phép đo](docs/research/journal-validation.md); raw log và báo cáo máy vẫn ở ngoài repository. Bản cài toàn cục và các asset/tag đã công bố không được thay bằng bản phát triển này.
+
 Chủ dự án chưa có VM và đã chọn giữ kiểm chứng VM ở trạng thái chưa xác minh. Không thay phép thử VM bằng thao tác hệ thống thật trên workstation. System Restore, nền tảng/filesystem/provider chưa thử và trợ năng đầy đủ phải có bằng chứng trước khi nâng mức công bố hỗ trợ hoặc gọi bản ổn định.
 
 Chưa có yêu cầu tạo tài khoản/backend, telemetry, dọn tự động định kỳ hoặc thêm adapter tối ưu hệ thống. Ưu tiên chất lượng luồng đã có và dữ liệu kiểm chứng trước khi mở rộng phạm vi.

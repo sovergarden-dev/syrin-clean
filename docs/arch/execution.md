@@ -1,6 +1,6 @@
 # Execution and data contracts
 
-> updated 2026-10-29 · v4.0.0-preview.1
+> updated 2026-10-30 · v4.0.0-preview.1
 
 The shared native path helper performs lexical validation, mapped-drive rejection, live ancestor-attribute checks and long-name resolution in one call. It does not cache mutable filesystem state. Missing destination suffixes are resolved without creating directories; mutation still verifies the final handle and file identity.
 
@@ -16,7 +16,7 @@ Each planning/execution operation resolves its protected reference paths and clo
 
 An owned root has a versioned marker and an exclusive process lock. Install staging and backups are kept outside active agent skill-discovery directories and protected by a separate profile-level update lock. Sessions retain an immutable plan and append-only, atomically written event records. Replay derives each item's state. Events never replace the plan's trusted paths. Interrupted operations reconcile against file identity; ambiguity becomes a conflict, not a guessed success. Restore never overwrites an existing file and supports a separate renamed destination. Purge retains metadata for history.
 
-Journal and plan JSON are parsed and hashed from the same byte read, including the original BOM. Execution and new session creation use that captured plan value and decoded text instead of rereading a mutable plan path after approval validation. History replay retains ownership, digest, sequence and containment checks.
+Journal and plan JSON are parsed and hashed from the same byte read, including the original BOM. Execution and new session creation use that captured plan value and decoded text instead of rereading a mutable plan path after approval validation. History replay retains ownership, digest, sequence and containment checks. Event reads use native batches of at most 128 records, with fresh ancestor validation for each path and individual parsing through the existing PowerShell JSON parser. Batches do not concatenate documents or cache filesystem state; existing journals need no migration.
 
 Legacy CSV journals are never automatically migrated. An explicit import command validates containment and previews the items, then creates a new journal without moving files. This includes still-stored items in old `manifest-restored-*` files. Unknown files remain untouched.
 
@@ -25,6 +25,8 @@ Legacy CSV journals are never automatically migrated. An explicit import command
 Audit schema 1 identifies the session, machine, system volume, generation time and report mode. Each collector has complete/partial/unavailable/failed status, data and errors. Missing values remain null. Radar entries have explicit categories and logical measured bytes; reclaimable bytes are separately estimated and are not inferred from a folder name. Windows family is independent of lifecycle support status.
 
 Reports validate JSON and schema before replacing an existing output. Baselines require matching machine identity and schema. Legacy audit input is read through an explicit conservative adapter and is marked unverified; it is not silently upgraded on disk. Shared reports contain only an allowlist of aggregates and omit paths, commands, machine identity and raw collector records.
+
+Report generation writes `report-progress.json` with a fresh run ID, process ID, audit session, phase, elapsed time and timestamp. History updates report processed/failed sessions and verified event counts after each batch. A failed session stays visible in the HTML and in `historyErrors`; a progress callback failure aborts generation rather than masquerading as a bad journal. `completed`, `htmlWritten=true` and 100% are recorded only after the atomic HTML commit. Input/write failures record `failed`; disabled HTML records `skipped`. A killed process can leave `running` behind, so a timestamp is not a liveness guarantee. `-Quiet` suppresses console progress while retaining the file. Aggregate sharing skips history replay entirely.
 
 Audit writes `audit-progress.json` before each collector and on completion; a timestamped progress record is not proof that its process is still running. Storage collectors receive a share of the requested total budget, and all partial results remain explicit. Reports include the complete loaded history, let the reader select a session and paginate/filter its items, and retain selections across pages, filters and language changes. Only the current page is rendered. The shared renderer initializes at 160/280 points for narrow/wide viewports. Automatic animation is capped at 24 frames per second and stops when paused, hidden, offscreen or reduced motion is enabled; direct manipulation is coalesced into animation frames.
 

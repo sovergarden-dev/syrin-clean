@@ -10,4 +10,6 @@ For recovery or purge, first call `scripts/quarantine.ps1 -History -QuarantineRo
 
 Write optional proposals.json using assets/proposals.schema.json and the audit sessionId. It is display data, not executable approval. Regenerate the selected report with `scripts/make-report.ps1 -OutDir <dir> -Lang en|vi -QuarantineRoot <root>` only if the report mode permits it.
 
+For long histories, inspect `report-progress.json`: it records the current phase, processed/failed sessions, verified events and elapsed time. `-Quiet` hides console progress but keeps this file. Require `status=completed`, `htmlWritten=true` and inspection of `historyErrors`; 100% describes the HTML write, not a guarantee that every history session is valid. A stale `running` record is not proof that its process is alive. Do not share this private progress file.
+
 Show the plan and ask the human to confirm the exact operation and IDs. State that quarantine frees zero bytes; purge cannot be undone. Never convert "all" or "recommended" into consent for personal-file or irreversible operations without repeating exact IDs and receiving confirmation. STOP here until the human confirms.

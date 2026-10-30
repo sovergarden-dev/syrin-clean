@@ -36,18 +36,18 @@
     },
     {
       "path": "modules/IO.psm1",
-      "sha256": "221dc10908067ef80d829bead0664bcc23393b701465909b6cf5fa10ad9a1d04",
-      "bytes": 20522
+      "sha256": "de716ab88ee6280e497fd4640dfeabc786784b0c84ed62d5922f8409cc2b663f",
+      "bytes": 22010
     },
     {
       "path": "modules/Quarantine.psm1",
-      "sha256": "2d5019c03a175d6e359da48bb147317d42dd034c99ade5b644e1f46337d2031d",
-      "bytes": 24929
+      "sha256": "1052fdb1d097f4a6b5e5a5439708e097498d92b07b9ec471759b7909b565a114",
+      "bytes": 26434
     },
     {
       "path": "modules/Report.psm1",
-      "sha256": "36507bfe9bfe95382beda2e3d7bf5d97873666a0f40f9547fa9fc16ef70c7d9c",
-      "bytes": 10206
+      "sha256": "e0cde902743212a37dee742482c961c1fc67fecab1296ba70bbbc33e1ce45735",
+      "bytes": 12596
     },
     {
       "path": "modules/Windows.psm1",
@@ -61,8 +61,8 @@
     },
     {
       "path": "references/stage1-proposals.md",
-      "sha256": "3f3f0a548dcfa2eb17496ad458458cab81277926129e2a27bb144992e6bd6296",
-      "bytes": 2601
+      "sha256": "9d8f81aaa661114c377dbad9677257291855feeaebf0cb564d8ae22db89e06aa",
+      "bytes": 3148
     },
     {
       "path": "references/stage2-execution.md",
@@ -76,8 +76,8 @@
     },
     {
       "path": "scripts/audit.ps1",
-      "sha256": "438661c6f7a36eb93faefa73eac6bba81718dd3363a3e2e930e8aa84e32b65a7",
-      "bytes": 893
+      "sha256": "8a7085971d783fbd55018f1ea8e678c7837c9991213772d5416a1efce5d737e0",
+      "bytes": 907
     },
     {
       "path": "scripts/history.ps1",
@@ -86,8 +86,8 @@
     },
     {
       "path": "scripts/make-report.ps1",
-      "sha256": "e58d8c85139f3dd1f7a08520a45a4c7b8f5fe6ddb4a9663798b18be5050d7e20",
-      "bytes": 733
+      "sha256": "a6050e21ebb6513e0e365e1b39abc1122a91235d270b3fd7518f2109fb398b5e",
+      "bytes": 762
     },
     {
       "path": "scripts/new-restorepoint.ps1",

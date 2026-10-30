@@ -45,7 +45,7 @@ function Get-SyrinSessionPath([string]$Root,[string]$SessionId) {
   return Assert-SyrinLocalPath (Join-Path (Join-Path $Root 'sessions') $SessionId)
 }
 
-function Read-SyrinSession([string]$Root,[string]$SessionId) {
+function Read-SyrinSession([string]$Root,[string]$SessionId,[scriptblock]$OnProgress) {
   $marker = Read-SyrinRoot $Root
   $folder = Get-SyrinSessionPath $Root $SessionId
   $header = Read-SyrinJson (Join-Path $folder 'session.json')
@@ -60,15 +60,22 @@ function Read-SyrinSession([string]$Root,[string]$SessionId) {
   }
   $sequence=0; $previous=''
   $eventsPath = Assert-SyrinLocalPath (Join-Path $folder 'events')
-  foreach ($file in @(Get-ChildItem -LiteralPath $eventsPath -File -Filter '*.json' -ErrorAction Stop | Sort-Object Name)) {
-    $document=Read-SyrinJsonDocument $file.FullName
-    $event=$document.value
-    $sequence++
-    if ($file.Name -ne ('{0:D8}.json' -f $sequence) -or $event.sequence -ne $sequence -or $event.previous -ne $previous -or -not $items.ContainsKey($event.itemId)) { throw 'Journal sequence or integrity check failed.' }
-    if ($event.state -notin @('planned','moving','quarantined','restoring','restored','conflict','failed','purging','purged')) { throw 'Unknown journal state.' }
-    $item = $items[$event.itemId]
-    $item.state=$event.state; $item.error=$event.error; $item.restoredPath=$event.restoredPath
-    $previous=$document.digest
+  $files=@(Get-ChildItem -LiteralPath $eventsPath -File -Filter '*.json' -ErrorAction Stop | Sort-Object Name)
+  $paths=[string[]]@($files | ForEach-Object {$_.FullName})
+  if($OnProgress){& $OnProgress 0 $files.Count | Out-Null}
+  $batchSize=128
+  for($offset=0;$offset -lt $files.Count;$offset+=$batchSize) {
+    $count=[math]::Min($batchSize,$files.Count-$offset)
+    foreach($document in @(Read-SyrinJsonBatch $paths $offset $count)) {
+      $file=$files[$sequence];$event=$document.value
+      $sequence++
+      if ($file.Name -ne ('{0:D8}.json' -f $sequence) -or $event.sequence -ne $sequence -or $event.previous -ne $previous -or -not $items.ContainsKey($event.itemId)) { throw 'Journal sequence or integrity check failed.' }
+      if ($event.state -notin @('planned','moving','quarantined','restoring','restored','conflict','failed','purging','purged')) { throw 'Unknown journal state.' }
+      $item = $items[$event.itemId]
+      $item.state=$event.state; $item.error=$event.error; $item.restoredPath=$event.restoredPath
+      $previous=$document.digest
+    }
+    if($OnProgress){& $OnProgress $sequence $files.Count | Out-Null}
   }
   return [PSCustomObject]@{folder=$folder;header=$header;plan=$plan;items=$items;sequence=$sequence;digest=$previous}
 }
@@ -289,18 +296,36 @@ function Invoke-SyrinFilePlan {
   return [PSCustomObject]@{ok=$ok;schemaVersion=1;sessionId=$plan.sessionId;operation=$plan.operation;root=$root;items=$outcomes.ToArray();unprocessed=@($ItemId | Where-Object {$_ -notin @($outcomes | ForEach-Object {$_.id})})}
 }
 
-function Get-SyrinHistory([string]$Root='',[string]$SessionId='') {
+function Get-SyrinHistory([string]$Root='',[string]$SessionId='',[scriptblock]$OnProgress) {
   $rootPath=Get-SyrinRootPath $Root
   if (-not (Test-Path -LiteralPath $rootPath)) { return @() }
   [void](Read-SyrinRoot $rootPath)
   $sessionsPath=Join-Path $rootPath 'sessions'
   if (-not (Test-Path -LiteralPath $sessionsPath)) { return @() }
   $ids=if ($SessionId) {@($SessionId)} else {@(Get-ChildItem -LiteralPath $sessionsPath -Directory | ForEach-Object {$_.Name})}
+  $progress=[ordered]@{sessionsProcessed=0;sessionsTotal=@($ids).Count;sessionsFailed=0;activeSession=$null;sessionEventsVerified=0;sessionEventsTotal=0;eventsVerified=0}
   foreach ($id in $ids) {
+    $progress.activeSession=$id;$progress.sessionEventsVerified=0;$progress.sessionEventsTotal=0
+    if($OnProgress){& $OnProgress ([PSCustomObject]$progress) | Out-Null}
+    $onEvents=$null
+    if($OnProgress){
+      $onEvents={param($Verified,$Total)
+        $progress.eventsVerified+=$Verified-$progress.sessionEventsVerified
+        $progress.sessionEventsVerified=$Verified;$progress.sessionEventsTotal=$Total
+        try{& $OnProgress ([PSCustomObject]$progress) | Out-Null}
+        catch{throw [OperationCanceledException]::new('History progress reporting failed.',$_.Exception)}
+      }.GetNewClosure()
+    }
     try {
-      $session=Read-SyrinSession $rootPath $id
+      $session=Read-SyrinSession $rootPath $id -OnProgress $onEvents
       [PSCustomObject]@{ok=$true;sessionId=$id;createdUtc=$session.header.createdUtc;operation=$session.plan.operation;items=@($session.items.Values | Sort-Object original)}
-    } catch { [PSCustomObject]@{ok=$false;sessionId=$id;error=$_.Exception.Message;items=@()} }
+    } catch {
+      if($_.Exception -is [OperationCanceledException]){throw}
+      $progress.sessionsFailed++
+      [PSCustomObject]@{ok=$false;sessionId=$id;error=$_.Exception.Message;items=@()}
+    }
+    $progress.sessionsProcessed++;$progress.activeSession=$null
+    if($OnProgress){& $OnProgress ([PSCustomObject]$progress) | Out-Null}
   }
 }
 

@@ -13,6 +13,7 @@ __pycache__/
 # Private runtime outputs; never include these in a source commit.
 audit.json
 audit-progress.json
+report-progress.json
 baseline.json
 proposals.json
 proposals.csv

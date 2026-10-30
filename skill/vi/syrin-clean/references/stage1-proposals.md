@@ -10,4 +10,6 @@ Muốn khôi phục hoặc xóa hẳn, chạy `scripts/quarantine.ps1 -History -
 
 Có thể ghi proposals.json theo assets/proposals.schema.json với audit sessionId. Đây là dữ liệu trình bày, không phải quyền thực thi. Tạo lại báo cáo đã chọn bằng `scripts/make-report.ps1 -OutDir <dir> -Lang en|vi -QuarantineRoot <root>` chỉ khi report mode cho phép.
 
+Với lịch sử dài, đọc `report-progress.json` để biết giai đoạn, số phiên đã xử lý/lỗi, sự kiện đã xác minh và thời gian đã chạy. `-Quiet` ẩn tiến độ trên console nhưng vẫn ghi file này. Cần `status=completed`, `htmlWritten=true` và kiểm tra `historyErrors`; 100% chỉ xác nhận đã ghi HTML, không bảo đảm mọi phiên lịch sử đều hợp lệ. Bản ghi `running` đã cũ không chứng minh tiến trình còn sống. Không chia sẻ file tiến độ riêng tư này.
+
 Trình bày kế hoạch rồi yêu cầu người dùng xác nhận đúng thao tác và ID. Nêu rõ cách ly giải phóng 0 byte; xóa hẳn không hoàn tác được. Không biến “tất cả” hoặc “khuyến nghị” thành đồng ý với file cá nhân hoặc việc không hoàn tác được nếu chưa nhắc lại ID cụ thể và nhận xác nhận. DỪNG tại đây cho tới khi người dùng xác nhận.

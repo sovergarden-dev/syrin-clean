@@ -59,11 +59,30 @@ try {
     radar=@{status='partial';data=@(@{id='private';label='PRIVATE_FOLDER';path='C:\Users\PRIVATE_USER\private';category='user-data';measuredBytes=100;cloudBytes=0;estimatedReclaimableBytes=$null;status='partial';errors=@('PRIVATE_ERROR')});errors=@('PRIVATE_ERROR')}
   }}
   Json (Join-Path $out 'audit.json') $audit
+  $reportModule=Get-Module Report
+  & $reportModule {
+    $script:BeforeReportWrite=(Get-Command Write-SyrinAtomicText).ScriptBlock
+    $script:DuringWrite=$null
+    function script:Write-SyrinAtomicText([string]$Path,[string]$Text){
+      $script:DuringWrite=Read-SyrinJson (Join-Path ([IO.Path]::GetDirectoryName($Path)) 'report-progress.json')
+      & $script:BeforeReportWrite $Path $Text
+    }
+  }
+  try{$result=New-SyrinReport -OutDir $out -Lang vi}finally{& $reportModule {Set-Item Function:Write-SyrinAtomicText $script:BeforeReportWrite}}
+  $during=& $reportModule {$script:DuringWrite}
+  Assert ($during.status -eq 'running' -and $during.phase -eq 'writing' -and -not $during.htmlWritten -and $null -eq $during.percentComplete) 'Progress claimed completion before the HTML commit'
+  $progress=Get-Content -LiteralPath $result.progressFile -Raw -Encoding UTF8 | ConvertFrom-Json
+  Assert ($progress.status -eq 'completed' -and $progress.htmlWritten -and $progress.percentComplete -eq 100 -and $progress.sessionId -eq $audit.meta.sessionId) 'Report completion was not recorded'
+  $firstRunId=$progress.runId
   $result=New-SyrinReport -OutDir $out -Lang vi
   Assert (Test-Path -LiteralPath $result.path) 'Report missing'
-  $share=New-SyrinReport -OutDir $out -Lang en -Share
+  $progress=Get-Content -LiteralPath $result.progressFile -Raw -Encoding UTF8 | ConvertFrom-Json
+  Assert ($progress.runId -ne $firstRunId) 'Report rerun retained a stale run identity'
+  $share=New-SyrinReport -OutDir $out -Lang en -Share -QuarantineRoot '\\fixture.invalid\never-read'
   $shared=[IO.File]::ReadAllText($share.path)
   Assert (-not $shared.Contains('PRIVATE_') -and -not $shared.Contains(('b'*64))) 'Private data leaked into aggregate export'
+  $progress=Get-Content -LiteralPath $share.progressFile -Raw -Encoding UTF8 | ConvertFrom-Json
+  Assert ($null -eq $progress.history -and $progress.status -eq 'completed') 'Aggregate export read irrelevant private history'
   Write-Output 'PASS reports render and aggregate export omits private fields'
   $proposals=@{schemaVersion=1;kind='syrin-proposals';sessionId=('a'*32);items=@(@{id='A';title='Updated cache proposal';evidence='Fixture';benefit='Reviewed';loss='None';risk='low';undo='reversible'})}
   Json (Join-Path $out 'proposals.json') $proposals
@@ -76,11 +95,27 @@ try {
     Assert $rejected 'Locked report replacement was not rejected'
   }finally{$lock.Dispose()}
   Assert ([Convert]::ToBase64String($updated) -eq [Convert]::ToBase64String([IO.File]::ReadAllBytes($result.path))) 'Failed replacement changed the existing report'
+  $progress=Get-Content -LiteralPath $result.progressFile -Raw -Encoding UTF8 | ConvertFrom-Json
+  Assert ($progress.status -eq 'failed' -and $progress.phase -eq 'writing' -and -not $progress.htmlWritten -and $null -eq $progress.percentComplete) 'Failed HTML replacement left a completed progress record'
   Assert (@(Get-ChildItem -LiteralPath $out -Filter '.syrin-write-*').Count -eq 0) 'Atomic write left temporary files'
   Write-Output 'PASS report regeneration replaces existing output and preserves it after a locked-file failure'
+  & $reportModule {
+    $script:BeforeCompletionWrite=(Get-Command Write-SyrinAtomicJson).ScriptBlock
+    $script:CompletionFault=$false
+    function script:Write-SyrinAtomicJson([string]$Path,$Value,[switch]$CreateOnly){
+      if(-not $script:CompletionFault -and $Value.status -eq 'completed'){$script:CompletionFault=$true;throw [IO.IOException]::new('Fixture completion write failure')}
+      & $script:BeforeCompletionWrite $Path $Value -CreateOnly:$CreateOnly
+    }
+  }
+  $rejected=$false
+  try{New-SyrinReport -OutDir $out -Quiet | Out-Null}catch{$rejected=$true}finally{& $reportModule {Set-Item Function:Write-SyrinAtomicJson $script:BeforeCompletionWrite}}
+  $progress=Get-Content -LiteralPath $result.progressFile -Raw -Encoding UTF8 | ConvertFrom-Json
+  Assert ($rejected -and (& $reportModule {$script:CompletionFault}) -and $progress.status -eq 'failed' -and $progress.phase -eq 'finalizing' -and $progress.htmlWritten -and $null -eq $progress.percentComplete) 'A failed completion record was reported as success'
+  Write-Output 'PASS completion-status failure remains explicit after the HTML commit'
   Import-Module (Join-Path $Runtime 'modules\IO.psm1') -Force
-  $nested=& (Join-Path $Runtime 'scripts\make-report.ps1') -OutDir $out -Lang vi -NoOpen | ConvertFrom-Json
+  $nested=& (Join-Path $Runtime 'scripts\make-report.ps1') -OutDir $out -Lang vi -NoOpen -Quiet | ConvertFrom-Json
   Assert $nested.ok 'Nested report entry point failed'
+  Assert ((Get-Content -LiteralPath $nested.progressFile -Raw -Encoding UTF8 | ConvertFrom-Json).status -eq 'completed') 'Quiet mode suppressed durable progress'
   Assert ([bool](Get-Command Write-SyrinAtomicJson -ErrorAction SilentlyContinue)) 'Nested entry point removed a caller IO command'
   $callerOutput=Join-Path $fixture 'caller-output.json'
   Write-SyrinAtomicJson $callerOutput ([ordered]@{caller='preserved'}) -CreateOnly
@@ -107,9 +142,13 @@ try {
   [IO.File]::WriteAllText((Join-Path $out 'audit.json'),'not JSON')
   $rejected=$false;try{New-SyrinReport -OutDir $out|Out-Null}catch{$rejected=$true}
   Assert $rejected 'Malformed JSON accepted'
+  $progress=Get-Content -LiteralPath $result.progressFile -Raw -Encoding UTF8 | ConvertFrom-Json
+  Assert ($progress.status -eq 'failed' -and $progress.phase -eq 'validating' -and -not $progress.htmlWritten) 'Input failure left stale successful progress'
   Assert ([Convert]::ToBase64String($before) -eq [Convert]::ToBase64String([IO.File]::ReadAllBytes($result.path))) 'Valid report overwritten by failure'
   Json (Join-Path $out 'audit.json') $audit
   $none=New-SyrinReport -OutDir $out -Mode none;Assert ($null -eq $none.path) 'Disabled HTML mode produced a path'
+  $progress=Get-Content -LiteralPath $none.progressFile -Raw -Encoding UTF8 | ConvertFrom-Json
+  Assert ($progress.status -eq 'skipped' -and -not $progress.htmlWritten -and $null -eq $progress.percentComplete) 'Disabled HTML mode claimed a completed write'
   $baseline=Join-Path $out 'baseline.json';$audit.meta.machineId=('c'*64);Json $baseline $audit
   $rejected=$false;try{New-SyrinReport -OutDir $out -Baseline $baseline|Out-Null}catch{$rejected=$true}
   Assert $rejected 'Different-machine baseline accepted'

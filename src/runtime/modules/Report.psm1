@@ -93,39 +93,74 @@ function Get-SyrinShareAudit($Audit) {
 }
 
 function New-SyrinReport {
-  param([string]$OutDir,[string]$Baseline='',[ValidateSet('en','vi')][string]$Lang='vi',[string]$Template='',[ValidateSet('auto','3d','simple','none')][string]$Mode='auto',[switch]$Share,[string]$QuarantineRoot='')
+  param([string]$OutDir,[string]$Baseline='',[ValidateSet('en','vi')][string]$Lang='vi',[string]$Template='',[ValidateSet('auto','3d','simple','none')][string]$Mode='auto',[switch]$Share,[string]$QuarantineRoot='',[switch]$Quiet)
   $folder=Assert-SyrinLocalPath $OutDir
   $Lang=$Lang.ToLowerInvariant();$Mode=$Mode.ToLowerInvariant()
-  $audit=Read-SyrinReportJson (Join-Path $folder 'audit.json');Assert-SyrinAudit $audit
-  $legacy=-not $audit.PSObject.Properties['schemaVersion']
-  if($Mode -eq 'auto'){$Mode=$(if($legacy){'simple'}else{$audit.meta.reportMode})}
-  if($Mode -eq 'none' -and -not $Share){return [PSCustomObject]@{ok=$true;path=$null;message='HTML output is disabled.'}}
-  $base=$null
-  if($Baseline){
-    $base=Read-SyrinReportJson $Baseline;Assert-SyrinAudit $base
-    if($legacy -or -not $base.PSObject.Properties['schemaVersion'] -or -not $audit.meta.machineId -or $audit.meta.machineId -ne $base.meta.machineId){throw 'Baseline requires the same verified machine identity and schema.'}
+  $timer=[Diagnostics.Stopwatch]::StartNew()
+  $progressPath=Join-Path $folder 'report-progress.json'
+  $progress=[ordered]@{schemaVersion=1;kind='syrin-report-progress';runId=[guid]::NewGuid().ToString('N');processId=$PID;sessionId=$null;status='running';phase='validating';percentComplete=$null;htmlWritten=$false;history=$null;elapsedMs=0;updatedUtc=$null;error=$null}
+  $writeProgressJson=Get-Command Write-SyrinAtomicJson -CommandType Function
+  $publish={
+    $progress.elapsedMs=$timer.ElapsedMilliseconds;$progress.updatedUtc=[DateTime]::UtcNow.ToString('o')
+    & $writeProgressJson $progressPath $progress
+    if(-not $Quiet){
+      $status=$progress.phase
+      if($progress.phase -eq 'history' -and $progress.history){$status='History: {0}/{1} sessions; {2}/{3} events in current session' -f $progress.history.sessionsProcessed,$progress.history.sessionsTotal,$progress.history.sessionEventsVerified,$progress.history.sessionEventsTotal}
+      $percent=if($progress.status -eq 'completed'){100}else{-1}
+      Write-Progress -Id 31 -Activity 'Syrin clean report' -Status $status -PercentComplete $percent
+    }
+  }.GetNewClosure()
+  try {
+    & $publish
+    $audit=Read-SyrinReportJson (Join-Path $folder 'audit.json');Assert-SyrinAudit $audit
+    $legacy=-not $audit.PSObject.Properties['schemaVersion']
+    if($Mode -eq 'auto'){$Mode=$(if($legacy){'simple'}else{$audit.meta.reportMode})}
+    $progress.sessionId=$(if($legacy){''}else{$audit.meta.sessionId})
+    if($Mode -eq 'none' -and -not $Share){
+      $progress.status='skipped';$progress.phase='disabled';& $publish
+      return [PSCustomObject]@{ok=$true;path=$null;progressFile=$progressPath;message='HTML output is disabled.'}
+    }
+    $base=$null
+    if($Baseline){
+      $base=Read-SyrinReportJson $Baseline;Assert-SyrinAudit $base
+      if($legacy -or -not $base.PSObject.Properties['schemaVersion'] -or -not $audit.meta.machineId -or $audit.meta.machineId -ne $base.meta.machineId){throw 'Baseline requires the same verified machine identity and schema.'}
+    }
+    $sessionId=$(if($legacy){''}else{$audit.meta.sessionId})
+    $proposals=Read-SyrinProposals $folder $sessionId
+    $history=@()
+    if($QuarantineRoot -and -not $Share){
+      Import-Module (Join-Path $PSScriptRoot 'Quarantine.psm1')
+      $progress.phase='history';& $publish
+      $onHistory={param($Detail) $progress.history=$Detail;& $publish}.GetNewClosure()
+      $history=@(Get-SyrinHistory $QuarantineRoot -OnProgress $onHistory | Sort-Object createdUtc -Descending | ForEach-Object {
+        if(-not $_.ok){return [PSCustomObject]@{ok=$false;sessionId=$_.sessionId;error=$_.error;items=@()}}
+        [PSCustomObject]@{ok=$true;sessionId=$_.sessionId;createdUtc=$_.createdUtc;totalItems=@($_.items).Count;items=@($_.items)}
+      })
+    }
+    if($Share){$audit=Get-SyrinShareAudit $audit;$base=$null;$proposals=$null;$history=@();$QuarantineRoot='';$Mode='simple'}
+    $progress.phase='rendering';& $publish
+    if(-not $Template){$Template=Join-Path $PSScriptRoot '..\assets\report-template.html'}
+    $html=[IO.File]::ReadAllText((Assert-SyrinLocalPath $Template),[Text.Encoding]::UTF8)
+    if(-not $html.Contains('__SYRIN_DATA__')){throw 'Report template is incompatible with this runtime.'}
+    $payload=[ordered]@{audit=$audit;baseline=$base;proposals=$proposals;history=$history;historyRoot=$QuarantineRoot;language=$Lang;mode=$Mode;shared=[bool]$Share}
+    $json=(ConvertTo-Json -InputObject $payload -Depth 24 -Compress).Replace('<','\u003c').Replace('>','\u003e').Replace('&','\u0026')
+    $html=$html.Replace('__SYRIN_DATA__',$json)
+    $name=$(if($Share){'share-report.html'}elseif($Mode -eq 'simple'){'audit-report.html'}else{'report.html'})
+    $target=Join-Path $folder $name
+    $progress.phase='writing';& $publish
+    Write-SyrinAtomicText $target $html
+    $progress.htmlWritten=$true;$progress.status='completed';$progress.phase='completed';$progress.percentComplete=100;& $publish
+    return [PSCustomObject]@{ok=$true;path=$target;mode=$Mode;shared=[bool]$Share;legacy=$legacy;progressFile=$progressPath;historyErrors=@($history | Where-Object {-not $_.ok}).Count}
+  } catch {
+    $failure=$_
+    if($progress.phase -eq 'completed'){$progress.phase='finalizing'}
+    $progress.status='failed';$progress.percentComplete=$null;$progress.error=$failure.Exception.Message
+    try{& $publish}catch{Write-Warning 'Report progress could not be saved; the previous progress record may be stale.'}
+    throw $failure
+  } finally {
+    if(-not $Quiet){Write-Progress -Id 31 -Activity 'Syrin clean report' -Completed}
+    $timer.Stop()
   }
-  $sessionId=$(if($legacy){''}else{$audit.meta.sessionId})
-  $proposals=Read-SyrinProposals $folder $sessionId
-  $history=@()
-  if($QuarantineRoot){
-    Import-Module (Join-Path $PSScriptRoot 'Quarantine.psm1')
-    $history=@(Get-SyrinHistory $QuarantineRoot | Sort-Object createdUtc -Descending | ForEach-Object {
-      if(-not $_.ok){return [PSCustomObject]@{ok=$false;sessionId=$_.sessionId;error=$_.error;items=@()}}
-      [PSCustomObject]@{ok=$true;sessionId=$_.sessionId;createdUtc=$_.createdUtc;totalItems=@($_.items).Count;items=@($_.items)}
-    })
-  }
-  if($Share){$audit=Get-SyrinShareAudit $audit;$base=$null;$proposals=$null;$history=@();$QuarantineRoot='';$Mode='simple'}
-  if(-not $Template){$Template=Join-Path $PSScriptRoot '..\assets\report-template.html'}
-  $html=[IO.File]::ReadAllText((Assert-SyrinLocalPath $Template),[Text.Encoding]::UTF8)
-  if(-not $html.Contains('__SYRIN_DATA__')){throw 'Report template is incompatible with this runtime.'}
-  $payload=[ordered]@{audit=$audit;baseline=$base;proposals=$proposals;history=$history;historyRoot=$QuarantineRoot;language=$Lang;mode=$Mode;shared=[bool]$Share}
-  $json=(ConvertTo-Json -InputObject $payload -Depth 24 -Compress).Replace('<','\u003c').Replace('>','\u003e').Replace('&','\u0026')
-  $html=$html.Replace('__SYRIN_DATA__',$json)
-  $name=$(if($Share){'share-report.html'}elseif($Mode -eq 'simple'){'audit-report.html'}else{'report.html'})
-  $target=Join-Path $folder $name
-  Write-SyrinAtomicText $target $html
-  return [PSCustomObject]@{ok=$true;path=$target;mode=$Mode;shared=[bool]$Share;legacy=$legacy}
 }
 
 Export-ModuleMember -Function Assert-SyrinAudit,New-SyrinReport,Get-SyrinShareAudit
