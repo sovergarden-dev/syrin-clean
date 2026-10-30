@@ -2,7 +2,7 @@
 
 All notable changes to this project. Dates are 2026.
 
-## [Unreleased]
+## [4.0.0-preview.2] - 2026-10-30
 
 ### Added
 - Record report-generation phases, verified history counts, elapsed time and terminal status in a private progress file; retain progress under `-Quiet` and report 100% only after HTML commits.

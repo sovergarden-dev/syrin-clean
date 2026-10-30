@@ -2,7 +2,7 @@
 
 **Inspect Windows, review the evidence, approve exact file operations.**
 
-Syrin clean is a bilingual Agent Skill and standalone prompt with a shared Windows PowerShell runtime. This is **4.0.0-preview.1**, a pre-release with environment qualification still open. It is not a universal compatibility or stable-release claim.
+Syrin clean is a bilingual Agent Skill and standalone prompt with a shared Windows PowerShell runtime. This is **4.0.0-preview.2**, a pre-release with environment qualification still open. It is not a universal compatibility or stable-release claim.
 
 [Tiếng Việt](README.vi.md) · [Commands](docs/ref/commands.md) · [Support matrix](docs/feat/support.md) · [Validation](docs/ref/validation.md) · [Changelog](CHANGELOG.md)
 
@@ -20,7 +20,7 @@ Automatic mutation is limited to the file lifecycle implemented by the runtime. 
 
 ## Start with an audit
 
-1. Download the [English package](dist/syrin-clean-skill-v4.0.0-preview.1-en.zip) or [Vietnamese package](dist/syrin-clean-skill-v4.0.0-preview.1-vi.zip) from this branch, or build them locally.
+1. Download the [English package](dist/syrin-clean-skill-v4.0.0-preview.2-en.zip) or [Vietnamese package](dist/syrin-clean-skill-v4.0.0-preview.2-vi.zip) from this branch, or build them locally.
 2. Ask your agent to verify the package and run `install.ps1` with Windows PowerShell 5.1. The installer stages and validates both agent locations before switching them; previous versions remain outside the discovery folders under `%USERPROFILE%\.syrin-clean-installer`.
 3. Start a new agent session and ask: **Use the syrin-clean skill to audit this PC and prepare proposals only.**
 4. Review the evidence and uncertainty. For any supported file action, review the exact plan and confirm only the selected codes. Do not approve a personal-file or purge operation through a vague blanket instruction.
@@ -29,7 +29,7 @@ The installer writes `.claude/skills/syrin-clean` and `.agents/skills/syrin-clea
 
 ## Standalone prompt and web pages
 
-Use the [English prompt](prompts/syrin-clean-prompt-en-v4.0.0-preview.1.md) or [Vietnamese prompt](prompts/syrin-clean-prompt-vi-v4.0.0-preview.1.md) with an agent that can run terminal commands. Read the PROMPT section, then extract the bootstrap/runtime appendix with filesystem commands; do not paste Base64 into model context. The extractor checks the digest, blocks path traversal and only writes a new empty runtime directory. It does not execute cleanup. Both channels use the same packaged helpers and safety policy.
+Use the [English prompt](prompts/syrin-clean-prompt-en-v4.0.0-preview.2.md) or [Vietnamese prompt](prompts/syrin-clean-prompt-vi-v4.0.0-preview.2.md) with an agent that can run terminal commands. Read the PROMPT section, then extract the bootstrap/runtime appendix with filesystem commands; do not paste Base64 into model context. The extractor checks the digest, blocks path traversal and only writes a new empty runtime directory. It does not execute cleanup. Both channels use the same packaged helpers and safety policy.
 
 Open the [web app](https://sovergarden-dev.github.io/syrin-clean/) or download the [single offline HTML](dist/syrin-clean.html). English is the default; switch to Vietnamese without losing the profile. Both packages, prompt generation, fonts and the [synthetic report](dist/syrin-clean-report-demo.html) are embedded. The page does not execute Windows commands. GitHub release assets download as files; the Pages link opens the hosted application.
 

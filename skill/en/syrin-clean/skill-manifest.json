@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "package": "syrin-clean",
-  "version": "4.0.0-preview.1",
+  "version": "4.0.0-preview.2",
   "language": "en",
   "files": [
     {
       "path": "SKILL.md",
-      "sha256": "35044ccb563fe7b88e87c6f4eac752f62e9b226f65bf181aa8a88b5ea1aefc20",
+      "sha256": "586995ab035061546dd5c67a92723a3d1827f395bd5e0161e4bbcd57fda74d02",
       "bytes": 6117
     },
     {
@@ -26,7 +26,7 @@
     },
     {
       "path": "assets/report-template.html",
-      "sha256": "c708586d7941a6343fb73b95de9ef8fb1f6175bf0fcba55524c21cb98c1281cf",
+      "sha256": "1b0f3900176b67d841cd8aee583283188a888cd23ae53d025cafb2709cb88a82",
       "bytes": 375371
     },
     {
@@ -71,8 +71,8 @@
     },
     {
       "path": "references/support.md",
-      "sha256": "e2f5e144b5b40faefeb9393cbcdca10bddc0fa887906f7bc09efb1886d0826f5",
-      "bytes": 4550
+      "sha256": "43fb4c4a4fb1a1bc94d3de95e7aa6c6dd2f2cc2524572c68470cf53429489597",
+      "bytes": 4646
     },
     {
       "path": "scripts/audit.ps1",
