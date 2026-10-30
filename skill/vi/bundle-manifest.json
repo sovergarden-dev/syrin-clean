@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "package": "syrin-clean",
-  "version": "4.0.0-preview.1",
+  "version": "4.0.0-preview.2",
   "language": "vi",
   "channel": "prerelease",
   "files": [
@@ -27,7 +27,7 @@
     },
     {
       "path": "syrin-clean/SKILL.md",
-      "sha256": "52e1735ed5fd995bb07a033b02bde446852f2fa9d6c9a11b9c03587d30f17010",
+      "sha256": "68d97bea4626fc330a0dfbfd874e318354194d56e21a7c61e25b3a3d6051f6e3",
       "bytes": 7182
     },
     {
@@ -47,8 +47,8 @@
     },
     {
       "path": "syrin-clean/assets/report-template.html",
-      "sha256": "5c0e3991107576c08fefa63e72b3db7d6084d587220b14733514fcc0142d689b",
-      "bytes": 375449
+      "sha256": "1b0f3900176b67d841cd8aee583283188a888cd23ae53d025cafb2709cb88a82",
+      "bytes": 375371
     },
     {
       "path": "syrin-clean/modules/Audit.psm1",
@@ -57,18 +57,18 @@
     },
     {
       "path": "syrin-clean/modules/IO.psm1",
-      "sha256": "221dc10908067ef80d829bead0664bcc23393b701465909b6cf5fa10ad9a1d04",
-      "bytes": 20522
+      "sha256": "de716ab88ee6280e497fd4640dfeabc786784b0c84ed62d5922f8409cc2b663f",
+      "bytes": 22010
     },
     {
       "path": "syrin-clean/modules/Quarantine.psm1",
-      "sha256": "2d5019c03a175d6e359da48bb147317d42dd034c99ade5b644e1f46337d2031d",
-      "bytes": 24929
+      "sha256": "1052fdb1d097f4a6b5e5a5439708e097498d92b07b9ec471759b7909b565a114",
+      "bytes": 26434
     },
     {
       "path": "syrin-clean/modules/Report.psm1",
-      "sha256": "36507bfe9bfe95382beda2e3d7bf5d97873666a0f40f9547fa9fc16ef70c7d9c",
-      "bytes": 10206
+      "sha256": "e0cde902743212a37dee742482c961c1fc67fecab1296ba70bbbc33e1ce45735",
+      "bytes": 12596
     },
     {
       "path": "syrin-clean/modules/Windows.psm1",
@@ -82,8 +82,8 @@
     },
     {
       "path": "syrin-clean/references/stage1-proposals.md",
-      "sha256": "3f3f0a548dcfa2eb17496ad458458cab81277926129e2a27bb144992e6bd6296",
-      "bytes": 2601
+      "sha256": "9d8f81aaa661114c377dbad9677257291855feeaebf0cb564d8ae22db89e06aa",
+      "bytes": 3148
     },
     {
       "path": "syrin-clean/references/stage2-execution.md",
@@ -92,13 +92,13 @@
     },
     {
       "path": "syrin-clean/references/support.md",
-      "sha256": "e2f5e144b5b40faefeb9393cbcdca10bddc0fa887906f7bc09efb1886d0826f5",
-      "bytes": 4550
+      "sha256": "43fb4c4a4fb1a1bc94d3de95e7aa6c6dd2f2cc2524572c68470cf53429489597",
+      "bytes": 4646
     },
     {
       "path": "syrin-clean/scripts/audit.ps1",
-      "sha256": "438661c6f7a36eb93faefa73eac6bba81718dd3363a3e2e930e8aa84e32b65a7",
-      "bytes": 893
+      "sha256": "8a7085971d783fbd55018f1ea8e678c7837c9991213772d5416a1efce5d737e0",
+      "bytes": 907
     },
     {
       "path": "syrin-clean/scripts/history.ps1",
@@ -107,8 +107,8 @@
     },
     {
       "path": "syrin-clean/scripts/make-report.ps1",
-      "sha256": "e58d8c85139f3dd1f7a08520a45a4c7b8f5fe6ddb4a9663798b18be5050d7e20",
-      "bytes": 733
+      "sha256": "a6050e21ebb6513e0e365e1b39abc1122a91235d270b3fd7518f2109fb398b5e",
+      "bytes": 762
     },
     {
       "path": "syrin-clean/scripts/new-restorepoint.ps1",
@@ -127,7 +127,7 @@
     },
     {
       "path": "syrin-clean/skill-manifest.json",
-      "sha256": "30e8d41aa0b2cc894d5e8088819fd010690a6dc5aa7aa94f8065b6ae9ba9a1c5",
+      "sha256": "44924ff1a514e583dd93b4288e6e13ef980725c87f509fa62e6e6b2094d9f563",
       "bytes": 3269
     }
   ]

@@ -14,6 +14,10 @@
 - [Hardening implementation validation](research/hardening-validation.md).
 - [Proposed hardening plan](plan/hardening.md).
 - [Completed runtime scale and composition](plan/done/runtime-scale.md).
+- [Completed journal replay and report progress](plan/done/journal-progress.md).
+- [Journal replay performance and progress validation](research/journal-validation.md).
+- [Completed HTML interaction checks](plan/done/html-qualification.md) and [their qualification limits](research/html-interaction-validation.md).
+- [Next preview delivery](plan/preview-refresh.md).
 
 - [Execution and data contracts](arch/execution.md).
 

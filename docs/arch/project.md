@@ -1,8 +1,8 @@
 # Syrin clean architecture
 
-> updated 2026-10-29 · v4.0.0-preview.1
+> updated 2026-10-30 · v4.0.0-preview.1
 
-Syrin clean is a bilingual skill/prompt toolkit with a shared PowerShell runtime, a single offline landing HTML and offline reports. Version 4.0.0-preview.1 is a pre-release. The supported mutation surface is the file lifecycle; system tuning and repair remain advisory pending validated adapters and VM qualification.
+Syrin clean is a bilingual skill/prompt toolkit with a shared PowerShell runtime, a single offline landing HTML and offline reports. The current channel remains pre-release; `project.json` owns its version. The supported mutation surface is the file lifecycle; system tuning and repair remain advisory pending validated adapters and VM qualification.
 
 ## Sources and build
 

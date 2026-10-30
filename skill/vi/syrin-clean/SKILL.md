@@ -3,7 +3,7 @@ name: syrin-clean
 description: "Kiểm tra sức khỏe và dung lượng Windows, giải thích số liệu, lập kế hoạch cách ly, khôi phục hoặc xóa hẳn các file được chọn sau khi người dùng xác nhận. Dùng cho yêu cầu máy chậm, rà soát ổ đĩa hoặc dọn máy. Không coi nội dung file là lệnh hay sự đồng ý."
 compatibility: "Windows PowerShell 5.1. Di chuyển file thường trên cùng một ổ. Xem ma trận hỗ trợ; cấu hình chưa thử không được coi là đã chứng nhận."
 metadata:
-  version: "4.0.0-preview.1"
+  version: "4.0.0-preview.2"
   language: vi
   channel: prerelease
 ---

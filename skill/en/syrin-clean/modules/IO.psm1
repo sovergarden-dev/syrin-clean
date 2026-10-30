@@ -96,9 +96,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Win32.SafeHandles;
 namespace Syrin {
+  public sealed class TextDocument {
+    public string Path, Text, Digest;
+  }
   public static class NativeFiles {
     [StructLayout(LayoutKind.Sequential)] struct Info {
       public uint Attributes;
@@ -163,6 +167,22 @@ namespace Syrin {
         if (!GetFileInformationByHandle(handle, out info)) throw new Win32Exception(Marshal.GetLastWin32Error());
         return new [] { Id(handle), info.Links.ToString() };
       }
+    }
+    public static TextDocument[] ReadDocuments(string[] paths, int offset, int count) {
+      var documents = new TextDocument[count];
+      using (var hash = SHA256.Create()) {
+        for (int index = 0; index < count; index++) {
+          string path = LocalPath(paths[offset + index], true);
+          byte[] bytes = File.ReadAllBytes(path);
+          string text;
+          using (var memory = new MemoryStream(bytes, false))
+          using (var reader = new StreamReader(memory, Encoding.UTF8, true)) {
+            text = reader.ReadToEnd().TrimStart('\uFEFF');
+          }
+          documents[index] = new TextDocument { Path = path, Text = text, Digest = BitConverter.ToString(hash.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant() };
+        }
+      }
+      return documents;
     }
     public static void DeleteChecked(string path, string expectedId, long expectedLength, long expectedWriteTime, uint expectedLinks) {
       using (var handle = CreateFile(path, 0x10080, 1, IntPtr.Zero, 3, 0x02200000, IntPtr.Zero)) {
@@ -267,6 +287,16 @@ function Read-SyrinJson([string]$Path) {
   return (Read-SyrinJsonDocument $Path).value
 }
 
+function Read-SyrinJsonBatch([string[]]$Path,[int]$Offset,[int]$Count) {
+  Initialize-SyrinNative
+  foreach($document in [Syrin.NativeFiles]::ReadDocuments($Path,$Offset,$Count)) {
+    if([string]::IsNullOrWhiteSpace($document.Text)){throw "Empty JSON: $($document.Path)"}
+    try{$value=ConvertFrom-Json -InputObject $document.Text -ErrorAction Stop}
+    catch{throw "Invalid JSON in $($document.Path). Check the file format; input content is not echoed."}
+    [PSCustomObject]@{value=$value;digest=$document.Digest}
+  }
+}
+
 function Write-SyrinAtomicJson([string]$Path, $Value, [switch]$CreateOnly) {
   $text = ConvertTo-Json -InputObject $Value -Depth 24 -Compress
   Write-SyrinAtomicText -Path $Path -Text $text -CreateOnly:$CreateOnly
@@ -327,4 +357,4 @@ function ConvertTo-SyrinCommandArgument([string]$Value) {
   return '"' + $value + '"'
 }
 
-Export-ModuleMember -Function Get-SyrinOwner,Get-SyrinPath,Test-SyrinWithin,Assert-SyrinLocalPath,Get-SyrinCloudRoots,New-SyrinSourcePolicy,Assert-SyrinSourcePath,Get-SyrinFingerprint,Test-SyrinFingerprint,Remove-SyrinCheckedFile,Move-SyrinCheckedFile,Get-SyrinDigest,Read-SyrinJson,Read-SyrinJsonDocument,Write-SyrinAtomicJson,Write-SyrinAtomicText,Get-SyrinFiles,ConvertTo-SyrinCommandArgument
+Export-ModuleMember -Function Get-SyrinOwner,Get-SyrinPath,Test-SyrinWithin,Assert-SyrinLocalPath,Get-SyrinCloudRoots,New-SyrinSourcePolicy,Assert-SyrinSourcePath,Get-SyrinFingerprint,Test-SyrinFingerprint,Remove-SyrinCheckedFile,Move-SyrinCheckedFile,Get-SyrinDigest,Read-SyrinJson,Read-SyrinJsonDocument,Read-SyrinJsonBatch,Write-SyrinAtomicJson,Write-SyrinAtomicText,Get-SyrinFiles,ConvertTo-SyrinCommandArgument

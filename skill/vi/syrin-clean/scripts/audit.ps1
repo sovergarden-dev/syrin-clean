@@ -5,7 +5,7 @@ try {
   $result=Invoke-SyrinAudit -OutDir $OutDir -ReportMode $ReportMode -Scope $Scope -MaxSeconds $MaxSeconds -Quiet:$Quiet
   if($ReportMode -ne 'none'){
     Import-Module (Join-Path $PSScriptRoot '..\modules\Report.psm1')
-    $report=New-SyrinReport -OutDir $result.outDir -Lang $Lang -Mode $ReportMode
+    $report=New-SyrinReport -OutDir $result.outDir -Lang $Lang -Mode $ReportMode -Quiet:$Quiet
     $result|Add-Member -NotePropertyName report -NotePropertyValue $report.path
   }
   $result|ConvertTo-Json -Depth 6

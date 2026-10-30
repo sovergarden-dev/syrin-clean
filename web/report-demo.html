@@ -253,7 +253,7 @@ tbody tr:last-child td { border-bottom: 0; }
   <section class="report-section request-section" id="request-section" hidden><h2 id="request-title"></h2><p id="request-note"></p><textarea id="request" readonly rows="9" aria-label="Request for your agent"></textarea><button class="button button-primary" id="copy-request" type="button">Copy request</button><p id="request-status" role="status" aria-live="polite"></p></section>
   <section class="report-section" id="collector-section"><h2 id="details-title">Collector details</h2><div id="details"></div></section>
   <p id="print-note" class="print-only"></p>
-  <footer class="report-footer"><p id="footer"></p><p class="small">Syrin clean 4.0.0-preview.1</p><details class="font-credits"><summary id="font-credits-title">Font licenses</summary><pre>Copyright 2021 The Be Vietnam Pro Project Authors (https://github.com/bettergui/BeVietnamPro),
+  <footer class="report-footer"><p id="footer"></p><p class="small">Syrin clean 4.0.0-preview.2</p><details class="font-credits"><summary id="font-credits-title">Font licenses</summary><pre>Copyright 2021 The Be Vietnam Pro Project Authors (https://github.com/bettergui/BeVietnamPro),
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
@@ -522,7 +522,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     canvas.dataset.motion = media.matches ? 'reduced' : !enabled ? 'paused' : !visible || document.hidden ? 'hidden' : 'running';
     if (button) {
       const copy = labels(); button.disabled = media.matches; button.textContent = media.matches ? copy.reduced : enabled ? copy.pause : copy.resume;
-      button.setAttribute('aria-pressed', String(enabled && !media.matches));
     }
     if (!active()) displayedStage = stage;
     if (visible && !document.hidden) { draw(); schedule(); }
