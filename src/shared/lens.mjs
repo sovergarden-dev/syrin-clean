@@ -75,7 +75,6 @@ export function createLens(canvas, {rows = [], preview = false, button, labels})
     canvas.dataset.motion = media.matches ? 'reduced' : !enabled ? 'paused' : !visible || document.hidden ? 'hidden' : 'running';
     if (button) {
       const copy = labels(); button.disabled = media.matches; button.textContent = media.matches ? copy.reduced : enabled ? copy.pause : copy.resume;
-      button.setAttribute('aria-pressed', String(enabled && !media.matches));
     }
     if (!active()) displayedStage = stage;
     if (visible && !document.hidden) { draw(); schedule(); }

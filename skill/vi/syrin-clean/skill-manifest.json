@@ -26,8 +26,8 @@
     },
     {
       "path": "assets/report-template.html",
-      "sha256": "5c0e3991107576c08fefa63e72b3db7d6084d587220b14733514fcc0142d689b",
-      "bytes": 375449
+      "sha256": "c708586d7941a6343fb73b95de9ef8fb1f6175bf0fcba55524c21cb98c1281cf",
+      "bytes": 375371
     },
     {
       "path": "modules/Audit.psm1",

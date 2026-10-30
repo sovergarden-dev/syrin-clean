@@ -47,8 +47,8 @@
     },
     {
       "path": "syrin-clean/assets/report-template.html",
-      "sha256": "5c0e3991107576c08fefa63e72b3db7d6084d587220b14733514fcc0142d689b",
-      "bytes": 375449
+      "sha256": "c708586d7941a6343fb73b95de9ef8fb1f6175bf0fcba55524c21cb98c1281cf",
+      "bytes": 375371
     },
     {
       "path": "syrin-clean/modules/Audit.psm1",
@@ -127,7 +127,7 @@
     },
     {
       "path": "syrin-clean/skill-manifest.json",
-      "sha256": "728b2734dafd2ddf15e7d3014b8d1bcb1a86e1248769b21133fca95dde8ce36e",
+      "sha256": "832d2bf972101c3c0ed060904ae379bcaada57d7bdd7211c5d6197edd102131d",
       "bytes": 3269
     }
   ]

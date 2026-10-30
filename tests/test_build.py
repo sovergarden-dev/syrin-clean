@@ -63,6 +63,10 @@ class PackagingTests(unittest.TestCase):
             self.assertEqual(next(a["lang"] for tag, a in parser.elements if tag == "html"), "en")
             self.assertFalse([a for tag, a in parser.elements if tag == "script" and "src" in a])
             self.assertFalse([a for tag, a in parser.elements if tag == "link" and a.get("rel") == "stylesheet"])
+            motion_tag, motion = next((tag, a) for tag, a in parser.elements if a.get("id") == "motion")
+            self.assertEqual(motion_tag, "button")
+            self.assertEqual(motion.get("type"), "button")
+            self.assertNotIn("aria-pressed", motion, name)
             if name == "report-demo.html":
                 self.assertIn("report-language", ids)
                 continue

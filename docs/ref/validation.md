@@ -22,3 +22,5 @@ For browser QA, serve only the generated public HTML files and synthetic reports
 Hallmark's static checker was used as a reference check; its Puppeteer render driver is not used by this host. Rendered checks use the supported CUA browser API. Source inspection establishes the reduced-motion and hidden-tab cancellation paths; actual system preference changes, native downloaded-file opening and full screen-reader conformance remain separate qualifications.
 
 VM, hardware, real provider and screen-reader qualification are separate gates listed in [support](../feat/support.md). Their status must not be inferred from a passing fixture suite.
+
+The shared renderer test uses controlled browser contracts to assert action-button semantics and cancellation of timers/frames after pause, reduced-motion changes, document hiding, leaving the viewport and destruction. The generated-HTML test separately checks the actual motion-button markup. These tests do not emulate a real OS preference or screen reader; [the browser validation record](../research/html-interaction-validation.md) distinguishes actual keyboard/reflow observations from those remaining checks.

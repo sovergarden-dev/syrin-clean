@@ -11,6 +11,7 @@ All notable changes to this project. Dates are 2026.
 - Read journal events in native batches while retaining live path validation, individual JSON parsing, raw-byte digests and the existing journal format.
 
 ### Fixed
+- Expose pause/resume animation controls as action buttons rather than contradictory pressed-state toggles; verify renderer cancellation across visibility and motion states.
 - Skip unused private history reads when generating aggregate-only shared reports.
 - Fix ZIP creator metadata for portable generation while preserving the published Windows artifact bytes.
 - Deploy the site staged by the validated Windows release job, verify it against published asset digests and support explicit redeployment of an existing tag.
