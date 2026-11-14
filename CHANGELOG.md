@@ -2,10 +2,33 @@
 
 All notable changes to this project. Dates are 2026.
 
-## [Unreleased]
+## [4.1.0-preview.1] - 2026-11-14
 
 ### Added
 - Add an English/Vietnamese guided report demo, a screenshot of synthetic example data and Q&A entry points for preview feedback.
+- Add Android readiness checks with distinct USB states and optional app/task inputs; preserve frame capture times and counter provenance in bilingual local reports.
+- Add a read-only Android USB diagnostic adapter with exact serial/transport selection, active-user checks, bounded subprocesses, optional package/frame inventory and bilingual local reports; real-device qualification remains open.
+- Persist Windows audit-only mode and protected paths; bind reviewed plans to policy files and revalidate restrictions between atomic items.
+- Add scoped cooperative stop requests and metadata-based quarantine recovery inspection without automatic repair or deletion.
+- Collect bounded Windows CPU/memory series, exclude reused process IDs and constrain before/after comparisons to matching capture settings and workload labels.
+- Add candidate beta procedures and prepare release-asset provenance attestations after published bytes match the validated build; no live attestation is claimed yet.
+
+### Changed
+- Add Windows/Android selection to the offline bilingual HTML and shared skill/prompt while preserving Windows profile values.
+- Show capture age and snapshot limitations; minimize Android shared reports to explicit storage, memory and battery fields.
+- Deliver the `4.1.0-preview.1` pre-release while preserving previous release assets.
+
+### Fixed
+- Resolve packaged support-document links against the matching release tag so extracted skills do not point at missing local documentation.
+- Reduce Windows planning overhead by evaluating source policy in the native helper and reading file identity and metadata from one handle; retain per-path ancestor checks and the existing planning budget.
+- Parse `/data` storage measurements reported through Android's `/data/user/<id>` bind mount, preserve the query and observed mount locally, and omit the user-specific mount from shared exports.
+- Allow ADB to start its local server on first use by retaining its default localhost host selection; continue clearing inherited remote-routing environment variables and fixing the server port.
+- Select one Python executable when Windows PATH contains both a regular installation and a WindowsApps entry, preventing Android discovery from invoking a joined invalid path.
+- Preserve manual Pages redeployment of older tags by limiting new provenance staging and signing to release events; continue verifying the deployed HTML against published digests.
+
+### Security
+- Keep the supplied Android case data, seed lists and external package catalog outside public packages; no archive command is imported as execution authority.
+- Block system-adapter entry points under audit-only policy and apply path protection to both original and stored files.
 
 ## [4.0.0-preview.2] - 2026-10-30
 

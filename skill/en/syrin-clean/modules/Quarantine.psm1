@@ -1,5 +1,6 @@
 ﻿Set-StrictMode -Version 2
 Import-Module (Join-Path $PSScriptRoot 'IO.psm1')
+Import-Module (Join-Path $PSScriptRoot 'Policy.psm1')
 
 function Get-SyrinRootPath([string]$Root) {
   if (-not $Root) { $Root = Join-Path $env:LOCALAPPDATA 'SyrinClean\Quarantine' }
@@ -104,14 +105,17 @@ function Get-SyrinStoredPath($Session,$Item,[string]$Root) {
 }
 
 function New-SyrinFilePlan {
-  param([ValidateSet('quarantine','restore','purge','resume','import')][string]$Operation='quarantine',[string[]]$Path=@(),[string]$Root='',[string]$SessionId='',[string[]]$ItemId=@(),[ValidateSet('skip','rename')][string]$Conflict='skip',[string]$RestoreDirectory='', [string]$LegacyRoot='',[string]$PlanFile='')
+  param([ValidateSet('quarantine','restore','purge','resume','import')][string]$Operation='quarantine',[string[]]$Path=@(),[string]$Root='',[string]$SessionId='',[string[]]$ItemId=@(),[ValidateSet('skip','rename')][string]$Conflict='skip',[string]$RestoreDirectory='', [string]$LegacyRoot='',[string]$PlanFile='',[string]$PolicyFile='')
   $Operation=$Operation.ToLowerInvariant();$Conflict=$Conflict.ToLowerInvariant()
+  $protection=Get-SyrinProtection $PolicyFile
+  Assert-SyrinWriteAllowed $protection
   $rootPath=Get-SyrinRootPath $Root
   $rootId=$null
   if (Test-Path -LiteralPath (Join-Path $rootPath '.syrin-clean-root.json')) { $rootId=(Read-SyrinRoot $rootPath).rootId }
   elseif ((Test-Path -LiteralPath $rootPath) -and @(Get-ChildItem -LiteralPath $rootPath -Force).Count) { throw 'Choose an empty owned quarantine root.' }
   $cloud=@(Get-SyrinCloudRoots)
-  $policy=New-SyrinSourcePolicy $cloud
+  $policy=New-SyrinSourcePolicy $cloud $protection.protectedPaths
+  [void](Assert-SyrinSourcePath $rootPath $cloud -Policy $policy)
   $planId=[guid]::NewGuid().ToString('N')
   $items=New-Object 'System.Collections.Generic.List[object]'
   if ($Operation -in @('quarantine','import')) { $SessionId=$planId }
@@ -126,7 +130,7 @@ function New-SyrinFilePlan {
       $items.Add([PSCustomObject]@{id=$id;original=$file.Path;stored=(Join-Path (Join-Path $sessionFolder 'files') $id);fingerprint=$file.Fingerprint;destination='';expectedState='planned'})
     }
   } elseif ($Operation -eq 'import') {
-    $LegacyRoot=Assert-SyrinSourcePath $LegacyRoot $cloud
+    $LegacyRoot=Assert-SyrinSourcePath $LegacyRoot $cloud -Policy $policy
     if ([IO.Path]::GetFileName($LegacyRoot) -notin @('Syrin-Clean-Quarantine','PC-Optimize-Quarantine')) { throw 'Only named legacy quarantine roots can be imported.' }
     if ((Test-SyrinWithin $rootPath $LegacyRoot) -or (Test-SyrinWithin $LegacyRoot $rootPath)) { throw 'Import into a separate new root; legacy metadata is not rewritten.' }
     $seen=New-Object 'System.Collections.Generic.HashSet[string]'
@@ -136,7 +140,7 @@ function New-SyrinFilePlan {
         $stored=Assert-SyrinLocalPath $row.Stored
         if (-not (Test-SyrinWithin $stored $LegacyRoot) -or $stored.Substring($LegacyRoot.Length).TrimStart('\') -notmatch '^\d{8}-\d{6}\\') { throw 'Unsafe stored path in legacy CSV.' }
         if (-not (Test-Path -LiteralPath $stored)) { continue }
-        $original=Assert-SyrinSourcePath $row.Original $cloud
+        $original=Assert-SyrinSourcePath $row.Original $cloud -Policy $policy
         $fp=Get-SyrinFingerprint $stored
         if ($seen.Add($fp.FileId)) { $items.Add([PSCustomObject]@{id=[guid]::NewGuid().ToString('N');original=$original;stored=$stored;fingerprint=$fp;destination='';expectedState='planned'}) }
       }
@@ -147,14 +151,16 @@ function New-SyrinFilePlan {
     foreach ($id in $ItemId) {
       if (-not $session.items.ContainsKey($id)) { throw "Unknown item ID: $id" }
       $item=$session.items[$id]
+      [void](Assert-SyrinSourcePath $item.original $cloud -Policy $policy)
       $stored=Get-SyrinStoredPath $session $item $rootPath
+      [void](Assert-SyrinSourcePath $stored $cloud -Policy $policy)
       if ($Operation -eq 'purge' -and $session.plan.operation -eq 'import') { throw 'Imported legacy items support restore only. Restore and quarantine with the current engine before purging.' }
       if ($Operation -eq 'purge' -and $item.state -notin @('quarantined','conflict','failed')) { throw 'Only stored items can be planned for purge.' }
       if ($Operation -in @('restore','purge') -and -not (Test-SyrinFingerprint $stored $item.fingerprint)) { throw "Stored file changed or is missing: $id" }
       $destination=$item.original
-      if ($RestoreDirectory) { $destination=Join-Path (Assert-SyrinSourcePath $RestoreDirectory $cloud) ([IO.Path]::GetFileName($item.original)) }
+      if ($RestoreDirectory) { $destination=Join-Path (Assert-SyrinSourcePath $RestoreDirectory $cloud -Policy $policy) ([IO.Path]::GetFileName($item.original)) }
       if ($Operation -eq 'restore') {
-        $destination=Assert-SyrinSourcePath $destination $cloud
+        $destination=Assert-SyrinSourcePath $destination $cloud -Policy $policy
         if (Test-SyrinWithin $destination $rootPath) { throw 'Restore destination cannot be inside quarantine storage.' }
         if ([IO.Path]::GetPathRoot($destination) -ne [IO.Path]::GetPathRoot($stored)) { throw 'Restore must stay on the same volume.' }
         if ((Test-Path -LiteralPath $destination) -and $Conflict -eq 'rename') {
@@ -170,6 +176,7 @@ function New-SyrinFilePlan {
   for($index=0;$index -lt $items.Count;$index++){$items[$index]|Add-Member -NotePropertyName code -NotePropertyValue ($prefix+($index+1))}
   $plan=[ordered]@{schemaVersion=1;kind='syrin-file-plan';planId=$planId;sessionId=$SessionId;operation=$Operation;ownerSid=(Get-SyrinOwner);root=$rootPath;rootId=$rootId;legacyRoot=$LegacyRoot;createdUtc=[DateTime]::UtcNow.ToString('o');conflict=$Conflict;items=$items.ToArray();measuredBytes=[long](($items | ForEach-Object {$_.fingerprint.Length} | Measure-Object -Sum).Sum);estimatedReclaimableBytes=$null;warnings=@('No content was read. File identity and metadata are checked again before execution.','Unknown cloud-provider locations must be excluded explicitly.');}
   if ($Operation -eq 'quarantine') { $plan.estimatedReclaimableBytes=0 }
+  $plan.protection=$protection
   if ($Operation -eq 'purge') { $plan.estimatedReclaimableBytes=$plan.measuredBytes; $plan.warnings+= 'Purge is irreversible. Logical file length is only an estimate of disk space recovered.' }
   if (-not $PlanFile) { return [PSCustomObject]@{ok=$true;previewOnly=$true;plan=[PSCustomObject]$plan;approval=$null} }
   $planPath=Assert-SyrinLocalPath $PlanFile
@@ -192,7 +199,7 @@ function New-SyrinSession([string]$Root,$Marker,$Plan,[string]$PlanText) {
 }
 
 function Invoke-SyrinFilePlan {
-  param([string]$PlanFile,[string]$Approval,[string[]]$ItemId)
+  param([string]$PlanFile,[string]$Approval,[string[]]$ItemId,[string]$StopFile='',[string]$RunId='')
   $planPath=Assert-SyrinLocalPath $PlanFile
   $document=Read-SyrinJsonDocument $planPath
   $digest=$document.digest
@@ -200,14 +207,34 @@ function Invoke-SyrinFilePlan {
   $plan=$document.value
   if ($plan.schemaVersion -ne 1 -or $plan.kind -ne 'syrin-file-plan' -or $plan.ownerSid -ne (Get-SyrinOwner)) { throw 'Invalid plan schema or owner.' }
   if ($plan.operation -notin @('quarantine','restore','purge','resume','import')) { throw 'Unsupported operation.' }
+  $expectedProtection=if($plan.PSObject.Properties['protection']){$plan.protection}else{$null}
+  $protection=Get-SyrinProtection -Expected $expectedProtection
+  Assert-SyrinWriteAllowed $protection
+  $cloud=@(Get-SyrinCloudRoots)
+  $policy=New-SyrinSourcePolicy $cloud $protection.protectedPaths
+  if($StopFile){
+    $StopFile=Assert-SyrinLocalPath $StopFile
+    if($RunId -notmatch '^[a-f0-9]{32}$'){throw 'Stop requests require a unique 32-character run ID.'}
+  } elseif($RunId){throw 'Run ID requires a stop file.'}
   if (-not $ItemId.Count -or @($ItemId | Select-Object -Unique).Count -ne $ItemId.Count) { throw 'An explicit unique selection of item IDs is required.' }
   $selected=@($plan.items | Where-Object {$_.id -in $ItemId})
   if ($selected.Count -ne $ItemId.Count) { throw 'Selection contains an item outside this plan.' }
   $root=Get-SyrinRootPath $plan.root
+  [void](Assert-SyrinSourcePath $root $cloud -Policy $policy)
+  foreach($requested in $selected){
+    [void](Assert-SyrinSourcePath $requested.original $cloud -Policy $policy)
+    [void](Assert-SyrinSourcePath $requested.stored $cloud -Policy $policy)
+    if($plan.operation -eq 'restore'){[void](Assert-SyrinSourcePath $requested.destination $cloud -Policy $policy)}
+  }
+  if($StopFile){
+    if(Test-SyrinWithin $StopFile $root){throw 'Keep the stop request outside quarantine storage.'}
+    foreach($requested in $selected){if($StopFile -in @($requested.original,$requested.destination,$planPath)){throw 'Stop request overlaps an operation input.'}}
+  }
   $marker=Initialize-SyrinRoot $root
   if ($plan.rootId -and $plan.rootId -ne $marker.rootId) { throw 'Root identity changed after planning.' }
   $lock=Open-SyrinRootLock $root
   $outcomes=New-Object 'System.Collections.Generic.List[object]'
+  $stopped=$false;$stopReason=''
   try {
     $folder=Get-SyrinSessionPath $root $plan.sessionId
     if (Test-Path -LiteralPath (Join-Path $folder 'session.json')) { $session=Read-SyrinSession $root $plan.sessionId }
@@ -223,9 +250,19 @@ function Invoke-SyrinFilePlan {
     }
     $receipt=Join-Path (Join-Path $session.folder 'approvals') ([guid]::NewGuid().ToString('N')+'.json')
     Write-SyrinAtomicJson $receipt ([ordered]@{plan=$plan;digest=$digest;selected=$ItemId;timeUtc=[DateTime]::UtcNow.ToString('o')}) -CreateOnly
-    $cloud=@(Get-SyrinCloudRoots)
-    $policy=New-SyrinSourcePolicy $cloud
     foreach ($requested in $selected) {
+      try {
+        if($StopFile -and (Test-Path -LiteralPath $StopFile)){
+          $stop=Read-SyrinJson $StopFile
+          if($stop.kind -cne 'syrin-stop' -or $stop.schemaVersion -ne 1 -or $stop.runId -cne $RunId){throw 'Stop request does not match this run. No further items will start.'}
+          $stopped=$true;$stopReason='Requested by the caller.';break
+        }
+        $protection=Get-SyrinProtection -Expected $expectedProtection
+        Assert-SyrinWriteAllowed $protection
+        $policy=New-SyrinSourcePolicy $cloud $protection.protectedPaths
+        [void](Assert-SyrinSourcePath $requested.original $cloud -Policy $policy)
+        [void](Assert-SyrinSourcePath $requested.stored $cloud -Policy $policy)
+      } catch {$stopped=$true;$stopReason=$_.Exception.Message;break}
       if (-not $session.items.ContainsKey($requested.id)) { throw 'Selected item is not part of the source session.' }
       $item=$session.items[$requested.id]
       $stored=Get-SyrinStoredPath $session $item $root
@@ -293,7 +330,7 @@ function Invoke-SyrinFilePlan {
     }
   } finally { $lock.Dispose() }
   $ok=@($outcomes | Where-Object {$_.error -or $_.state -eq 'conflict'}).Count -eq 0 -and $outcomes.Count -eq $selected.Count
-  return [PSCustomObject]@{ok=$ok;schemaVersion=1;sessionId=$plan.sessionId;operation=$plan.operation;root=$root;items=$outcomes.ToArray();unprocessed=@($ItemId | Where-Object {$_ -notin @($outcomes | ForEach-Object {$_.id})})}
+  return [PSCustomObject]@{ok=$ok;schemaVersion=1;sessionId=$plan.sessionId;operation=$plan.operation;root=$root;runId=$RunId;stopped=$stopped;stopReason=$stopReason;items=$outcomes.ToArray();unprocessed=@($ItemId | Where-Object {$_ -notin @($outcomes | ForEach-Object {$_.id})})}
 }
 
 function Get-SyrinHistory([string]$Root='',[string]$SessionId='',[scriptblock]$OnProgress) {
@@ -329,4 +366,36 @@ function Get-SyrinHistory([string]$Root='',[string]$SessionId='',[scriptblock]$O
   }
 }
 
-Export-ModuleMember -Function New-SyrinFilePlan,Invoke-SyrinFilePlan,Get-SyrinHistory
+function Test-SyrinRecovery([string]$Root='',[string]$SessionId='') {
+  $rootPath=Get-SyrinRootPath $Root
+  $results=New-Object 'System.Collections.Generic.List[object]'
+  if(-not(Test-Path -LiteralPath $rootPath)){return [PSCustomObject]@{ok=$true;sessions=@();checkedUtc=[DateTime]::UtcNow.ToString('o')}}
+  [void](Read-SyrinRoot $rootPath)
+  $lock=Open-SyrinRootLock $rootPath
+  try {
+    $ids=if($SessionId){@($SessionId)}else{@(Get-ChildItem -LiteralPath (Join-Path $rootPath 'sessions') -Directory -ErrorAction Stop | ForEach-Object {$_.Name})}
+    foreach($id in $ids){
+      try {
+        $session=Read-SyrinSession $rootPath $id
+        $items=@(foreach($item in $session.items.Values){
+          $status='not-stored';$errorText=''
+          try {
+            $stored=Get-SyrinStoredPath $session $item $rootPath
+            if($item.state -in @('quarantined','conflict','failed','moving','restoring','purging')){
+              $status=if(-not(Test-Path -LiteralPath $stored)){'missing'}elseif(Test-SyrinFingerprint $stored $item.fingerprint){'intact'}else{'changed'}
+              if($item.state -in @('moving','restoring','purging')){$status='reconcile-required'}
+            } elseif(Test-Path -LiteralPath $stored){$status='unexpected-stored-file'}
+          } catch {$status='unverified';$errorText=$_.Exception.Message}
+          [PSCustomObject]@{id=$item.id;state=$item.state;integrity=$status;error=$errorText}
+        })
+        $known=@($session.items.Keys)
+        $unlisted=@(Get-ChildItem -LiteralPath (Assert-SyrinLocalPath (Join-Path $session.folder 'files')) -Force -ErrorAction Stop | Where-Object {$_.Name -notin $known} | ForEach-Object {$_.Name})
+        $ok=@($items | Where-Object {$_.integrity -notin @('intact','not-stored')}).Count -eq 0 -and $unlisted.Count -eq 0
+        $results.Add([PSCustomObject]@{ok=$ok;sessionId=$id;items=$items;unlisted=$unlisted})
+      } catch {$results.Add([PSCustomObject]@{ok=$false;sessionId=$id;error=$_.Exception.Message;items=@();unlisted=@()})}
+    }
+  } finally {$lock.Dispose()}
+  return [PSCustomObject]@{ok=@($results | Where-Object {-not $_.ok}).Count -eq 0;sessions=$results.ToArray();checkedUtc=[DateTime]::UtcNow.ToString('o')}
+}
+
+Export-ModuleMember -Function New-SyrinFilePlan,Invoke-SyrinFilePlan,Get-SyrinHistory,Test-SyrinRecovery

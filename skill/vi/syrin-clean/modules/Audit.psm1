@@ -110,10 +110,16 @@ function Get-SyrinRadar {
 }
 
 function Invoke-SyrinCollector {
-  param([string]$Name,[int]$Seconds=40)
+  param([string]$Name,[int]$Seconds=40,[string]$ContextLabel='')
   $ErrorActionPreference='Stop';$data=@();$errors=@();$status='complete';$timer=[Diagnostics.Stopwatch]::StartNew()
   try {
     switch($Name){
+      'performance' {
+        Import-Module (Join-Path $PSScriptRoot 'Performance.psm1')
+        $measurement=Invoke-SyrinPerformance -Seconds ([math]::Min(60,[math]::Max(2,$Seconds-3))) -ContextLabel $ContextLabel
+        $data=@($measurement)
+        if($measurement.sampleCount -lt 2 -or $null -eq $measurement.meanCpuPercent){$errors=@('Too few comparable performance samples.')}
+      }
       'system' {
         $os=Get-CimInstance Win32_OperatingSystem -OperationTimeoutSec 10 -ErrorAction Stop
         $computer=Get-CimInstance Win32_ComputerSystem -OperationTimeoutSec 10 -ErrorAction Stop
@@ -167,10 +173,10 @@ function Invoke-SyrinCollector {
   return [PSCustomObject]@{status=$status;data=@($data);errors=@($errors);durationMs=$timer.ElapsedMilliseconds}
 }
 
-function Invoke-SyrinCollectorJob([string]$Name,[int]$Seconds) {
+function Invoke-SyrinCollectorJob([string]$Name,[int]$Seconds,[string]$ContextLabel='') {
   $job=$null
   try {
-    $job=Start-Job -ScriptBlock {param($ModulePath,$Collector,$Budget) $env:PSModulePath=Join-Path $PSHOME 'Modules';Import-Module $ModulePath;Invoke-SyrinCollector -Name $Collector -Seconds ([math]::Max(1,$Budget-2))} -ArgumentList @((Join-Path $PSScriptRoot 'Audit.psm1'),$Name,$Seconds)
+    $job=Start-Job -ScriptBlock {param($ModulePath,$Collector,$Budget,$Context) $env:PSModulePath=Join-Path $PSHOME 'Modules';Import-Module $ModulePath;Invoke-SyrinCollector -Name $Collector -Seconds ([math]::Max(1,$Budget-2)) -ContextLabel $Context} -ArgumentList @((Join-Path $PSScriptRoot 'Audit.psm1'),$Name,$Seconds,$ContextLabel)
     if(-not(Wait-Job -Job $job -Timeout $Seconds)) {Stop-Job $job;return [PSCustomObject]@{status='unavailable';data=@();errors=@('Collector timed out.');durationMs=($Seconds*1000)}}
     $result=Receive-Job -Job $job -ErrorAction Stop
     if(-not $result -or -not $result.PSObject.Properties['status']){throw 'Collector returned no structured result.'}
@@ -180,7 +186,7 @@ function Invoke-SyrinCollectorJob([string]$Name,[int]$Seconds) {
 }
 
 function Invoke-SyrinAudit {
-  param([string]$OutDir='',[ValidateSet('3d','simple','none')][string]$ReportMode='3d',[ValidateSet('full','health','speed','cleanup')][string]$Scope='full',[int]$MaxSeconds=180,[switch]$Quiet)
+  param([string]$OutDir='',[ValidateSet('3d','simple','none')][string]$ReportMode='3d',[ValidateSet('full','health','speed','cleanup')][string]$Scope='full',[int]$MaxSeconds=180,[switch]$Quiet,[ValidateRange(0,60)][int]$PerformanceSeconds=0,[string]$ContextLabel='')
   $ReportMode=$ReportMode.ToLowerInvariant();$Scope=$Scope.ToLowerInvariant()
   if(-not $OutDir){$OutDir=Join-Path (Join-Path $env:LOCALAPPDATA 'SyrinClean\Sessions') ([DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss')+'-'+[guid]::NewGuid().ToString('N').Substring(0,8))}
   $full=Assert-SyrinLocalPath $OutDir
@@ -195,6 +201,9 @@ function Invoke-SyrinAudit {
   }
   $timer=[Diagnostics.Stopwatch]::StartNew();$collectors=[ordered]@{}
   $names=@('system','volumes','memory','startup','events','security','cpu','gpu','ram','disks','diskHealth','power','battery','restorePoints','processes','tasks','services','apps','radar','largeFiles')
+  if($PerformanceSeconds -eq 1){throw 'Performance sampling requires at least two seconds.'}
+  if($PerformanceSeconds -eq 0 -and $Scope -eq 'speed'){$PerformanceSeconds=30}
+  if($PerformanceSeconds){$names=@('system','performance')+@($names|Where-Object {$_ -ne 'system'})}
   $progressPath=Join-Path $full 'audit-progress.json'
   foreach($name in $names){
     $remaining=[int]($MaxSeconds-$timer.Elapsed.TotalSeconds)
@@ -202,7 +211,8 @@ function Invoke-SyrinAudit {
     Write-SyrinAtomicJson $progressPath ([ordered]@{schemaVersion=1;kind='syrin-audit-progress';sessionId=$session.sessionId;status='running';activeCollector=$name;completedCount=$collectors.Count;totalCount=$names.Count;elapsedMs=$timer.ElapsedMilliseconds;updatedUtc=[DateTime]::UtcNow.ToString('o')})
     if(-not $Quiet){Write-Progress -Activity 'Syrin clean audit' -Status $name -PercentComplete (100*$collectors.Count/$names.Count)}
     $budget=[math]::Min($remaining,$(if($name -in @('radar','largeFiles')){[math]::Max(45,[int]($MaxSeconds/3))}else{20}))
-    $collectors[$name]=Invoke-SyrinCollectorJob $name $budget
+    if($name -eq 'performance'){$budget=[math]::Min($remaining,$PerformanceSeconds+5)}
+    $collectors[$name]=Invoke-SyrinCollectorJob $name $budget $ContextLabel
   }
   $system=@($collectors.system.data) | Select-Object -First 1
   $audit=[ordered]@{schemaVersion=1;kind='syrin-audit';meta=[ordered]@{sessionId=$session.sessionId;generatedUtc=[DateTime]::UtcNow.ToString('o');machineId=(Get-SyrinValue $system 'machineId');systemDrive=(Get-SyrinValue $system 'systemDrive');reportMode=$ReportMode;scope=$Scope;warnings=@();warningCodes=@('agent-privacy','support-unverified')};collectors=$collectors}

@@ -60,6 +60,15 @@
             "speed",
             "cleanup"
           ]
+        },
+        "platform": {
+          "enum": [
+            "windows",
+            "android"
+          ]
+        },
+        "readOnly": {
+          "type": "boolean"
         }
       }
     },

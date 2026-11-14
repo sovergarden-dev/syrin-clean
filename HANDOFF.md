@@ -1,5 +1,17 @@
 # Syrin clean: bàn giao
 
+## Bản 4.1.0-preview.1
+
+Ngày 2026-11-14: đang thực hiện phát hành `4.1.0-preview.1` theo yêu cầu của chủ dự án. Thêm chính sách bảo vệ Windows, dừng an toàn, kiểm tra khu cách ly, chuỗi CPU/bộ nhớ và chẩn đoán Android USB chỉ đọc. Xem [kế hoạch](docs/plan/device-support.md), [phạm vi](docs/feat/devices.md) và [quyết định Android](docs/research/android-integration.md). Gói ZIP tham khảo không được chạy, nhập dữ liệu riêng vào repo hay coi là quyền thao tác điện thoại. Các bản cài toàn cục và asset của preview 2 giữ nguyên.
+
+Kiểm chứng ứng viên: [bản ghi](docs/research/device-validation.md) và [lượt Android thật](docs/research/android-live-validation.md). Một điện thoại Android 14 đã hoàn tất kiểm tra chỉ đọc sáu bộ thu thập sau khi người dùng duyệt USB debugging. Đã sửa lỗi chọn Python khi PATH có nhiều kết quả, ADB chưa có server và nhận dạng bind mount dữ liệu. Raw audit, package inventory, serial và báo cáo thật giữ riêng ngoài repo. Các OEM khác, kiểm tra frame thật, VM, trợ năng đầy đủ và attestation khi phát hành vẫn mở. Các thay đổi đã được commit và hợp nhất cập nhật demo/hỏi đáp từ main; không có tác vụ dọn điện thoại tự động chờ chạy.
+
+Kiểm thử chốt ngày 2026-11-14: 83 đầu ra khớp nguồn, kiểm thử Node, 21 ca cách ly, 16 nhóm runtime và 24 ca Python đều đạt. Đã xử lý chi phí kiểm tra policy/fingerprint gây sát ngân sách quét; lượt cuối lập kế hoạch 2.048 file trong 35.741 ms, xác minh 12 phiên và 4.098 event ở phiên dày. Giới hạn 120 giây và kiểm tra đường dẫn/định danh vẫn giữ nguyên. Thêm `-Check`, hướng dẫn kết nối và mô tả app/tác vụ; frame thiếu mốc là partial, frame mang tên app khác bị loại. Đã kiểm tra EN/VI, bàn phím, 320 px và hash ZIP tải qua giao diện. Các cổng VM, OEM khác, frame trên tác vụ thật và trợ năng đầy đủ vẫn mở; chưa công bố bản ổn định.
+
+Chủ máy chọn giữ nguyên nhóm cache đã được trình duyệt và không có app/tác vụ ưu tiên. Không có thao tác xóa cache, gỡ app, đổi settings hay tối ưu điện thoại được thực hiện. Đã đóng tab, server web kiểm thử và ADB server do phiên tạo; không dừng ứng dụng khác. Trạng thái CI, Release và Pages cần được đối chiếu lại khi chốt phát hành; không thay skill toàn cục trong quy trình này.
+
+## Bản đã phát hành
+
 Trạng thái: 4.0.0-preview.2 đã được phát hành với GitHub Pages và HTML offline sau khi PR #4 merge. Tag trỏ tới `3e3dcf1`; tám asset, hai HTML công khai và bản ZIP tải qua giao diện đã được đối chiếu checksum. Các asset của preview trước giữ nguyên. Đây vẫn là pre-release; các cổng VM/môi trường chưa đạt không bị đóng thay.
 
 ## Nguồn chuẩn

@@ -18,6 +18,14 @@ for(const language of ['en','vi']){
   assert.ok(lines.some(line=>line.includes('D:\\Example\\Keep')));
   assert.ok(lines.some(line=>line.includes('Literal <script> example')));
   assert.equal(values.optMode,'audit');
+  const android=profileLines(edition.profile,{...values,optDevice:'android'}).join('\n');
+  assert.ok(android.includes('Android') && android.includes('MaxSeconds=300'));
+  assert.ok(!android.includes('D:\\Example\\Keep') && !android.includes('MaxSeconds=600'));
+  assert.ok(android.includes('ReportMode=none'));
+  const task=profileLines(edition.profile,{...values,optDevice:'android',optAndroidPackage:'com.example.app',optAndroidContext:'Scroll a fixture list'}).join('\n');
+  assert.ok(task.includes('com.example.app') && task.includes('Scroll a fixture list'));
+  const invalid=profileLines(edition.profile,{...values,optDevice:'android',optAndroidPackage:'com.example.app;reboot'}).join('\n');
+  assert.ok(invalid.includes(edition.profile.androidInvalidPackage) && !invalid.includes(';reboot'));
 }
 assert.deepEqual(Object.keys(data.editions.en.ui).sort(),Object.keys(data.editions.vi.ui).sort());
 console.log('Landing model: both default Markdown downloads match their artifacts; profile choices and embedded packages are exact.');

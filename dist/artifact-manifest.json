@@ -1,38 +1,38 @@
 {
   "schemaVersion": 1,
   "package": "syrin-clean",
-  "version": "4.0.0-preview.2",
+  "version": "4.1.0-preview.1",
   "channel": "prerelease",
   "files": [
     {
-      "path": "syrin-clean-prompt-en-v4.0.0-preview.2.md",
-      "sha256": "4d582108eb877c6f57a56d9e995b043b91dd47ee738aba7e7c3ac4fc7ae4a25a",
-      "bytes": 416851
+      "path": "syrin-clean-prompt-en-v4.1.0-preview.1.md",
+      "sha256": "f616b8c502ad6d2f4545ff2c98007db904e990df8c9c4ba34120b2f1bbfad69e",
+      "bytes": 452472
     },
     {
-      "path": "syrin-clean-prompt-vi-v4.0.0-preview.2.md",
-      "sha256": "5d7bba182c739d40a73b3fad453faf4f042b32462d552d6f21331f1e43dd318a",
-      "bytes": 419959
+      "path": "syrin-clean-prompt-vi-v4.1.0-preview.1.md",
+      "sha256": "efbf320c15640f9d5d01874ffd3971a206f39de56c6dc639a7531694ab54706b",
+      "bytes": 456710
     },
     {
       "path": "syrin-clean-report-demo.html",
-      "sha256": "9806d9f83de4611472bcaacf78de22da7b3a99ec0a0e9c2115ebdde44675e5b3",
-      "bytes": 389239
+      "sha256": "7dbaead23e86d5af1d29e673eb4a840e8bd7f63ecac67e5b46c73fc20ff08cb9",
+      "bytes": 397467
     },
     {
-      "path": "syrin-clean-skill-v4.0.0-preview.2-en.zip",
-      "sha256": "07967264f49ce3879514221b611865f30454542af05426effc63a83598eabc7b",
-      "bytes": 300648
+      "path": "syrin-clean-skill-v4.1.0-preview.1-en.zip",
+      "sha256": "76d19fc2edba5ebf5e7b1d324926eead77fa1e2f68a2e4759d527e9475d6d7da",
+      "bytes": 323142
     },
     {
-      "path": "syrin-clean-skill-v4.0.0-preview.2-vi.zip",
-      "sha256": "f0c3ed082ae7ba92523d07c3afb59ea4ddf4cbcf1de00b2d80468142ffb3feb2",
-      "bytes": 301435
+      "path": "syrin-clean-skill-v4.1.0-preview.1-vi.zip",
+      "sha256": "1b015a7d0ee2a4c1efe87e817e1911582b29beaf41f249b46256da82b8e23426",
+      "bytes": 324125
     },
     {
       "path": "syrin-clean.html",
-      "sha256": "b9837a21950d133e13567ad40204522cc2784190256dc1ea2831b45ab15faa28",
-      "bytes": 1745088
+      "sha256": "e725842410ef9febf8f0e32ab2dd464e2b11ae4bc20bbdeed61af2024f3bc361",
+      "bytes": 1837354
     }
   ]
 }

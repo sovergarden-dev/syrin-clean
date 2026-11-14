@@ -1,4 +1,5 @@
 import base64
+import contextlib
 import hashlib
 import importlib.util
 import io
@@ -8,6 +9,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import textwrap
 import unittest
 from unittest.mock import patch
 import zipfile
@@ -21,6 +23,73 @@ spec.loader.exec_module(build)
 
 
 class PackagingTests(unittest.TestCase):
+    def test_packaged_support_links_target_the_release_documentation(self):
+        outputs = build.build_outputs()
+        prefix = build.PROJECT['repository'] + '/blob/' + build.VERSION + '/docs/'
+        for language in build.LANGUAGES:
+            text = outputs[f'skill/{language}/syrin-clean/references/support.md'].decode('utf-8')
+            self.assertIn('](' + prefix + 'feat/devices.md)', text)
+            self.assertIn('](' + prefix + 'research/android-live-validation.md)', text)
+            self.assertNotIn('](devices.md)', text)
+
+    def test_manual_redeploy_skips_provenance_but_still_checks_published_html(self):
+        workflow = (ROOT / '.github/workflows/pages.yml').read_text(encoding='utf-8')
+        verifier = textwrap.dedent(workflow.split("python - <<'PY'\n", 1)[1].split('          PY', 1)[0])
+        with tempfile.TemporaryDirectory(prefix='syrin-release-verify-test-') as temporary:
+            directory = Path(temporary)
+            site = directory / 'site'
+            site.mkdir()
+            payloads = {'syrin-clean.html': b'fixture page', 'syrin-clean-report-demo.html': b'fixture report',
+                        'en.zip': b'fixture en', 'vi.zip': b'fixture vi', 'en.md': b'fixture prompt en',
+                        'vi.md': b'fixture prompt vi', 'artifact-manifest.json': b'fixture manifest', 'SHA256SUMS.txt': b'fixture checksums'}
+            digest = lambda data: hashlib.sha256(data).hexdigest()
+            metadata = {'version': 'fixture-tag', 'files': {}}
+            for name, asset in [('index.html', 'syrin-clean.html'), ('report-demo.html', 'syrin-clean-report-demo.html')]:
+                (site / name).write_bytes(payloads[asset])
+                metadata['files'][name] = digest(payloads[asset])
+            (site / 'version.json').write_text(json.dumps(metadata), encoding='utf-8')
+            (site / '.nojekyll').write_bytes(b'')
+            release = {'draft': False, 'tag_name': 'fixture-tag', 'assets': [{'name': name, 'digest': 'sha256:' + digest(data)} for name, data in payloads.items()]}
+            subjects = directory / 'subjects'
+            environment = {'SITE_DIR': str(site), 'RELEASE_DIR': str(subjects), 'PAGES_TAG': 'fixture-tag',
+                           'PAGES_REPOSITORY': 'example/fixture', 'GH_TOKEN': 'fixture-only'}
+
+            def verify(event):
+                with patch.dict(os.environ, {**environment, 'PAGES_EVENT': event}), patch('urllib.request.urlopen', side_effect=lambda *args, **kwargs: io.BytesIO(json.dumps(release).encode())), contextlib.redirect_stdout(io.StringIO()):
+                    exec(verifier, {'__name__': '__main__'})
+
+            verify('workflow_dispatch')
+            with self.assertRaises(FileNotFoundError):
+                verify('release')
+            (site / 'index.html').write_bytes(b'tampered')
+            with self.assertRaisesRegex(AssertionError, 'Site differs'):
+                verify('workflow_dispatch')
+            (site / 'index.html').write_bytes(payloads['syrin-clean.html'])
+            subjects.mkdir()
+            for name, data in payloads.items():
+                (subjects / name).write_bytes(data)
+            verify('release')
+            (subjects / 'en.zip').write_bytes(b'tampered')
+            with self.assertRaisesRegex(AssertionError, 'Release asset differs'):
+                verify('release')
+
+    def test_release_staging_has_only_current_verified_artifacts(self):
+        module_spec = importlib.util.spec_from_file_location("syrin_stage_release", ROOT / "tools/stage_release.py")
+        release = importlib.util.module_from_spec(module_spec)
+        module_spec.loader.exec_module(release)
+        with tempfile.TemporaryDirectory(prefix="syrin-release-test-") as temporary:
+            target = Path(temporary)
+            names = release.stage(target)
+            self.assertEqual(len(names), 8)
+            manifest = json.loads((target / "artifact-manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(set(names), {row["path"] for row in manifest["files"]} | {"artifact-manifest.json", "SHA256SUMS.txt"})
+            for row in manifest["files"]:
+                self.assertEqual(hashlib.sha256((target / row["path"]).read_bytes()).hexdigest(), row["sha256"])
+            with self.assertRaisesRegex(ValueError, "empty"):
+                release.stage(target)
+        with self.assertRaisesRegex(ValueError, "outside"):
+            release.stage(ROOT / "dist")
+
     def test_archive_metadata_does_not_depend_on_host_defaults(self):
         original = zipfile.ZipInfo.__init__
         def unix_default(info, *args, **kwargs):

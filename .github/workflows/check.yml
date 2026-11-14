@@ -11,6 +11,10 @@ on:
         type: boolean
         required: false
         default: false
+      release_artifact:
+        type: boolean
+        required: false
+        default: false
 permissions:
   contents: read
 jobs:
@@ -46,12 +50,25 @@ jobs:
           if ($env:PAGES_REVISION -cne ('refs/tags/'+$version)) { throw 'Release tag and version differ.' }
           python -B -X utf8 tools/publish_site.py "$env:RUNNER_TEMP/syrin-verified-site"
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
+      - name: Stage release provenance subjects
+        if: inputs.release_artifact
+        shell: powershell
+        run: |
+          python -B -X utf8 tools/stage_release.py "$env:RUNNER_TEMP/syrin-verified-release"
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: inputs.site_artifact
         with:
           name: syrin-verified-site
           path: ${{ runner.temp }}/syrin-verified-site
           include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: inputs.release_artifact
+        with:
+          name: syrin-verified-release
+          path: ${{ runner.temp }}/syrin-verified-release
           if-no-files-found: error
           retention-days: 7
   portable-artifacts:
@@ -70,5 +87,6 @@ jobs:
         run: |
           python -B -X utf8 tools/build.py --check
           python -B -X utf8 -m unittest discover -s tests -p test_build.py -k PackagingTests -v
+          python -B -X utf8 -m unittest discover -s tests -p test_android.py -v
           node tests/page.mjs
           node tests/report.mjs

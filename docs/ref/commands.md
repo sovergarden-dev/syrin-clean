@@ -12,6 +12,27 @@ The JSON result identifies the private session directory and incomplete collecto
 
 Read `audit-progress.json` in that directory for the last reported collector, completed count, elapsed time and completion status. `-Quiet` suppresses the console progress display, not this file. A completed audit can still contain partial or unavailable collectors.
 
+`-Scope speed` includes a 30-second CPU/memory series. `-PerformanceSeconds 2..60` opts other scopes into sampling. Use `-ContextLabel 'same normal workload'` on comparable captures; matching labels do not themselves prove equal conditions. CPU differences are percentage points, not a percentage speed-up.
+
+## Protection and stopping
+
+Read the current policy with `scripts/policy.ps1`. After the user's restriction request, `scripts/policy.ps1 -Set -Mode audit -ProtectedPath <literal-path-array>` saves audit-only mode and exclusions. Merge existing exclusions when adding entries. Changing to `-Mode approve` requires an explicit unlock request and still grants no approval to act. Optional `-PolicyFile` on planning adds restrictions; the default policy always applies. A changed bound policy requires a fresh plan.
+
+For execution, generate a fresh GUID without hyphens and choose a new stop-file path outside selected sources/quarantine. Add `-RunId <guid> -StopFile <private-stop-path>` to the reviewed execution command. `scripts/request-stop.ps1 -RunId <same-guid> -StopFile <same-path>` requests a stop after the current atomic item. Inspect `stopped`, `stopReason`, `items` and `unprocessed`; do not terminate the worker.
+
+`scripts/quarantine.ps1 -Verify -QuarantineRoot <owned-root> -SessionId <session>` checks journals and physical stored metadata under the writer lock. It does not inspect content hashes, repair, restore or delete files. An intact snapshot is not a restore guarantee.
+
+## Android USB diagnostics
+
+Python 3.10+ and official Google SDK Platform Tools are additional prerequisites. No download, install or phone mutation is automatic.
+
+```powershell
+& .\syrin-clean\scripts\android-audit.ps1 -AdbPath 'C:\path-to\platform-tools\adb.exe' -Devices
+& .\syrin-clean\scripts\android-audit.ps1 -AdbPath 'C:\path-to\platform-tools\adb.exe' -Serial <exact-selected-serial> -Lang en
+```
+
+The second command requires an authorized USB transport and writes to a new private session, never overwriting a previous audit. `-IncludePackages` adds current-user app inventory; `-Package <exact-package>` adds cumulative frame counters for that app. `-MaxSeconds` accepts 30–300; `-NoReport` suppresses HTML. No browser opens automatically. Missing/denied/OEM-specific fields remain incomplete. The HTML does not expose Windows file actions for Android. Use the existing `make-report.ps1 -Share -NoOpen` flow for an aggregate export. See [device boundaries](../feat/devices.md).
+
 ## Plan and execute selected files
 
 ```powershell
@@ -50,6 +71,10 @@ The importer reads both active and archived CSV manifests under `PC-Optimize-Qua
 
 ## Reports and sharing
 
+For Android first use, run `android-audit.ps1 -Check -AdbPath <absolute-adb-path>`, then add `-Serial <selected-serial>` to verify that exact phone. `ok=true` means the check ran; only `ready=true` means the selected phone passed readiness. The command does not create an audit or authorize changes. With an existing PATH installation, `-AdbPath` can be omitted.
+
+For app diagnostics, add `-Package <exact-package> -ContextLabel <one-line-task-description>` to the Android audit command. The label is limited to 240 characters. The report keeps the process, cumulative counter origin and capture times; unknown origins or ambiguous processes stay partial, and an observed header for a different app is rejected. No counter reset, app launch or force-stop occurs.
+
 ```powershell
 & .\syrin-clean\scripts\make-report.ps1 -OutDir <audit-directory> -Lang vi -QuarantineRoot <root>
 & .\syrin-clean\scripts\make-report.ps1 -OutDir <new-audit-directory> -Baseline <old-audit.json> -Lang en
@@ -75,6 +100,8 @@ When `-QuarantineRoot` is supplied, all loaded sessions/items are embedded in th
 From a validated clean checkout, `python -B -X utf8 tools/publish_site.py <empty-directory-outside-checkout>` stages only the two HTML files, `.nojekyll` and `version.json`. It refuses nonempty staging destinations and never stages session data. GitHub Pages opens the hosted page; release attachments download as files. Opening an attachment afterward depends on the user's browser and file association.
 
 The release workflow stages on Windows after validation, then deploys the transferred artifact after checking the published release digests. To redeploy an existing published tag explicitly, run `gh workflow run pages.yml --ref main -f release_tag=<published-tag>`. The `github-pages` environment must allow the intended deployment ref; do not remove its protection rules to force a deployment.
+
+On release events, the candidate workflow also stages eight current assets using `tools/stage_release.py <empty-directory-outside-checkout>`, verifies every published digest, and attests them with the pinned GitHub action. Manual redeploys verify the two published HTML assets and skip provenance staging/signing, so older tags do not need the newer staging helper. Verify a future published file with `gh attestation verify <downloaded-file> -R sovergarden-dev/syrin-clean`. This flow is prepared locally; it has not produced verified attestations for the candidate or older releases.
 
 ## Elevation and Restore Point helper
 

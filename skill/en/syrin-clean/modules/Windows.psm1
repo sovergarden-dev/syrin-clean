@@ -1,5 +1,6 @@
 ﻿Set-StrictMode -Version 2
 Import-Module (Join-Path $PSScriptRoot 'IO.psm1')
+Import-Module (Join-Path $PSScriptRoot 'Policy.psm1')
 
 function Test-SyrinAdministrator {
   return ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
@@ -7,6 +8,7 @@ function Test-SyrinAdministrator {
 
 function Invoke-SyrinElevatedScript {
   param([string]$Script,[string[]]$Arguments=@(),[switch]$NoElevate)
+  Assert-SyrinWriteAllowed (Get-SyrinProtection)
   $full=Assert-SyrinLocalPath $Script
   if (-not [IO.File]::Exists($full) -or [IO.Path]::GetExtension($full) -ne '.ps1') { throw 'Choose an existing local PowerShell script.' }
   $argsList=@('-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',$full)+$Arguments
@@ -42,6 +44,7 @@ function New-SyrinRestorePoint {
   $key='HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore';$name='SystemRestorePointCreationFrequency'
   $had=$false;$old=$null;$touched=$false
   try {
+    Assert-SyrinWriteAllowed (Get-SyrinProtection)
     if (-not (Test-SyrinAdministrator)) { throw 'Administrator rights are required; use run-elevated.ps1 after approval.' }
     if (-not (Get-Command Checkpoint-Computer -ErrorAction SilentlyContinue)) { throw 'Windows PowerShell 5.1 and System Restore support are required.' }
     $before=@(Get-ComputerRestorePoint -ErrorAction Stop)

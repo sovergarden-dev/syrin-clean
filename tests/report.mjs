@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createView,normalizeAudit,escapeHtml,historyPage,filterHistoryItems} from '../src/report/report.mjs';
+import {createView,normalizeAudit,escapeHtml,historyPage,filterHistoryItems,measurementAge} from '../src/report/report.mjs';
 import {createLens} from '../src/shared/lens.mjs';
 const complete=data=>({status:'complete',data,errors:[]});
 const audit=()=>({schemaVersion:1,kind:'syrin-audit',meta:{sessionId:'a'.repeat(32),machineId:'machine-a',systemDrive:'D:',generatedUtc:'2026-10-28T00:00:00Z',reportMode:'3d'},collectors:{system:complete([{model:'Fixture'}]),volumes:complete([{drive:'C:',volumeId:'data',sizeBytes:100,freeBytes:60},{drive:'D:',volumeId:'system',sizeBytes:100,freeBytes:1}]),startup:complete([]),events:complete([]),radar:complete([{id:'cache',label:'Cache',category:'cache',measuredBytes:2,cloudBytes:0,estimatedReclaimableBytes:null,status:'complete'},{id:'chat',label:'Telegram data',category:'app-data',measuredBytes:3,cloudBytes:0,estimatedReclaimableBytes:null,status:'complete'},{id:'vm',label:'Docker',category:'vm',measuredBytes:5,cloudBytes:0,estimatedReclaimableBytes:null,status:'complete'}])}});
@@ -33,6 +33,18 @@ assert.deepEqual(filterHistoryItems(searchable,{query:'[1]'}).map(item=>item.id)
 assert.deepEqual(filterHistoryItems(searchable,{state:'attention'}).map(item=>item.id),['c']);
 assert.deepEqual(filterHistoryItems(searchable,{state:'purged',query:'Q1'}),[]);
 console.log('Report model: volume identity, categories, unknown/partial data, baseline identity, legacy data and escaping passed');
+
+const phone={schemaVersion:1,kind:'syrin-audit',meta:{platform:'android',machineId:'phone',generatedUtc:'2026-01-01T00:00:00Z'},collectors:{storage:complete([{mount:'/data',sizeBytes:1000,freeBytes:400}]),battery:complete([{chargePercent:77,temperatureC:34}])}};
+view=createView(phone);assert.equal(view.platform,'android');assert.equal(view.storage.freeBytes,400);assert.equal(view.battery.chargePercent,77);assert.equal(view.defender,null);
+assert.equal(measurementAge(phone.meta,Date.parse('2026-01-01T01:00:00Z')),60);
+assert.equal(measurementAge({generatedUtc:'invalid'}),null);
+let performanceBefore=audit(),performanceAfter=audit();performanceAfter.meta.generatedUtc='2026-10-28T01:00:00Z';
+const performance={method:'windows-cpu-delta-v1',contextLabel:'same workload',requestedSeconds:30,intervalSeconds:2,sampleCount:15,meanCpuPercent:40};
+performanceBefore.collectors.performance=complete([{...performance}]);performanceAfter.collectors.performance=complete([{...performance,meanCpuPercent:20}]);
+assert.deepEqual(createView(performanceAfter,performanceBefore).performanceComparison,{before:40,after:20,delta:-20});
+performanceAfter.collectors.performance.data[0].contextLabel='';assert.equal(createView(performanceAfter,performanceBefore).performanceComparison,null);
+performanceAfter.collectors.performance.data[0].contextLabel='same workload';performanceAfter.collectors.performance.status='partial';assert.equal(createView(performanceAfter,performanceBefore).performanceComparison,null);
+console.log('Device model: Android measurements, snapshot age and constrained performance comparisons passed.');
 
 function verifyLensLifecycle() {
   const timers=new Map(), frames=new Map(), observers=[], storage=new Map();

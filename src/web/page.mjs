@@ -1,8 +1,18 @@
 import {createLens} from '../shared/lens.mjs';
 
-export const profileDefaults = {optRole:'auto',optScope:'full',optAggressiveness:'balanced',optBudget:'balanced',optMode:'approve',optReport:'r3d',optDrive:'',optProtect:'',optNote:''};
+export const profileDefaults = {optDevice:'windows',optRole:'auto',optScope:'full',optAggressiveness:'balanced',optBudget:'balanced',optMode:'approve',optReport:'r3d',optDrive:'',optProtect:'',optNote:'',optAndroidPackage:'',optAndroidContext:''};
+
+export const validPackage = value => !value || /^[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)+$/.test(value);
 
 export function profileLines(profile, values) {
+  if(values.optDevice==='android'){
+    const lines=[profile.androidIntro,profile.androidBudget[values.optBudget] || profile.androidBudget.balanced,values.optReport==='none'?profile.reportSnippets.none:profile.androidReport];
+    const target=String(values.optAndroidPackage || '').trim(),context=String(values.optAndroidContext || '').trim();
+    if(target) lines.push(validPackage(target)?profile.androidPackage.replace('{v}',target):profile.androidInvalidPackage);
+    if(context) lines.push(profile.androidContext.replace('{v}',context));
+    if(String(values.optNote||'').trim()) lines.push(profile.extraTpl.note.replace('{v}',String(values.optNote).trim()));
+    return lines;
+  }
   const rules = [['roleSnippets','optRole','auto'],['scopeSnippets','optScope','full'],['aggrSnippets','optAggressiveness','balanced'],['budgetSnippets','optBudget','balanced'],['modeSnippets','optMode','approve'],['reportSnippets','optReport','r3d']];
   const lines = rules.map(([group, field, fallback]) => profile[group][values[field]] || profile[group][fallback]);
   for (const [key, field] of [['drive','optDrive'],['protect','optProtect'],['note','optNote']]) {
@@ -38,10 +48,16 @@ function startPage(data) {
     const edition = current(), selected = values();
     const prompt = composePrompt(edition, selected);
     $('superPrompt').textContent = prompt;
-    $('starterMsg').textContent = edition.ui.starter + edition.profile.blockHeader + profileLines(edition.profile, selected).join('\n');
+    $('starterMsg').textContent = (selected.optDevice==='android'?edition.ui.androidStarter:edition.ui.starter) + edition.profile.blockHeader + profileLines(edition.profile, selected).join('\n');
     $('wordCount').textContent = prompt.split(/\s+/).filter(Boolean).length.toLocaleString(edition.ui.locale) + ' ' + edition.ui.words;
     $('installMsg').textContent = edition.ui.installMessage;
-    $('auditCmds').textContent = 'powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File ".\\syrin-clean\\scripts\\audit.ps1" -Scope full -ReportMode 3d -Lang ' + language + ' -Quiet';
+    const android=selected.optDevice==='android';
+    for(const id of ['optRole','optScope','optAggressiveness','optMode','optDrive','optProtect']) $(id).disabled=android;
+    $('device-help').textContent=android?edition.ui.androidHelp:edition.ui.windowsHelp;
+    $('android-task-fields').hidden=!android;
+    $('optAndroidPackage').setAttribute('aria-invalid',String(!validPackage(selected.optAndroidPackage)));
+    $('android-package-error').hidden=validPackage(selected.optAndroidPackage);
+    $('auditCmds').textContent = android ? 'powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File ".\\syrin-clean\\scripts\\android-audit.ps1" -AdbPath "C:\\path-to\\platform-tools\\adb.exe" -Check' : 'powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File ".\\syrin-clean\\scripts\\audit.ps1" -Scope full -ReportMode 3d -Lang ' + language + ' -Quiet';
   }
   let offlineDemoUrl;
   if (location.protocol === 'file:' || location.protocol === 'blob:') {

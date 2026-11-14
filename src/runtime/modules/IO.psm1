@@ -55,8 +55,8 @@ function Get-SyrinCloudRoots {
   return @($roots | Select-Object -Unique)
 }
 
-function New-SyrinSourcePolicy([string[]]$CloudRoots=@()) {
-  $protected = @($env:windir, $env:ProgramFiles, ${env:ProgramFiles(x86)}, $env:ProgramData)
+function New-SyrinSourcePolicy([string[]]$CloudRoots=@(),[string[]]$ProtectedPath=@()) {
+  $protected = @($env:windir, $env:ProgramFiles, ${env:ProgramFiles(x86)}, $env:ProgramData) + $ProtectedPath
   foreach ($base in @($env:USERPROFILE)) {
     foreach ($name in @('.ssh','.gnupg','.aws','.azure','.kube','.docker')) { $protected += Join-Path $base $name }
   }
@@ -74,17 +74,7 @@ function Assert-SyrinSourcePath([string]$Path, [string[]]$CloudRoots = @(), $Pol
     if($format -notin @('NTFS','ReFS')){throw 'File operations require NTFS or ReFS with stable file identity and access controls.'}
     $Policy.formats[$driveRoot]=$format
   }
-  $profile=$Policy.profile
-  if ($profile -and (Test-SyrinWithin $full ([IO.Path]::GetDirectoryName($profile))) -and -not (Test-SyrinWithin $full $profile)) { throw 'Other Windows profiles are blocked.' }
-  foreach ($protectedPath in $Policy.protected) {
-    if ((Test-SyrinWithin $full $protectedPath) -or (Test-SyrinWithin $protectedPath $full)) { throw "Protected path is blocked: $full" }
-  }
-  foreach ($segment in $full.Split('\')) {
-    if ($segment -match '^(\.git|\.env(?:\..*)?|Cookies|Login Data|History|Bookmarks|Extensions)$') { throw "Protected data is blocked: $full" }
-  }
-  foreach ($cloud in $Policy.cloud) {
-    if ((Test-SyrinWithin $full $cloud) -or (Test-SyrinWithin $cloud $full)) { throw "Cloud path or its ancestor is blocked: $full" }
-  }
+  [Syrin.NativeFiles]::CheckSourcePolicy($full,$Policy.profile,[string[]]$Policy.protected,[string[]]$Policy.cloud)
   return $full
 }
 
@@ -98,12 +88,23 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.Win32.SafeHandles;
 namespace Syrin {
   public sealed class TextDocument {
     public string Path, Text, Digest;
   }
   public static class NativeFiles {
+    static readonly Regex ProtectedSegment = new Regex(@"^(\.git|\.env(?:\..*)?|Cookies|Login Data|History|Bookmarks|Extensions)$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+    static bool Within(string child, string parent) {
+      return child.Equals(parent, StringComparison.OrdinalIgnoreCase) || child.StartsWith(parent.TrimEnd('\\') + "\\", StringComparison.OrdinalIgnoreCase);
+    }
+    public static void CheckSourcePolicy(string full, string profile, string[] protectedPaths, string[] clouds) {
+      if (!String.IsNullOrEmpty(profile) && Within(full, Path.GetDirectoryName(profile)) && !Within(full, profile)) throw new IOException("Other Windows profiles are blocked.");
+      foreach (string path in protectedPaths) if (Within(full, path) || Within(path, full)) throw new IOException("Protected path is blocked: " + full);
+      foreach (string segment in full.Split('\\')) if (ProtectedSegment.IsMatch(segment)) throw new IOException("Protected data is blocked: " + full);
+      foreach (string path in clouds) if (Within(full, path) || Within(path, full)) throw new IOException("Cloud path or its ancestor is blocked: " + full);
+    }
     [StructLayout(LayoutKind.Sequential)] struct Info {
       public uint Attributes;
       public System.Runtime.InteropServices.ComTypes.FILETIME Created, Accessed, Written;
@@ -165,7 +166,10 @@ namespace Syrin {
         if (handle.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error());
         Info info;
         if (!GetFileInformationByHandle(handle, out info)) throw new Win32Exception(Marshal.GetLastWin32Error());
-        return new [] { Id(handle), info.Links.ToString() };
+        if ((info.Attributes & 0x441410) != 0) throw new IOException("Only local regular files can be transferred.");
+        long length = ((long)info.SizeHigh << 32) | info.SizeLow;
+        long written = ((long)(uint)info.Written.dwHighDateTime << 32) | (uint)info.Written.dwLowDateTime;
+        return new [] { Id(handle), info.Links.ToString(), length.ToString(System.Globalization.CultureInfo.InvariantCulture), DateTime.FromFileTimeUtc(written).ToString("o") };
       }
     }
     public static TextDocument[] ReadDocuments(string[] paths, int offset, int count) {
@@ -239,12 +243,10 @@ namespace Syrin {
 
 function Get-SyrinFingerprint([string]$Path) {
   $full = Assert-SyrinLocalPath $Path
-  $item = Get-Item -LiteralPath $full -Force -ErrorAction Stop
-  if ($item -isnot [IO.FileInfo]) { throw 'Only regular files can be transferred.' }
   Initialize-SyrinNative
   $identity = [Syrin.NativeFiles]::Identity($full)
   if ($identity[0] -match ':0+$') { throw 'The filesystem did not provide a stable file identity.' }
-  return [PSCustomObject]@{ FileId=$identity[0]; Length=[long]$item.Length; LastWriteUtc=$item.LastWriteTimeUtc.ToString('o'); Links=[int]$identity[1] }
+  return [PSCustomObject]@{ FileId=$identity[0]; Length=[long]$identity[2]; LastWriteUtc=$identity[3]; Links=[int]$identity[1] }
 }
 
 function Test-SyrinFingerprint([string]$Path, $Expected) {
