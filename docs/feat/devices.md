@@ -1,8 +1,8 @@
 # Device diagnostics and execution controls
 
-> updated 2026-11-14 · v4.0.0-preview.2
+> updated 2026-11-14 · v4.1.0-preview.1
 
-This document describes the local, unreleased `4.1.0-preview.1` candidate. The published release remains `4.0.0-preview.2`.
+This document describes `4.1.0-preview.1`, a pre-release with read-only Android diagnostics and protected Windows maintenance. The qualification boundaries below remain explicit.
 
 ## Windows protection policy
 

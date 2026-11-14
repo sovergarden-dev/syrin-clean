@@ -2,7 +2,7 @@
 
 **Inspect Windows PCs and Android phones, review the evidence, choose a change.**
 
-This source tree builds the **unreleased 4.1.0-preview.1 candidate**. The public release remains 4.0.0-preview.2. Syrin clean is a bilingual Agent Skill and standalone prompt with a Windows PowerShell runtime and an optional Python Android adapter. Environment qualification remains open.
+**4.1.0-preview.1 is a pre-release.** Get the [release assets](https://github.com/sovergarden-dev/syrin-clean/releases/tag/4.1.0-preview.1) or open the web app below. Syrin clean is a bilingual Agent Skill and standalone prompt with a Windows PowerShell runtime and an optional Python Android adapter. Environment qualification remains open.
 
 [Tiếng Việt](README.vi.md) · [Commands](docs/ref/commands.md) · [Support matrix](docs/feat/support.md) · [Validation](docs/ref/validation.md) · [Changelog](CHANGELOG.md)
 
@@ -34,7 +34,7 @@ Windows adds persistent protected paths/audit-only policy, cooperative stop requ
 
 ## Start with an audit
 
-1. Download the [English package](dist/syrin-clean-skill-v4.1.0-preview.1-en.zip) or [Vietnamese package](dist/syrin-clean-skill-v4.1.0-preview.1-vi.zip) from this branch, or build them locally.
+1. Download the [English package](https://github.com/sovergarden-dev/syrin-clean/releases/download/4.1.0-preview.1/syrin-clean-skill-v4.1.0-preview.1-en.zip) or [Vietnamese package](https://github.com/sovergarden-dev/syrin-clean/releases/download/4.1.0-preview.1/syrin-clean-skill-v4.1.0-preview.1-vi.zip) from Releases, or build them locally.
 2. Ask your agent to verify the package and run `install.ps1` with Windows PowerShell 5.1. The installer stages and validates both agent locations before switching them; previous versions remain outside the discovery folders under `%USERPROFILE%\.syrin-clean-installer`.
 3. Start a new agent session and ask: **Use the syrin-clean skill to audit this PC and prepare proposals only.**
 4. Review the evidence and uncertainty. For any supported file action, review the exact plan and confirm only the selected codes. Do not approve a personal-file or purge operation through a vague blanket instruction.

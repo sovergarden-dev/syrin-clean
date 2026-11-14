@@ -1,8 +1,8 @@
 # Support and qualification
 
-> updated 2026-11-14 · v4.0.0-preview.2
+> updated 2026-11-14 · v4.1.0-preview.1
 
-The local candidate is `4.1.0-preview.1`; the published version remains `4.0.0-preview.2`. Android USB diagnostics have completed one explicitly authorized read-only run on Android 14 from a Windows host with Python 3.12 and official SDK Platform Tools 37.0.1. This covers the observed collectors, not all phones/OEMs or Android recovery. Android mutation and iOS support are absent. See [device controls](devices.md) and [live validation](../research/android-live-validation.md) for exact boundaries.
+This support matrix accompanies the `4.1.0-preview.1` pre-release. Android USB diagnostics have completed one explicitly authorized read-only run on Android 14 from a Windows host with Python 3.12 and official SDK Platform Tools 37.0.1. This covers the observed collectors, not all phones/OEMs or Android recovery. Android mutation and iOS support are absent. See [device controls](devices.md) and [live validation](../research/android-live-validation.md) for exact boundaries.
 
 The preview build is not a stable release or a claim of universal compatibility. The owner explicitly deferred VM qualification because no disposable VM is available and approved a public pre-release with Pages and offline HTML. Do not replace VM qualification with system changes on a real workstation.
 

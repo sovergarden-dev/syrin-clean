@@ -2,7 +2,7 @@
 
 All notable changes to this project. Dates are 2026.
 
-## [Unreleased]
+## [4.1.0-preview.1] - 2026-11-14
 
 ### Added
 - Add an English/Vietnamese guided report demo, a screenshot of synthetic example data and Q&A entry points for preview feedback.
@@ -16,7 +16,7 @@ All notable changes to this project. Dates are 2026.
 ### Changed
 - Add Windows/Android selection to the offline bilingual HTML and shared skill/prompt while preserving Windows profile values.
 - Show capture age and snapshot limitations; minimize Android shared reports to explicit storage, memory and battery fields.
-- Prepare the local `4.1.0-preview.1` candidate without changing published preview 2 or globally installed skills.
+- Deliver the `4.1.0-preview.1` pre-release while preserving previous release assets.
 
 ### Fixed
 - Resolve packaged support-document links against the matching release tag so extracted skills do not point at missing local documentation.

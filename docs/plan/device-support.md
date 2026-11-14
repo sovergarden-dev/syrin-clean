@@ -1,6 +1,6 @@
 # Device support and execution controls
 
-Started 2026-11-14. Base: `da9424d`, released `4.0.0-preview.2`. Local development only; publication is a separate checkpoint.
+Started 2026-11-14. Base: `da9424d`, released `4.0.0-preview.2`. Publication of the 4.1.0-preview.1 pre-release was explicitly authorized on 2026-11-14; broader hardware qualification remains separate.
 
 ## Goal
 
@@ -17,7 +17,7 @@ Extend evidence-driven maintenance to Android over USB while preserving Windows 
 - [x] Document archive corrections, primary sources, platform qualification, beta protocol and optional build attestations.
 - [x] Exercise isolated failure cases, public entry points, generated bundles and browser flows.
 
-Local implementation evidence: [candidate validation](../research/device-validation.md) and the [live-run amendments](../research/android-live-validation.md). The Windows planning timeout was investigated and the unchanged scale guard passed after reducing policy/fingerprint overhead. Hardware and release gates that have not yet been exercised remain separate. The source remains on the local branch; public release and installed global skills have not been changed.
+Local implementation evidence: [candidate validation](../research/device-validation.md) and the [live-run amendments](../research/android-live-validation.md). The Windows planning timeout was investigated and the unchanged scale guard passed after reducing policy/fingerprint overhead. Hardware and release gates that have not yet been exercised remain separate. The source is prepared for the authorized pre-release. Global installed skills are not automatically updated by publication.
 
 ## Boundaries and acceptance
 

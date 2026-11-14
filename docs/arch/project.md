@@ -1,6 +1,6 @@
 # Syrin clean architecture
 
-> updated 2026-11-14 · v4.0.0-preview.2
+> updated 2026-11-14 · v4.1.0-preview.1
 
 Syrin clean is a bilingual skill/prompt toolkit with a shared PowerShell runtime, a single offline landing HTML and offline reports. The current channel remains pre-release; `project.json` owns its version. The supported mutation surface is the file lifecycle; system tuning and repair remain advisory pending validated adapters and VM qualification.
 

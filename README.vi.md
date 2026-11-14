@@ -2,7 +2,7 @@
 
 **Kiểm tra Windows và điện thoại Android, xem bằng chứng, chọn thay đổi.**
 
-Nhánh này tạo **bản ứng viên 4.1.0-preview.1 chưa phát hành**. Bản công khai vẫn là 4.0.0-preview.2. Skill và prompt song ngữ dùng runtime PowerShell cùng adapter Python tùy chọn cho Android. Cấu hình chưa thử không được coi là đã chứng nhận.
+**4.1.0-preview.1 là bản thử nghiệm.** Tải [các file phát hành](https://github.com/sovergarden-dev/syrin-clean/releases/tag/4.1.0-preview.1) hoặc mở trang web bên dưới. Skill và prompt song ngữ dùng runtime PowerShell cùng adapter Python tùy chọn cho Android. Cấu hình chưa thử không được coi là đã chứng nhận.
 
 [English](README.md) · [Lệnh sử dụng](docs/ref/commands.md) · [Ma trận hỗ trợ](docs/feat/support.md) · [Kiểm chứng](docs/ref/validation.md) · [Lịch sử thay đổi](CHANGELOG.md)
 
@@ -33,7 +33,7 @@ Windows bổ sung chính sách đường dẫn cấm/chỉ kiểm tra, yêu cầ
 
 ## Bắt đầu bằng chỉ kiểm tra
 
-1. Tải [gói tiếng Việt](dist/syrin-clean-skill-v4.1.0-preview.1-vi.zip) hoặc [gói tiếng Anh](dist/syrin-clean-skill-v4.1.0-preview.1-en.zip) của nhánh này.
+1. Tải [gói tiếng Việt](https://github.com/sovergarden-dev/syrin-clean/releases/download/4.1.0-preview.1/syrin-clean-skill-v4.1.0-preview.1-vi.zip) hoặc [gói tiếng Anh](https://github.com/sovergarden-dev/syrin-clean/releases/download/4.1.0-preview.1/syrin-clean-skill-v4.1.0-preview.1-en.zip) của nhánh này.
 2. Nhờ agent kiểm tra gói rồi chạy `install.ps1` bằng Windows PowerShell 5.1. Trình cài chuẩn bị và xác minh trước khi thay; bản cũ được giữ ngoài thư mục nạp skill ở `%USERPROFILE%\.syrin-clean-installer`.
 3. Mở phiên agent mới và gửi: **Dùng skill syrin-clean để kiểm tra máy và lập đề xuất, chưa thực thi thay đổi.**
 4. Đọc bằng chứng và phần chưa đo được. Với thao tác file, xem đúng danh sách và xác nhận các mã đã chọn; không duyệt mơ hồ việc liên quan file cá nhân hoặc xóa hẳn.

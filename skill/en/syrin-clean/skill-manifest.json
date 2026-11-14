@@ -101,8 +101,8 @@
     },
     {
       "path": "references/support.md",
-      "sha256": "4fc3bd050f4377015102669f4c8eb258bcc5ac75918f13a52df23076b956aa27",
-      "bytes": 5696
+      "sha256": "1d921aef925a515097cbf416b837bf776f22bb24778e1b22a3ad26ae77b1d1c7",
+      "bytes": 5672
     },
     {
       "path": "scripts/android-audit.ps1",

@@ -122,8 +122,8 @@
     },
     {
       "path": "syrin-clean/references/support.md",
-      "sha256": "4fc3bd050f4377015102669f4c8eb258bcc5ac75918f13a52df23076b956aa27",
-      "bytes": 5696
+      "sha256": "1d921aef925a515097cbf416b837bf776f22bb24778e1b22a3ad26ae77b1d1c7",
+      "bytes": 5672
     },
     {
       "path": "syrin-clean/scripts/android-audit.ps1",
@@ -172,7 +172,7 @@
     },
     {
       "path": "syrin-clean/skill-manifest.json",
-      "sha256": "96c3078399c487c8fc8824f5c4a216576e61eed0f8e8d6b1896ce38e01205df5",
+      "sha256": "353f2728dd7cf1bb9fdca99080685127ec792a12975fc7b4a09ea7a40dec97e8",
       "bytes": 4666
     }
   ]
