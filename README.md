@@ -6,6 +6,14 @@ Syrin clean is a bilingual Agent Skill and standalone prompt with a shared Windo
 
 [Tiếng Việt](README.vi.md) · [Commands](docs/ref/commands.md) · [Support matrix](docs/feat/support.md) · [Validation](docs/ref/validation.md) · [Changelog](CHANGELOG.md)
 
+## Try the report in one minute
+
+Open the [interactive example report](https://sovergarden-dev.github.io/syrin-clean/report-demo.html) to explore EN/VI controls, measurement limits and file history before installing anything. It uses synthetic data, does not scan your PC and does not execute file operations.
+
+[Guided demo and first audit](docs/ref/demo.md) · [Ask a question](https://github.com/sovergarden-dev/syrin-clean/discussions/categories/q-a) · [Report a reproducible bug](https://github.com/sovergarden-dev/syrin-clean/issues)
+
+![Syrin clean preview report showing the example-data banner and explicitly unmeasured values](docs/images/preview-demo.png)
+
 ## What it does
 
 - Collects Windows, storage, memory, startup, event, security and hardware metadata through bounded read-only collectors.
