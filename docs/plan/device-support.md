@@ -17,7 +17,7 @@ Extend evidence-driven maintenance to Android over USB while preserving Windows 
 - [x] Document archive corrections, primary sources, platform qualification, beta protocol and optional build attestations.
 - [x] Exercise isolated failure cases, public entry points, generated bundles and browser flows.
 
-Local implementation evidence: [candidate validation](../research/device-validation.md) and the [live-run amendments](../research/android-live-validation.md). The Windows planning timeout was investigated and the unchanged scale guard passed after reducing policy/fingerprint overhead. Hardware and release gates that have not yet been exercised remain separate. The source is prepared for the authorized pre-release. Global installed skills are not automatically updated by publication.
+Local implementation evidence: [candidate validation](../research/device-validation.md) and the [live-run amendments](../research/android-live-validation.md). The Windows planning timeout was investigated and the unchanged scale guard passed after reducing policy/fingerprint overhead. The authorized pre-release is published; [release verification](../research/device-release-verification.md) records CI, downloaded bytes, attestations and live UI checks. Hardware gates remain separate. Global installed skills are not automatically updated by publication.
 
 ## Boundaries and acceptance
 
@@ -35,4 +35,5 @@ Tests must prove device ambiguity/disconnection cannot select another transport;
 - [ ] VM System Restore and Windows filesystem/provider matrix.
 - [ ] New-user beta and real screen-reader/zoom/reduced-motion validation.
 - [ ] Device-specific mutation adapters only after plan/approval/recovery design and disposable-device testing.
-- [ ] Release provenance verified on a real authorized publication; prepared workflow alone is not attestation evidence.
+- [x] Verify release provenance on a real authorized publication: all eight downloaded 4.1.0-preview.1 assets passed checks pinned to the repository, signing workflow, source commit and tag.
+- [ ] Characterize planning timing under a repeatable workload; final local planning passed at 111,344 ms but active-host timings varied substantially.

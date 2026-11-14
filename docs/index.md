@@ -4,6 +4,7 @@
 - [Android integration research](research/android-integration.md) and [active implementation/qualification plan](plan/device-support.md).
 - [Candidate validation](research/device-validation.md) and [beta qualification protocol](ref/beta.md).
 - [First Android hardware validation](research/android-live-validation.md): observed coverage and first-use fixes, with private device data excluded.
+- [4.1.0-preview.1 publication verification](research/device-release-verification.md): CI, eight downloaded assets, provenance and live browser checks.
 
 - [Product context](../PRODUCT.md) and [visual system](../DESIGN.md).
 - [Completed bilingual HTML and preview release](plan/done/bilingual-experience.md).

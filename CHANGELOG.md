@@ -11,7 +11,7 @@ All notable changes to this project. Dates are 2026.
 - Persist Windows audit-only mode and protected paths; bind reviewed plans to policy files and revalidate restrictions between atomic items.
 - Add scoped cooperative stop requests and metadata-based quarantine recovery inspection without automatic repair or deletion.
 - Collect bounded Windows CPU/memory series, exclude reused process IDs and constrain before/after comparisons to matching capture settings and workload labels.
-- Add candidate beta procedures and prepare release-asset provenance attestations after published bytes match the validated build; no live attestation is claimed yet.
+- Add candidate beta procedures and release-asset provenance attestations after published bytes match the validated build; all eight published assets passed repository, workflow, source-commit and tag verification in the [publication record](docs/research/device-release-verification.md).
 
 ### Changed
 - Add Windows/Android selection to the offline bilingual HTML and shared skill/prompt while preserving Windows profile values.
