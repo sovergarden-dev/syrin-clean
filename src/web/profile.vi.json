@@ -39,5 +39,15 @@
     "lean": "-> NGÂN SÁCH: Quét ngắn và tóm tắt gọn. Nêu rõ collector bị bỏ hoặc chưa đầy đủ. (MaxSeconds=90)",
     "balanced": "-> NGÂN SÁCH: Quét cân bằng, kết quả có cấu trúc và bằng chứng ngắn gọn. (MaxSeconds=180)",
     "thorough": "-> NGÂN SÁCH: Quét chỉ đọc lâu hơn, giải thích chi tiết khi hữu ích; giữ mọi giới hạn an toàn. (MaxSeconds=600)"
-  }
+  },
+  "androidIntro": "-> THIẾT BỊ: Android qua USB, bản thử nghiệm chỉ đọc. Theo references/android.md; bỏ qua các pha Windows. Không dọn, vô hiệu/gỡ app, đổi cài đặt, reboot hay cài APK. Chọn đúng serial USB đã cấp quyền và Android user hiện tại.",
+  "androidReport": "-> BÁO CÁO: HTML đơn giản song ngữ từ số đo Android; không kèm lịch sử file Windows.",
+  "androidBudget": {
+    "lean": "-> NGÂN SÁCH ANDROID: MaxSeconds=90.",
+    "balanced": "-> NGÂN SÁCH ANDROID: MaxSeconds=180.",
+    "thorough": "-> NGÂN SÁCH ANDROID: MaxSeconds=300; giữ timeout từng lệnh."
+  },
+  "androidPackage": "-> APP: {v}. Chỉ đọc bộ đếm khung hình của đúng app này bằng -Package; không tự mở, dừng hay reset app.",
+  "androidContext": "-> TÁC VỤ: {v}. Lưu mô tả bằng -ContextLabel. Đề nghị người dùng thực hiện lại; giữ mốc bộ đếm và thời điểm thu thập. Không gọi đây là benchmark có kiểm soát.",
+  "androidInvalidPackage": "-> APP: Package nhập chưa hợp lệ. Xác định đúng package trước khi thu thập thông tin riêng của app."
 }

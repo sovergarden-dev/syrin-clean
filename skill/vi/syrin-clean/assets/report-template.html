@@ -245,15 +245,18 @@ tbody tr:last-child td { border-bottom: 0; }
   <div id="demo-banner" class="demo-banner" hidden></div>
   <div class="report-intro"><div><h1 id="top">Syrin clean report</h1><p id="identity"></p><p id="subtitle" class="small"></p></div><nav class="report-tools" aria-label="Report tools" id="report-tools"><a class="button button-secondary" href="#history" id="history-link">File history</a><button class="button button-secondary" id="print-report" type="button">Print summary</button><button class="button button-primary" id="share" type="button">Prepare shared export</button></nav></div>
   <div id="notice" class="notice" role="status"></div>
+  <p id="freshness" class="section-note"></p>
   <section class="report-section" aria-labelledby="summary-title"><h2 id="summary-title">Measurements and confidence</h2><div id="facts" class="facts"></div></section>
+  <section class="report-section" id="performance-section" hidden aria-labelledby="performance-title"><h2 id="performance-title"></h2><p id="performance-note" class="section-note"></p><div id="performance-facts" class="facts"></div><div id="performance-samples"></div></section>
   <section class="report-section" id="measurements" aria-labelledby="measurements-title"><div class="section-bar"><h2 id="measurements-title">Measured folder groups</h2><div class="category-control"><label for="category" id="category-label">Show category</label><select id="category"><option>All categories</option></select></div></div><p id="measurement-note" class="section-note"></p><div class="measurements"><figure id="scene" class="report-lens"><canvas id="cloud" tabindex="0" aria-label="Measured groups"></canvas><figcaption><p id="scene-note"></p><button id="motion" type="button">Pause animation</button></figcaption></figure><div id="radar"></div></div></section>
   <section class="report-section" id="comparison-section" hidden><h2 id="comparison-title"></h2><p id="comparison-note" class="section-note"></p><div id="comparison" class="facts comparison-facts"></div></section>
   <section class="report-section"><h2 id="proposals-title">Proposals</h2><p id="proposal-note" class="section-note"></p><div id="proposals"></div></section>
   <section class="report-section" id="history"><h2 id="history-title">File operation history</h2><p id="history-note" class="section-note"></p><div class="history-tools" id="history-tools"><div class="field"><label for="history-session" id="session-label">Choose a session</label><select id="history-session"></select></div><div class="field"><label for="history-search" id="search-label">Find a file</label><input type="search" id="history-search" autocomplete="off" placeholder="Path, code or item ID"></div><div class="field"><label for="history-state" id="state-label">State</label><select id="history-state"></select></div></div><div id="sessions"></div></section>
   <section class="report-section request-section" id="request-section" hidden><h2 id="request-title"></h2><p id="request-note"></p><textarea id="request" readonly rows="9" aria-label="Request for your agent"></textarea><button class="button button-primary" id="copy-request" type="button">Copy request</button><p id="request-status" role="status" aria-live="polite"></p></section>
+  <section class="report-section" id="app-section" hidden aria-labelledby="app-title"><h2 id="app-title"></h2><p id="app-note" class="section-note"></p><p id="app-context"></p><div id="app-facts" class="facts"></div></section>
   <section class="report-section" id="collector-section"><h2 id="details-title">Collector details</h2><div id="details"></div></section>
   <p id="print-note" class="print-only"></p>
-  <footer class="report-footer"><p id="footer"></p><p class="small">Syrin clean 4.0.0-preview.2</p><details class="font-credits"><summary id="font-credits-title">Font licenses</summary><pre>Copyright 2021 The Be Vietnam Pro Project Authors (https://github.com/bettergui/BeVietnamPro),
+  <footer class="report-footer"><p id="footer"></p><p class="small">Syrin clean 4.1.0-preview.1</p><details class="font-credits"><summary id="font-credits-title">Font licenses</summary><pre>Copyright 2021 The Be Vietnam Pro Project Authors (https://github.com/bettergui/BeVietnamPro),
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
@@ -572,6 +575,8 @@ export function normalizeAudit(input) {
 
 export function createView(input, baseline=null) {
   const audit=normalizeAudit(input);
+  const platform=audit.meta.platform || 'windows';
+  if(!['windows','android'].includes(platform)) throw Error('Unsupported audit platform');
   const collector=name=>audit.collectors[name] || {status:'unavailable',data:[],errors:[]};
   const volumes=list(collector('volumes').data);
   const systemVolume=volumes.find(v=>String(v.drive).toUpperCase() === String(audit.meta.systemDrive || '').toUpperCase()) || null;
@@ -584,16 +589,26 @@ export function createView(input, baseline=null) {
   const eventCount=events.status==='complete' && list(events.data).every(x=>number(x.count)!==null) ? list(events.data).reduce((s,x)=>s+x.count,0) : null;
   const estimates=radar.map(x=>number(x.estimatedReclaimableBytes));
   const reclaimable=estimates.length && estimates.every(x=>x!==null) ? estimates.reduce((a,b)=>a+b,0) : null;
-  let comparison=null;
+  const storage=first(collector('storage').data),battery=first(collector('battery').data),performance=first(collector('performance').data);
+  let comparison=null,performanceComparison=null;
   if(baseline){
     const before=normalizeAudit(baseline);
     if(!audit.meta.machineId || before.meta.machineId!==audit.meta.machineId || before.legacy || audit.legacy) throw Error('Baseline machine or schema mismatch');
+    if((before.meta.platform || 'windows')!==platform) throw Error('Baseline platform mismatch');
     const previous=list(before.collectors.volumes?.data).find(x=>systemVolume?.volumeId && x.volumeId===systemVolume.volumeId);
     if(previous && number(previous.freeBytes)!==null && number(systemVolume.freeBytes)!==null && collector('volumes').status==='complete' && before.collectors.volumes.status==='complete') comparison={before:previous.freeBytes,after:systemVolume.freeBytes,delta:systemVolume.freeBytes-previous.freeBytes};
+    const old=first(before.collectors.performance?.data);
+    if(collector('performance').status==='complete' && before.collectors.performance?.status==='complete' && performance.contextLabel && old.contextLabel===performance.contextLabel && old.method===performance.method && old.requestedSeconds===performance.requestedSeconds && old.intervalSeconds===performance.intervalSeconds && old.sampleCount>=2 && performance.sampleCount>=2 && number(old.meanCpuPercent)!==null && number(performance.meanCpuPercent)!==null && Date.parse(audit.meta.generatedUtc)>Date.parse(before.meta.generatedUtc)) performanceComparison={before:old.meanCpuPercent,after:performance.meanCpuPercent,delta:performance.meanCpuPercent-old.meanCpuPercent};
   }
   const memoryAvailable=number(first(collector('memory').data).availableBytes);
   const security=first(collector('security').data),defender=typeof security.realTimeProtection==='boolean'?security.realTimeProtection:null;
-  return {audit,collector,system:first(collector('system').data),systemVolume,radar,totals,startupCount,unknownStartup,eventCount,reclaimable,memoryAvailable,defender,comparison,incomplete:Object.entries(audit.collectors).filter(([,x])=>x.status!=='complete').map(([k])=>k)};
+  return {audit,platform,storage,battery,performance,performanceComparison,collector,system:first(collector('system').data),systemVolume,radar,totals,startupCount,unknownStartup,eventCount,reclaimable,memoryAvailable,defender,comparison,incomplete:Object.entries(audit.collectors).filter(([,x])=>x.status!=='complete').map(([k])=>k)};
+}
+
+export function measurementAge(meta,now=Date.now()) {
+  if(meta.shared) return null;
+  const captured=Date.parse(meta.generatedUtc);
+  return Number.isFinite(captured) && captured<=now ? Math.floor((now-captured)/60000) : null;
 }
 
 const copy={
@@ -677,6 +692,13 @@ export function filterHistoryItems(items, {query = '', state = 'all'} = {}) {
 
 const interpolate = (text, values) => text.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? ''));
 
+Object.assign(copy.en,{phone:'Android phone',phoneSpace:'Phone storage free',charge:'Battery charge',temperature:'Battery temperature',androidNotice:'Android preview: USB diagnostics only. No app, setting or file changes. Package grades are not authorization; RAM or swap alone does not prove a cause of lag.',snapshot:'This is a saved snapshot. Rebuilding HTML does not collect new measurements.',age:'Minutes since capture',performance:'Performance over time',performanceNote:'CPU is normalized across logical processors. Process rows omit command lines and paths. Changes in workload, reboot, charging or temperature can explain differences; these measurements do not establish a speed-up.',cpuMean:'Average CPU',cpuPeak:'Peak CPU',sampleTime:'Sample time',cpu:'CPU',topProcess:'Highest sampled process',cpuDelta:'CPU change (percentage points)',recovery:'Recovery integrity is checked again when you request a plan.'});
+Object.assign(copy.vi,{phone:'Điện thoại Android',phoneSpace:'Bộ nhớ điện thoại còn trống',charge:'Mức pin',temperature:'Nhiệt độ pin',androidNotice:'Android thử nghiệm: chỉ kiểm tra qua USB. Không đổi app, cài đặt hay file. Xếp hạng package không cấp quyền thao tác; riêng RAM hoặc swap chưa chứng minh nguyên nhân giật.',snapshot:'Đây là bản chụp đã lưu. Tạo lại HTML không thu thập số liệu mới.',age:'Số phút từ lúc thu thập',performance:'Hiệu năng theo thời gian',performanceNote:'CPU được chuẩn hóa trên các bộ xử lý logic. Không thu dòng lệnh hay đường dẫn tiến trình. Tác vụ, reboot, sạc và nhiệt độ có thể làm số đo thay đổi; đây chưa phải bằng chứng tăng tốc.',cpuMean:'CPU trung bình',cpuPeak:'CPU cao nhất',sampleTime:'Thời điểm đo',cpu:'CPU',topProcess:'Tiến trình cao nhất trong mẫu',cpuDelta:'Thay đổi CPU (điểm phần trăm)',recovery:'Tính toàn vẹn dữ liệu khôi phục sẽ được kiểm tra lại khi bạn yêu cầu lập kế hoạch.'});
+Object.assign(copy.en.collectorNames,{storage:'Phone storage',packages:'App inventory',frames:'App frames',performance:'Performance samples'});
+Object.assign(copy.vi.collectorNames,{storage:'Bộ nhớ điện thoại',packages:'Danh sách app',frames:'Khung hình app',performance:'Mẫu hiệu năng'});
+Object.assign(copy.en,{appTitle:'App rendering observations',appNote:'Cumulative counters since the app counter started. They do not isolate the described task or establish a speed-up. Missing process or counter origin stays partial.',appTotal:'Recorded frames',appJanky:'Janky frames',appTask:'Described task'});
+Object.assign(copy.vi,{appTitle:'Quan sát khung hình ứng dụng',appNote:'Bộ đếm tích lũy từ lúc app bắt đầu đếm. Số liệu chưa tách riêng tác vụ mô tả và chưa chứng minh tăng tốc. Thiếu tiến trình hoặc mốc đếm vẫn là chưa đầy đủ.',appTotal:'Khung hình đã ghi',appJanky:'Khung hình bị giật',appTask:'Tác vụ mô tả'});
+
 function renderReport(payload) {
   const $ = id => document.getElementById(id), esc = escapeHtml;
   const view = createView(payload.audit, payload.baseline);
@@ -753,16 +775,20 @@ function renderReport(payload) {
   }
   function renderAll() {
     T = copy[language]; document.documentElement.lang = language; $('report-language').value = language;
-    document.title = 'Syrin clean | ' + (payload.demo ? T.examplePC : view.system.model || T.pc);
+    const example=view.platform==='android'?T.phone:T.examplePC;
+    document.title = 'Syrin clean | ' + (payload.demo ? example : view.system.model || (view.platform==='android'?T.phone:T.pc));
     const labels = {'skip-report':'skip','language-label':'language','subtitle':'report','summary-title':'summary','measurements-title':'measured','measurement-note':'measurementNote','category-label':'category','comparison-title':'comparison','comparison-note':'comparisonNote','proposals-title':'proposals','proposal-note':'proposalNote','history-title':'history','history-note':'historyNote','details-title':'details','scene-note':'scene','share':'share','request-title':'request','request-note':'requestNote','copy-request':'copy','history-link':'history','print-report':'print','print-note':'printNote','font-credits-title':'fontCredits','session-label':'chooseSession','search-label':'search','state-label':'stateFilter','footer':'footer'};
     for (const [id,key] of Object.entries(labels)) $(id).textContent = T[key];
     $('session-label').textContent = T.chooseSession + ' (' + sessions.length + ')';
     $('report-tools').setAttribute('aria-label',T.tools); $('request').setAttribute('aria-label',T.request); $('cloud').setAttribute('aria-label',T.scene); $('history-search').placeholder = T.searchPlaceholder;
-    $('top').textContent = payload.demo ? T.examplePC : view.system.model || T.pc;
-    $('identity').textContent = [view.system.windows,view.system.edition,view.system.architecture,localDate(view.audit.meta.generatedUtc,language)].filter(Boolean).join(', ');
+    $('top').textContent = payload.demo ? example : view.system.model || (view.platform==='android'?T.phone:T.pc);
+    $('identity').textContent = [view.platform==='android'?'Android '+(view.system.android || ''):view.system.windows,view.system.edition,view.system.architecture,localDate(view.audit.meta.generatedUtc,language)].filter(Boolean).join(', ');
+    const age=measurementAge(view.audit.meta);
+    $('freshness').textContent = T.snapshot + ' ' + T.age + ': ' + (age===null?T.unknown:age.toLocaleString(language==='vi'?'vi-VN':'en-US'));
     $('demo-banner').hidden = !payload.demo; $('demo-banner').textContent = T.demo;
     const warningText = language === 'vi' ? {'agent-privacy':'Agent hoặc nhà cung cấp có thể xử lý đầu ra lệnh ngoài máy.','support-unverified':'Cấu hình, filesystem và provider chưa thử vẫn chưa được xác minh.'} : {'agent-privacy':'Your agent/provider may process command output outside this device.','support-unverified':'Untested configurations, filesystems and providers remain unverified.'};
     const warnings = [...list(view.audit.meta.warnings), ...list(view.audit.meta.warningCodes).map(code => warningText[code]).filter(Boolean)];
+    if(view.platform==='android') warnings.unshift(T.androidNotice);
     if (view.audit.legacy) warnings.unshift(T.legacy);
     if (payload.shared) warnings.unshift(T.shared);
     if (view.incomplete.length) warnings.push(T.incomplete + view.incomplete.map(name => T.collectorNames[name] || name).join(', '));
@@ -773,6 +799,28 @@ function renderReport(payload) {
       fact(T.startup,view.startupCount ?? T.unknown,view.startupCount === null ? 'unavailable' : 'complete',view.unknownStartup ? view.unknownStartup + ' ' + T.unknown : '') +
       fact(T.events,view.eventCount ?? T.unknown,view.eventCount === null ? 'unavailable' : view.collector('events').status) +
       fact(T.defender,view.defender === null ? T.unknown : view.defender ? T.on : T.off,view.defender === null ? 'unavailable' : view.collector('security').status,T.securityNote);
+    if(view.platform==='android'){
+      const percent=value=>number(value)===null?T.unknown:value.toLocaleString(language==='vi'?'vi-VN':'en-US')+'%';
+      const quality=(name,value)=>value===null?'unavailable':view.collector(name).status;
+      const temperature=typeof view.battery.temperatureC==='number' && Number.isFinite(view.battery.temperatureC)?view.battery.temperatureC:null;
+      $('facts').innerHTML=fact(T.phoneSpace,gb(view.storage.freeBytes),quality('storage',number(view.storage.freeBytes)))+fact(T.memory,gb(view.memoryAvailable),quality('memory',view.memoryAvailable))+fact(T.charge,percent(view.battery.chargePercent),quality('battery',number(view.battery.chargePercent)))+fact(T.temperature,temperature===null?T.unknown:temperature+' °C',quality('battery',temperature));
+    }
+    $('measurements').hidden=view.platform==='android';
+    $('app-section').hidden=view.platform!=='android' || !view.audit.collectors.frames;
+    if(view.audit.collectors.frames){
+      const frames=view.collector('frames'),data=first(frames.data);
+      $('app-title').textContent=T.appTitle;$('app-note').textContent=T.appNote;
+      $('app-context').textContent=[data.package,data.contextLabel?T.appTask+': '+data.contextLabel:''].filter(Boolean).join(' · ');
+      $('app-facts').innerHTML=fact(T.appTotal,number(data.totalFrames)===null?T.unknown:data.totalFrames,frames.status)+fact(T.appJanky,number(data.jankyFrames)===null?T.unknown:data.jankyFrames,frames.status);
+    }
+    $('performance-section').hidden=!view.performance.sampleCount;
+    $('performance-title').textContent=T.performance;$('performance-note').textContent=T.performanceNote;
+    if(view.performance.sampleCount){
+      const perf=view.performance, pct=value=>number(value)===null?T.unknown:value+'%';
+      $('performance-facts').innerHTML=fact(T.cpuMean,pct(perf.meanCpuPercent),view.collector('performance').status)+fact(T.cpuPeak,pct(perf.peakCpuPercent),view.collector('performance').status);
+      $('performance-samples').innerHTML=table(list(perf.samples).map(sample=>({[T.sampleTime]:localDate(sample.sampledUtc,language),[T.cpu]:pct(sample.cpuPercent),[T.memory]:gb(sample.availableBytes),[T.topProcess]:first(sample.processes).name || T.unknown})));
+      if(view.performanceComparison){const c=view.performanceComparison;$('performance-facts').innerHTML+=fact(T.before,pct(c.before),'complete')+fact(T.after,pct(c.after),'complete')+fact(T.cpuDelta,(c.delta>=0?'+':'')+c.delta.toFixed(2),'complete');}
+    }
     $('category').innerHTML = '<option value="all">' + esc(T.all) + '</option>' + categories.map(category => '<option value="' + category + '">' + esc(T[category === 'unknown' ? 'unknown-category' : category]) + '</option>').join('');
     $('category').value = state.category; renderRadar();
     $('scene').hidden = payload.mode !== '3d' || !view.radar.some(row => row.measuredBytes > 0);
@@ -783,13 +831,13 @@ function renderReport(payload) {
       return Object.fromEntries(Object.entries(T.proposalColumns).map(([key,label]) => [label,key === 'risk' ? T.risks[item[key]] || item[key] : key === 'undo' ? T.undoLabels[item[key]] || item[key] : item[key]]));
     });
     $('proposals').innerHTML = proposals.length ? table(proposals) : empty(T.noProposals);
-    $('details').innerHTML = Object.entries(view.audit.collectors).map(([name,collector]) => '<details><summary>' + esc(T.collectorNames[name] || name) + ': ' + esc(T.qualities[collector.status] || collector.status) + '</summary><p class="errors">' + esc(list(collector.errors).join('\n')) + '</p>' + table(list(collector.data)) + '</details>').join('');
+    $('details').innerHTML = Object.entries(view.audit.collectors).map(([name,collector]) => '<details><summary>' + esc(T.collectorNames[name] || name) + ': ' + esc(T.qualities[collector.status] || collector.status) + '</summary><p class="errors">' + esc(list(collector.errors).join('\n')) + '</p>' + table(name==='performance'?list(view.performance.samples).flatMap(sample=>list(sample.processes).map(process=>({sampledUtc:sample.sampledUtc,...process}))):list(collector.data)) + '</details>').join('');
     $('history-session').textContent = '';
     sessions.forEach((session,index) => { const option = document.createElement('option'); option.value = String(index); option.textContent = (index+1) + '. ' + localDate(session.createdUtc,language) + ' / ' + String(session.sessionId).slice(0,12); $('history-session').append(option); });
     $('history-session').value = String(state.session);
     $('history-state').innerHTML = [['all','allStates'],['quarantined','storedState'],['attention','attentionState'],['planned','plannedState'],['restored','restoredState'],['purged','purgedState']].map(([value,label]) => '<option value="' + value + '">' + esc(T[label]) + '</option>').join('');
     $('history-state').value = state.filter;
-    $('share').hidden = Boolean(payload.shared); $('history').hidden = Boolean(payload.shared); $('history-link').hidden = Boolean(payload.shared);
+    $('share').hidden = Boolean(payload.shared); $('history').hidden = Boolean(payload.shared) || view.platform==='android'; $('history-link').hidden = Boolean(payload.shared) || view.platform==='android';
     renderHistory(); if (state.request) renderRequest(state.request,false); lens?.refresh();
   }
   $('report-language').addEventListener('change', () => { language = $('report-language').value === 'vi' ? 'vi' : 'en'; renderAll(); });

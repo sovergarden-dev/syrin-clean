@@ -1,8 +1,8 @@
 # Syrin clean
 
-**Kiểm tra Windows, xem bằng chứng, duyệt đúng thao tác file.**
+**Kiểm tra Windows và điện thoại Android, xem bằng chứng, chọn thay đổi.**
 
-Đây là bộ skill và prompt song ngữ dùng chung runtime PowerShell. **4.0.0-preview.2 là bản pre-release**, còn các cổng kiểm chứng môi trường. Cấu hình chưa thử không được coi là đã chứng nhận.
+Nhánh này tạo **bản ứng viên 4.1.0-preview.1 chưa phát hành**. Bản công khai vẫn là 4.0.0-preview.2. Skill và prompt song ngữ dùng runtime PowerShell cùng adapter Python tùy chọn cho Android. Cấu hình chưa thử không được coi là đã chứng nhận.
 
 [English](README.md) · [Lệnh sử dụng](docs/ref/commands.md) · [Ma trận hỗ trợ](docs/feat/support.md) · [Kiểm chứng](docs/ref/validation.md) · [Lịch sử thay đổi](CHANGELOG.md)
 
@@ -17,9 +17,15 @@
 
 Thao tác tự động hiện giới hạn ở vòng đời file mà runtime hỗ trợ. Chỉnh hệ thống, sửa Windows, gỡ app và phần cứng giữ ở dạng tư vấn tới khi có hỗ trợ đã kiểm chứng. Cách ly không thay sao lưu và không giải phóng dung lượng; xóa hẳn là bước riêng, không hoàn tác được.
 
+## Android và kiểm soát thực thi
+
+Android qua USB chỉ thu thập metadata dung lượng, bộ nhớ, CPU và pin với giới hạn thời gian. Danh sách app và bộ đếm khung hình từng app là tùy chọn. Máy Windows cần Python 3.10+ và SDK Platform Tools chính thức của Google; chọn đúng serial điện thoại. Preview chưa đổi app, cài đặt hay file Android; chưa hỗ trợ iPhone/iPad.
+
+Windows bổ sung chính sách đường dẫn cấm/chỉ kiểm tra, yêu cầu dừng an toàn, kiểm tra metadata khu cách ly và đo CPU/bộ nhớ theo thời gian. Báo cáo có tuổi số liệu và điều kiện so sánh. Xem [phạm vi và cơ chế](docs/feat/devices.md), [lệnh](docs/ref/commands.md).
+
 ## Bắt đầu bằng chỉ kiểm tra
 
-1. Tải [gói tiếng Việt](dist/syrin-clean-skill-v4.0.0-preview.2-vi.zip) hoặc [gói tiếng Anh](dist/syrin-clean-skill-v4.0.0-preview.2-en.zip) của nhánh này.
+1. Tải [gói tiếng Việt](dist/syrin-clean-skill-v4.1.0-preview.1-vi.zip) hoặc [gói tiếng Anh](dist/syrin-clean-skill-v4.1.0-preview.1-en.zip) của nhánh này.
 2. Nhờ agent kiểm tra gói rồi chạy `install.ps1` bằng Windows PowerShell 5.1. Trình cài chuẩn bị và xác minh trước khi thay; bản cũ được giữ ngoài thư mục nạp skill ở `%USERPROFILE%\.syrin-clean-installer`.
 3. Mở phiên agent mới và gửi: **Dùng skill syrin-clean để kiểm tra máy và lập đề xuất, chưa thực thi thay đổi.**
 4. Đọc bằng chứng và phần chưa đo được. Với thao tác file, xem đúng danh sách và xác nhận các mã đã chọn; không duyệt mơ hồ việc liên quan file cá nhân hoặc xóa hẳn.
@@ -28,7 +34,7 @@ Hai vị trí cài là `.claude/skills/syrin-clean` và `.agents/skills/syrin-cl
 
 ## Prompt độc lập và trang HTML
 
-[Prompt VI](prompts/syrin-clean-prompt-vi-v4.0.0-preview.2.md) và [prompt EN](prompts/syrin-clean-prompt-en-v4.0.0-preview.2.md) có cùng runtime được nhúng. Agent đọc phần PROMPT, trích bootstrap bằng lệnh filesystem rồi giải nén vào thư mục mới, trống; không chép Base64 vào ngữ cảnh model. Bootstrap kiểm tra mã băm và đường dẫn, không thực thi dọn dẹp.
+[Prompt VI](prompts/syrin-clean-prompt-vi-v4.1.0-preview.1.md) và [prompt EN](prompts/syrin-clean-prompt-en-v4.1.0-preview.1.md) có cùng runtime được nhúng. Agent đọc phần PROMPT, trích bootstrap bằng lệnh filesystem rồi giải nén vào thư mục mới, trống; không chép Base64 vào ngữ cảnh model. Bootstrap kiểm tra mã băm và đường dẫn, không thực thi dọn dẹp.
 
 Mở [bản web](https://sovergarden-dev.github.io/syrin-clean/) hoặc tải [một file HTML offline](dist/syrin-clean.html). Mặc định English, chuyển EN/VI ngay trong trang và giữ hồ sơ đang nhập. Font, cả hai gói, bộ tạo prompt và [báo cáo giả lập](dist/syrin-clean-report-demo.html) đều được nhúng. Trang không chạy lệnh Windows. File đính kèm Releases được tải về; liên kết Pages mở bản web.
 

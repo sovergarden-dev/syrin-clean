@@ -1,5 +1,10 @@
 # Documentation
 
+- [Device support and execution controls](feat/devices.md).
+- [Android integration research](research/android-integration.md) and [active implementation/qualification plan](plan/device-support.md).
+- [Candidate validation](research/device-validation.md) and [beta qualification protocol](ref/beta.md).
+- [First Android hardware validation](research/android-live-validation.md): observed coverage and first-use fixes, with private device data excluded.
+
 - [Product context](../PRODUCT.md) and [visual system](../DESIGN.md).
 - [Completed bilingual HTML and preview release](plan/done/bilingual-experience.md).
 - [Bilingual HTML validation](research/bilingual-validation.md).

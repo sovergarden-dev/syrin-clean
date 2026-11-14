@@ -232,6 +232,64 @@ try {
   }finally{& $module {$script:FixtureCloudRoots=@()}}
   Pass 'legacy imports and restores retain source-policy checks'
 
+  Import-Module (Join-Path $Runtime 'modules\Policy.psm1')
+  $keep=File 'policy\keep\data.txt';$allowed=File 'policy\keep-sibling\cache.bin'
+  Set-SyrinProtection -Mode approve -ProtectedPath @((Split-Path -Parent $keep)) | Out-Null
+  foreach($selection in @($keep,(Split-Path -Parent (Split-Path -Parent $keep)))){
+    $rejected=$false;try{Plan @{Path=@($selection);Root=$root}|Out-Null}catch{$rejected=$true}
+    Assert $rejected 'Protected file or ancestor was accepted'
+  }
+  $p=Plan @{Path=@($allowed);Root=$root}
+  Assert ($p.plan.protection.files.Count -eq 1) 'Plan did not bind the policy file'
+  Set-SyrinProtection -Mode audit | Out-Null
+  Assert ((Get-SyrinProtection).protectedPaths -contains (Split-Path -Parent $keep)) 'Changing mode erased protected paths'
+  $policyCli=& (Join-Path $Runtime 'scripts\policy.ps1') -Set -Mode audit | ConvertFrom-Json
+  Assert ($policyCli.policy.protectedPaths -contains (Split-Path -Parent $keep)) 'Policy CLI erased exclusions when changing mode'
+  $rejected=$false;try{Execute $p|Out-Null}catch{$rejected=$true}
+  Assert ($rejected -and (Test-Path -LiteralPath $allowed)) 'Changed policy allowed execution'
+  $rejected=$false;try{Plan @{Path=@($allowed);Root=$root}|Out-Null}catch{$rejected=$true}
+  Assert $rejected 'Audit-only policy allowed a file plan'
+  Set-SyrinProtection -Mode approve | Out-Null
+  $p=Plan @{Path=@($allowed);Root=$root};$r=Execute $p;Assert $r.ok 'Newly reviewed policy was rejected'
+  Set-SyrinProtection -Mode approve -ProtectedPath @($allowed) | Out-Null
+  $rejected=$false;try{Plan @{Operation='purge';Root=$root;SessionId=$p.plan.sessionId;ItemId=@($p.plan.items[0].id)}|Out-Null}catch{$rejected=$true}
+  Assert $rejected 'Protection of an original path did not block purge'
+  Set-SyrinProtection -Mode approve | Out-Null
+  Pass 'persistent policy protects ancestors, binds plans and blocks audit-only execution and protected purge'
+
+  $stopA=File 'stop\a.cache';$stopB=File 'stop\b.cache';$p=Plan @{Path=@($stopA,$stopB);Root=$root}
+  $runId=[guid]::NewGuid().ToString('N');$stopFile=Join-Path $fixture 'stop-request.json'
+  & $module {
+    param($StopPath,$Run)
+    $script:BeforeStopEvent=(Get-Command Add-SyrinEvent).ScriptBlock;$script:StopPath=$StopPath;$script:StopRun=$Run
+    function script:Add-SyrinEvent($Session,[string]$ItemId,[string]$State,[string]$ErrorText='',[string]$RestoredPath=''){
+      & $script:BeforeStopEvent $Session $ItemId $State $ErrorText $RestoredPath
+      if($State -eq 'quarantined'){Write-SyrinAtomicJson $script:StopPath @{schemaVersion=1;kind='syrin-stop';runId=$script:StopRun}}
+    }
+  } $stopFile $runId
+  try{$r=Invoke-SyrinFilePlan -PlanFile $p.planFile -Approval $p.approval -ItemId @($p.plan.items.id) -StopFile $stopFile -RunId $runId}
+  finally{& $module {Set-Item Function:Add-SyrinEvent $script:BeforeStopEvent}}
+  Assert (-not $r.ok -and $r.stopped -and $r.items.Count -eq 1 -and $r.unprocessed.Count -eq 1) 'Stop did not preserve the atomic item boundary'
+  Assert ((Test-Path -LiteralPath $p.plan.items[0].stored) -and (Test-Path -LiteralPath $p.plan.items[1].original)) 'Stop lost or moved the wrong item'
+  $history=@(Get-SyrinHistory $root $p.plan.sessionId)
+  Assert ($history[0].ok -and @($history[0].items | Where-Object state -eq 'quarantined').Count -eq 1) 'Stopped journal is not replayable'
+  $r=Invoke-SyrinFilePlan -PlanFile $p.planFile -Approval $p.approval -ItemId @($p.plan.items[1].id) -StopFile $stopFile -RunId ([guid]::NewGuid().ToString('N'))
+  Assert ($r.stopped -and $r.items.Count -eq 0 -and $r.stopReason -like '*does not match*') 'Stale stop request did not stop safely'
+  Pass 'cooperative stop finishes one item, preserves history and rejects stale run requests'
+
+  $healthA=File 'health\a.cache';$healthB=File 'health\b.cache';$p=Plan @{Path=@($healthA,$healthB);Root=$root};$r=Execute $p
+  $health=Test-SyrinRecovery -Root $root -SessionId $p.plan.sessionId
+  Assert ($health.ok -and @($health.sessions[0].items | Where-Object integrity -eq 'intact').Count -eq 2) 'Intact recovery data was not verified'
+  [IO.File]::WriteAllText($p.plan.items[0].stored,'different size and bytes')
+  $unexpected=Join-Path (Split-Path -Parent $p.plan.items[0].stored) 'unlisted.cache';[IO.File]::WriteAllText($unexpected,'keep')
+  $health=Test-SyrinRecovery -Root $root -SessionId $p.plan.sessionId
+  Assert (-not $health.ok -and $health.sessions[0].unlisted.Count -eq 1 -and @($health.sessions[0].items | Where-Object integrity -eq 'changed').Count -eq 1) 'Changed and unlisted recovery data was hidden'
+  Assert ([IO.File]::ReadAllText($unexpected) -eq 'keep') 'Recovery verification changed an unlisted file'
+  Pass 'recovery health verifies physical metadata and reports unlisted files without changing them'
+
+  Set-SyrinProtection -Mode approve -ProtectedPath @() | Out-Null
+  Assert ((Get-SyrinProtection).protectedPaths.Count -eq 0) 'Explicitly clearing exclusions failed'
+
   Write-Output "Quarantine tests: $script:count passed"
 } finally {
   foreach($key in $savedEnv.Keys){[Environment]::SetEnvironmentVariable($key,$savedEnv[$key],'Process')}

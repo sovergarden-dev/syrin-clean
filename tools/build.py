@@ -12,6 +12,7 @@ import subprocess
 import tempfile
 import zipfile
 from pathlib import Path
+from urllib.parse import urljoin
 
 ROOT = Path(__file__).resolve().parent.parent
 PROJECT = json.loads((ROOT / "project.json").read_text(encoding="utf-8"))
@@ -20,10 +21,11 @@ SLUG = PROJECT["name"]
 if SLUG != "syrin-clean" or not re.fullmatch(r"\d+\.\d+\.\d+(?:-[A-Za-z0-9][A-Za-z0-9.-]*)?", VERSION):
     raise ValueError("Expected the Syrin clean package name and a filename-safe semantic version")
 LANGUAGES = ("en", "vi")
-SCRIPTS = ("audit.ps1", "history.ps1", "make-report.ps1", "new-restorepoint.ps1", "quarantine.ps1", "run-elevated.ps1")
-MODULES = ("IO.psm1", "Audit.psm1", "Quarantine.psm1", "Report.psm1", "Windows.psm1")
+SCRIPTS = ("audit.ps1", "history.ps1", "make-report.ps1", "new-restorepoint.ps1", "quarantine.ps1", "run-elevated.ps1", "policy.ps1", "android-audit.ps1", "request-stop.ps1")
+MODULES = ("IO.psm1", "Audit.psm1", "Quarantine.psm1", "Report.psm1", "Windows.psm1", "Policy.psm1", "Performance.psm1")
+ANDROID = ("adbclient.py", "model.py", "audit.py")
 SCHEMAS = ("audit.schema.json", "proposals.schema.json", "plan.schema.json")
-PHASES = ("stage0-audit.md", "stage1-proposals.md", "stage2-execution.md")
+PHASES = ("stage0-audit.md", "stage1-proposals.md", "stage2-execution.md", "android.md")
 SECRET = re.compile(rb"(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,}|AKIA[A-Z0-9]{16}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----)")
 
 
@@ -113,7 +115,7 @@ def inline_styles(path, fonts):
 
 
 def runtime_sources():
-    paths = ["scripts/" + name for name in SCRIPTS] + ["modules/" + name for name in MODULES] + ["assets/" + name for name in SCHEMAS]
+    paths = ["scripts/" + name for name in SCRIPTS] + ["modules/" + name for name in MODULES] + ["assets/" + name for name in SCHEMAS] + ["android/" + name for name in ANDROID]
     allowlist("src/runtime", set(paths) | {"assets/report-template.html"})
     result = {name: encoded(read("src/runtime/" + name), name.endswith((".ps1", ".psm1"))) for name in paths}
     fonts, licenses = font_assets()
@@ -145,7 +147,9 @@ def build_outputs():
         skill["SKILL.md"] = encoded(entry.replace("__CUSTOM_CONTEXT__", profile_hint))
         for name in PHASES:
             skill["references/" + name] = encoded(read(folder + "/references/" + name))
-        skill["references/support.md"] = encoded(read("docs/feat/support.md"))
+        support_url = PROJECT["repository"] + "/blob/" + VERSION + "/docs/feat/support.md"
+        support = re.sub(r"\]\(([^)\s]+)\)", lambda match: "](" + urljoin(support_url, match[1]) + ")", read("docs/feat/support.md"))
+        skill["references/support.md"] = encoded(support)
         skill["skill-manifest.json"] = manifest(skill, package=SLUG, version=VERSION, language=language)
         package = {SLUG + "/" + name: data for name, data in skill.items()}
         package["install.ps1"] = encoded(read("src/install.ps1"), True)
@@ -165,7 +169,7 @@ def build_outputs():
     for language in LANGUAGES:
         profile = json.loads(read(f"src/web/profile.{language}.json"))
         ui = json.loads(read(f"src/web/ui.{language}.json"))
-        title = f"# Syrin clean / Windows prompt v{VERSION}" if language == "en" else f"# Syrin clean / Prompt Windows v{VERSION}"
+        title = f"# Syrin clean / Windows and Android prompt v{VERSION}" if language == "en" else f"# Syrin clean / Prompt Windows và Android v{VERSION}"
         lines = [profile[key][value] for key, value in (("roleSnippets", "auto"), ("scopeSnippets", "full"), ("aggrSnippets", "balanced"), ("budgetSnippets", "balanced"), ("modeSnippets", "approve"), ("reportSnippets", "r3d"))]
         prompt = policies[language].replace("__CUSTOM_CONTEXT__", profile["blockHeader"] + "\n".join(lines))
         extra = appendix(bundles[language], language)

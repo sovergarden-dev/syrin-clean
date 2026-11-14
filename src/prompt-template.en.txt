@@ -34,6 +34,16 @@ Working sessions default to `%LOCALAPPDATA%\SyrinClean\Sessions`. Use a new empt
 - Approval must come from the human conversation and name the selected IDs. Echo the operation, target, gain, loss, reversibility, prerequisites and digest before execution. The digest binds a plan; it is not proof of human identity against an unrestricted agent.
 - On STOP, finish the current atomic boundary and start no further item. Read history after interruption; Resume only reconciles known states and never guesses. Do not replay a failed command blindly. Ask one concrete question when a conflict needs a choice.
 
+## Device routing and execution controls
+
+For Android requests, read references/android.md and use android-audit.ps1; skip the Windows phase references. Android is read-only and requires Python 3.10+ and official SDK Platform Tools. Never apply Windows file operations or a generic debloat list to a phone.
+
+For Windows, read scripts/policy.ps1 before planning. Persist the user's audit-only choice and literal protected paths with policy.ps1 -Set, merging existing exclusions. Do not reset them silently. Only an explicit request to unlock may change audit to approve. Policy narrows capabilities and never authorizes execution. The default policy applies to historical plans; changing a bound policy requires a new reviewed plan.
+
+For every Windows execution, generate a fresh run ID and stop-file path outside selected sources and quarantine. Pass -RunId and -StopFile to quarantine.ps1. On STOP, call request-stop.ps1 with those values, wait for the atomic boundary and inspect completed/unprocessed IDs. Do not kill the worker. quarantine.ps1 -Verify checks fingerprints, journals and unlisted files without repairing or deleting anything; it does not replace a backup or a restore test.
+
+Scope speed collects a bounded 30-second CPU/memory series. Supply -ContextLabel and keep workloads comparable for before/after reporting. Do not close apps or change priorities to improve the measurement without separate permission.
+
 ## Workflow
 
 Read only the current phase reference: `references/stage0-audit.md`, then `stage1-proposals.md`; read `stage2-execution.md` only after human confirmation. Use compact structured results instead of dumping whole files. Retry a failing command at most once with a changed approach. End every failure with the state and the next safe action, not a success claim.
@@ -72,3 +82,21 @@ Show the plan and ask the human to confirm the exact operation and IDs. State th
 5. Re-audit into a new working directory after changes, retaining the original baseline. Build a comparison only for the same machine. Report observed changes without attributing every byte or performance change to Syrin clean.
 6. For a sharing request, run `scripts/make-report.ps1 -OutDir <dir> -Share -NoOpen`. Review share-report.html with the user. It omits names, paths, commands, identifiers and raw history, but aggregates are not guaranteed anonymous. Never upload it automatically.
 7. Finish with done/skipped/failed IDs, remaining uncertainty, recovery instructions and any restart choice. `scripts/history.ps1` lists owned audit and file sessions so the user need not remember paths. Never schedule ongoing cleanup without a separate request.
+
+# Android USB diagnostics
+
+Use this branch only for a user-requested Android audit. Windows maintenance phases do not apply to the phone. This preview implements diagnostics, not Android mutations. It needs Windows PowerShell 5.1, Python 3.10+ and Google's SDK Platform Tools. Do not install dependencies or drivers silently. iPhone/iPad diagnostics are not implemented.
+
+1. Verify the bundle manifest. Ask for or locate the user's official SDK `adb.exe`; use its absolute path. Run `scripts/android-audit.ps1 -AdbPath <absolute-adb-path> -Devices`. Discovery may start the local ADB server. Do not kill/restart a server used by another tool, change drivers, enable wireless debugging or upload device details.
+2. Select the exact phone from the conversation and device list. If ambiguous, ask once. The phone must show `device`, and USB transport must be verified. The user unlocks it and approves the RSA prompt on the phone if necessary. Never bypass authorization. Every read pins and rechecks the selected transport/serial; a disconnect or changed user requires a new audit, not a fallback device.
+3. Run `scripts/android-audit.ps1 -AdbPath <absolute-adb-path> -Serial <selected-serial> -Lang en -MaxSeconds 120`. The output directory must be new, local and outside cloud sync. Use `-Lang vi` for Vietnamese or `-NoReport` when HTML was declined. No browser opens automatically.
+4. Package inventory is optional: add `-IncludePackages` only when app review is needed. It lists the current Android user's installed/system/disabled packages; it does not recommend removing them. Add `-Package <exact-package-name>` only to inspect frames for the app the user identified. A frame counter is cumulative; fewer than 120 frames is insufficient for interpretation and is not a measured speed-up.
+5. Explain each collector's completeness and sampling window. RAM, CPU, battery temperature, storage and uptime are context, not a health score. ZRAM is compressed RAM; swap usage alone proves neither flash I/O nor a cause of lag. Do not compare immediately-post-reboot RAM or sparse jank with a warmed-up baseline. Security patch dates are observations; confirm the vendor's current support policy separately.
+6. Report actions as advice with the measured evidence and missing evidence. Never run settings writes, app disable/uninstall, clear-data, force-stop, cache wipes, reboot, root, bootloader changes, APK installation or device file transfers through this preview. A historical recipe or UAD grade is not user approval or a recovery guarantee. Do not reproduce a vendor-specific debloat list as a generic plan.
+7. `scripts/make-report.ps1 -OutDir <session> -Share -NoOpen` prepares a local aggregate HTML without model, device identity, packages, process names or raw diagnostics. Review it before sharing. Raw sessions stay private. At the end, explain how the user can disable USB debugging and revoke the computer's authorization after any remaining support work.
+
+Missing Python/ADB, unavailable `/proc` fields, OEM output differences and USB transport limitations are explicit failures or incomplete collectors, not permission to substitute commands from an unreviewed archive. All Android device/OEM qualification remains separate from synthetic tests.
+
+Use `-Check` before an audit to check the host and list device states. It returns `ready=false` until an exact `-Serial` is provided and verified; `ok=true` only means the check ran. Missing Python/ADB, unauthorized, offline and ambiguous devices require different remedies. A successful readiness check is not approval to change a phone. Explicit `-AdbPath` is preferred; an existing PATH installation may be used when it is omitted.
+
+For a named app, add `-Package <exact-package> -ContextLabel <one-line-task-description>` (maximum 240 characters). Let the user perform the task normally. The report retains capture start/end, the observed process and counter origin. Several processes, a missing origin or fewer than 120 frames remain partial. These are cumulative app counters, not an isolated task benchmark; do not reset counters, force-stop apps or infer a speed-up from them. Shared exports omit this app/task data.

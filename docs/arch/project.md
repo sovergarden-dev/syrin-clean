@@ -1,6 +1,6 @@
 # Syrin clean architecture
 
-> updated 2026-10-30 · v4.0.0-preview.1
+> updated 2026-11-14 · v4.0.0-preview.2
 
 Syrin clean is a bilingual skill/prompt toolkit with a shared PowerShell runtime, a single offline landing HTML and offline reports. The current channel remains pre-release; `project.json` owns its version. The supported mutation surface is the file lifecycle; system tuning and repair remain advisory pending validated adapters and VM qualification.
 
@@ -9,6 +9,7 @@ Syrin clean is a bilingual skill/prompt toolkit with a shared PowerShell runtime
 | Source | Output |
 |---|---|
 | `src/runtime/modules` and `scripts` | Identical native runtime in both skill packages |
+| `src/runtime/android` | Optional Python standard-library ADB diagnostics; no device mutation commands |
 | `src/instructions/{en,vi}` | Skill policy/references and the same full prompt content |
 | `src/report` | Shared report asset bundled with the runtime |
 | `src/web` | One landing template/module/style set and EN/VI locale/profile data |
@@ -31,6 +32,11 @@ Pages runs from a published release tag, reuses the complete Windows validation 
 - `Audit.psm1`: read-only named collectors, child-process budgets, typed categories and explicit incomplete/error states.
 - `Report.psm1`: input/schema validation, baseline identity, proposal data, history and aggregate-only sharing.
 - `Windows.psm1`: process elevation and Restore Point verification with registry rollback. Real system qualification is still pending.
+- `Policy.psm1`: persistent audit-only/protected-path restrictions and policy-file digest snapshots; it never grants human approval.
+- `Performance.psm1`: bounded CPU/memory intervals and PID/start-time identities, without process control.
+- `android/adbclient.py`, `model.py`, `audit.py`: exact USB selection, bounded read-only commands, strict measurement parsing and fresh local audit output. Windows-specific missing USB devpaths require a matching unique USB selector proof.
+
+The local `4.1.0-preview.1` candidate adds these boundaries while published preview 2 remains unchanged. Android reports carry an explicit platform and cannot attach Windows history. File execution revalidates policy between atomic items and can honor a run-scoped stop request. Recovery inspection checks stored metadata without automatic repair. See [device contracts](../feat/devices.md).
 
 Planning has no file-transfer side effects. Execution binds to exact plan bytes and item IDs. Native file operations check identity and metadata on the handle used for the operation; purge never recurses a root. File transfers are same-volume and do not overwrite an existing destination. The journal and immutable source plan remain the recovery record.
 
@@ -43,3 +49,5 @@ The imported 3.6 distribution remains in Git history. The first GitHub preview u
 Installer staging and prior versions live under `%USERPROFILE%\.syrin-clean-installer`, outside active skill-discovery roots. The active directories are switched only after both staged copies verify; failures roll back completed switches. Backups and failed staging remain available rather than being recursively erased.
 
 See [execution contracts](execution.md), [commands](../ref/commands.md), [support](../feat/support.md) and [validation](../ref/validation.md).
+
+On release events, the candidate Pages workflow transfers eight validated release artifacts alongside the site, compares every published digest, then creates provenance attestations. Manual redeployment checks the two HTML assets and skips provenance staging/signing, preserving compatibility with older tags that lack the staging helper. This prepared workflow still needs live publication verification.

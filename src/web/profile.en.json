@@ -39,5 +39,15 @@
     "lean": "-> BUDGET: Short scan and compact summary. Clearly list skipped/incomplete collectors. (MaxSeconds=90)",
     "balanced": "-> BUDGET: Balanced scan; concise structured results and evidence. (MaxSeconds=180)",
     "thorough": "-> BUDGET: Longer read-only scan and detailed explanations where useful; preserve all safety limits. (MaxSeconds=600)"
-  }
+  },
+  "androidIntro": "-> DEVICE: Android over USB, read-only preview. Follow references/android.md; skip Windows phases. No cleanup, package disable/uninstall, settings changes, reboot or APK install. Select the exact authorized USB serial and current Android user.",
+  "androidReport": "-> REPORT: Bilingual simple HTML from Android measurements; no Windows file history.",
+  "androidBudget": {
+    "lean": "-> ANDROID BUDGET: MaxSeconds=90.",
+    "balanced": "-> ANDROID BUDGET: MaxSeconds=180.",
+    "thorough": "-> ANDROID BUDGET: MaxSeconds=300; retain command timeouts."
+  },
+  "androidPackage": "-> APP: {v}. Collect read-only frame counters for this exact app with -Package; never launch, stop or reset it automatically.",
+  "androidContext": "-> TASK: {v}. Record this description as -ContextLabel. Ask the user to reproduce it; retain counter origin and capture times. Do not claim a controlled benchmark.",
+  "androidInvalidPackage": "-> APP: Invalid package input. Resolve the exact app package before any app-specific collection."
 }

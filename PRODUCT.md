@@ -2,6 +2,8 @@
 
 Syrin clean helps Windows users work with a terminal-capable agent to inspect their PC, understand measurements and approve exact file operations. Its public HTML prepares an opening message and provides verified packages; Windows work happens through the packaged runtime and the agent.
 
+The unreleased device-support candidate adds Android USB diagnostics from a Windows host. The same bilingual entry page routes the agent to the selected platform. Android is read-only: measurements and advice, with no app removal, settings changes or device file cleanup. iPhone/iPad support is absent. See [device boundaries](docs/feat/devices.md).
+
 The primary audience wants useful evidence and a clear next step without learning PowerShell. The landing page's main task is getting a skill or standalone prompt with the right profile. A report's main task is understanding what was measured, what remains unknown and what happened to selected files.
 
 English and Vietnamese share the same behavior. Public entry starts in English. A language switch preserves the user's current choices. The downloaded landing page and generated reports are self-contained; real reports remain local unless the user deliberately shares an export.

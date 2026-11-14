@@ -32,6 +32,9 @@ function Assert-SyrinAudit($Audit) {
   if($Audit.meta.machineId -and $Audit.meta.machineId -cnotmatch '^[a-f0-9]{64}$'){throw 'Invalid machine identity.'}
   [void][DateTime]::Parse([string]$Audit.meta.generatedUtc,[Globalization.CultureInfo]::InvariantCulture)
   if($Audit.meta.systemDrive -and $Audit.meta.systemDrive -notmatch '^[A-Za-z]:$'){throw 'Invalid system volume.'}
+  $platform=if($Audit.meta.PSObject.Properties['platform']){$Audit.meta.platform}else{'windows'}
+  if($platform -cnotin @('windows','android')){throw 'Unsupported audit platform.'}
+  if($platform -eq 'android' -and $Audit.meta.systemDrive){throw 'An Android audit cannot contain a Windows system drive.'}
   foreach($property in $Audit.collectors.PSObject.Properties){
     $collector=$property.Value
     Assert-SyrinReportFields $collector @('status','data','errors')
@@ -52,6 +55,18 @@ function Assert-SyrinAudit($Audit) {
     }
   }
   if($Audit.collectors.PSObject.Properties['events']){foreach($row in $Audit.collectors.events.data){if(-not (Test-SyrinNumber $row.count)){throw 'Invalid event count.'}}}
+  if($platform -eq 'android' -and $Audit.collectors.PSObject.Properties['storage']){
+    foreach($row in $Audit.collectors.storage.data){
+      if($row.mount -cnotmatch '^/data(?:/user/[0-9]+)?$' -or -not(Test-SyrinNumber $row.sizeBytes) -or $row.sizeBytes -le 0 -or -not(Test-SyrinNumber $row.freeBytes) -or $row.freeBytes -gt $row.sizeBytes){throw 'Invalid Android storage measurement.'}
+      if($row.mount -cne '/data' -and (-not $row.PSObject.Properties['queriedPath'] -or $row.queriedPath -cne '/data')){throw 'Android bind-mount storage must identify the queried data path.'}
+    }
+  }
+  if($Audit.collectors.PSObject.Properties['performance']){
+    foreach($row in $Audit.collectors.performance.data){
+      if($row.method -cne 'windows-cpu-delta-v1' -or $row.samples -isnot [array] -or $row.sampleCount -ne $row.samples.Count -or -not(Test-SyrinNumber $row.requestedSeconds)){throw 'Invalid performance sample metadata.'}
+      foreach($sample in $row.samples){if($null -ne $sample.cpuPercent -and (-not(Test-SyrinNumber $sample.cpuPercent) -or $sample.cpuPercent -gt 100)){throw 'Invalid sampled CPU percentage.'}}
+    }
+  }
   if($Audit.collectors.PSObject.Properties['startup']){foreach($row in $Audit.collectors.startup.data){if(-not $row.PSObject.Properties['enabled'] -or ($null -ne $row.enabled -and $row.enabled -isnot [bool])){throw 'Invalid startup state.'}}}
 }
 
@@ -75,6 +90,7 @@ function Read-SyrinProposals([string]$OutDir,[string]$SessionId) {
 function Get-SyrinShareAudit($Audit) {
   if(-not $Audit.PSObject.Properties['schemaVersion'] -or $Audit.schemaVersion -ne 1){throw 'Shared export requires the current schema.'}
   $collectors=[ordered]@{}
+  $platform=if($Audit.meta.PSObject.Properties['platform']){$Audit.meta.platform}else{'windows'}
   foreach($name in @('volumes','memory')){
     if(-not $Audit.collectors.PSObject.Properties[$name]){continue}
     $source=$Audit.collectors.$name
@@ -89,7 +105,16 @@ function Get-SyrinShareAudit($Audit) {
     $rows=@($Audit.collectors.radar.data | Group-Object category | ForEach-Object {[PSCustomObject]@{id=$_.Name;label=$_.Name;category=$_.Name;measuredBytes=[long](($_.Group | Measure-Object measuredBytes -Sum).Sum);cloudBytes=[long](($_.Group | Measure-Object cloudBytes -Sum).Sum);estimatedReclaimableBytes=$null;status=$(if(@($_.Group | Where-Object status -ne 'complete').Count){'partial'}else{'complete'});errors=@()}})
     $collectors.radar=[PSCustomObject]@{status=$Audit.collectors.radar.status;data=$rows;errors=@();durationMs=0}
   }
-  return [PSCustomObject]@{schemaVersion=1;kind='syrin-audit';meta=[PSCustomObject]@{sessionId=[guid]::NewGuid().ToString('N');generatedUtc=([DateTime]::Parse($Audit.meta.generatedUtc).ToUniversalTime().ToString('yyyy-MM-dd'));machineId=$null;systemDrive=$Audit.meta.systemDrive;reportMode='simple';scope=$Audit.meta.scope;shared=$true;warnings=@();warningCodes=@('aggregate-only')};collectors=[PSCustomObject]$collectors}
+  if($platform -eq 'android'){
+    foreach($name in @('storage','battery')){
+      if(-not $Audit.collectors.PSObject.Properties[$name]){continue}
+      $source=$Audit.collectors.$name
+      $fields=if($name -eq 'storage'){@('mount','sizeBytes','freeBytes','usedBytes')}else{@('chargePercent','temperatureC','statusCode','healthCode','usbPowered')}
+      $rows=@(foreach($row in $source.data){$clean=[ordered]@{};foreach($field in $fields){if($row.PSObject.Properties[$field]){$clean[$field]=$row.$field}};if($name -eq 'storage'){$clean.mount='/data'};[PSCustomObject]$clean})
+      $collectors[$name]=[PSCustomObject]@{status=$source.status;data=$rows;errors=@();durationMs=0}
+    }
+  }
+  return [PSCustomObject]@{schemaVersion=1;kind='syrin-audit';meta=[PSCustomObject]@{sessionId=[guid]::NewGuid().ToString('N');generatedUtc=([DateTime]::Parse($Audit.meta.generatedUtc).ToUniversalTime().ToString('yyyy-MM-dd'));machineId=$null;platform=$platform;systemDrive=$Audit.meta.systemDrive;reportMode='simple';scope=$Audit.meta.scope;shared=$true;warnings=@();warningCodes=@('aggregate-only')};collectors=[PSCustomObject]$collectors}
 }
 
 function New-SyrinReport {
@@ -113,6 +138,8 @@ function New-SyrinReport {
   try {
     & $publish
     $audit=Read-SyrinReportJson (Join-Path $folder 'audit.json');Assert-SyrinAudit $audit
+    $android=$audit.meta.PSObject.Properties['platform'] -and $audit.meta.platform -eq 'android'
+    if($android -and $QuarantineRoot){throw 'Windows quarantine history cannot be attached to an Android report.'}
     $legacy=-not $audit.PSObject.Properties['schemaVersion']
     if($Mode -eq 'auto'){$Mode=$(if($legacy){'simple'}else{$audit.meta.reportMode})}
     $progress.sessionId=$(if($legacy){''}else{$audit.meta.sessionId})

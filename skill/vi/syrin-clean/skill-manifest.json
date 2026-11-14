@@ -1,18 +1,33 @@
 {
   "schemaVersion": 1,
   "package": "syrin-clean",
-  "version": "4.0.0-preview.2",
+  "version": "4.1.0-preview.1",
   "language": "vi",
   "files": [
     {
       "path": "SKILL.md",
-      "sha256": "68d97bea4626fc330a0dfbfd874e318354194d56e21a7c61e25b3a3d6051f6e3",
-      "bytes": 7182
+      "sha256": "37ec6acb6e4b0f8f4da16a38347bd6c6b8c94641419be3b7ffb4a8969a53a3ea",
+      "bytes": 8757
+    },
+    {
+      "path": "android/adbclient.py",
+      "sha256": "114264b859c3fbcfd8be31288645eae05346192a30aeb37c615598bafeb233d6",
+      "bytes": 9858
+    },
+    {
+      "path": "android/audit.py",
+      "sha256": "e5c5f92059d8fc0c3cd4fa42e8e75c46aca4e63e85da875198a8573b6b319b40",
+      "bytes": 7736
+    },
+    {
+      "path": "android/model.py",
+      "sha256": "ec7ea35e5a7c5a99731b1bbe8f1b4375b66ec391af1cbe7061ee323c8eda3b22",
+      "bytes": 3753
     },
     {
       "path": "assets/audit.schema.json",
-      "sha256": "f101d3b4c8bb79148c28c2069a0069aabb354f0cbc720fd549e9ee3f8cf99aaa",
-      "bytes": 1916
+      "sha256": "a853edf1ae063ad6f780d7eef41fbbd060ad4f27821af486369d774ec935cade",
+      "bytes": 2087
     },
     {
       "path": "assets/plan.schema.json",
@@ -26,33 +41,48 @@
     },
     {
       "path": "assets/report-template.html",
-      "sha256": "1b0f3900176b67d841cd8aee583283188a888cd23ae53d025cafb2709cb88a82",
-      "bytes": 375371
+      "sha256": "cdc0573cd72d7f024abbe3e5ae4928baee8e12903d27b64db8d7d182b6f2b90d",
+      "bytes": 383599
     },
     {
       "path": "modules/Audit.psm1",
-      "sha256": "efb0b7c7dcd4da064027ed97e032d1351b00e265ed7c6f325cafc999f928f852",
-      "bytes": 21617
+      "sha256": "149cf2a15655bb73748c225b06277e6b9b583a26bcc9680bfefa61c2268c1fd2",
+      "bytes": 22563
     },
     {
       "path": "modules/IO.psm1",
-      "sha256": "de716ab88ee6280e497fd4640dfeabc786784b0c84ed62d5922f8409cc2b663f",
-      "bytes": 22010
+      "sha256": "e6630ee2c8fe3a7ed5d5f9b659ec1f687c8a5d5c6bab71c9ecc0ff308ef86098",
+      "bytes": 22848
+    },
+    {
+      "path": "modules/Performance.psm1",
+      "sha256": "04054db7255d01e933905f55fa8ce0539ca9c361e0045e0741112551837878d1",
+      "bytes": 5140
+    },
+    {
+      "path": "modules/Policy.psm1",
+      "sha256": "64ae2c92cfe058ea1a48b5fac1e055d30cd3b899dc4b6de23734e675fb99d501",
+      "bytes": 3259
     },
     {
       "path": "modules/Quarantine.psm1",
-      "sha256": "1052fdb1d097f4a6b5e5a5439708e097498d92b07b9ec471759b7909b565a114",
-      "bytes": 26434
+      "sha256": "e41b99200162369de28a1c6fad0f85cdc7a8c9cb09ac34d18e77a6daec3542fd",
+      "bytes": 31243
     },
     {
       "path": "modules/Report.psm1",
-      "sha256": "e0cde902743212a37dee742482c961c1fc67fecab1296ba70bbbc33e1ce45735",
-      "bytes": 12596
+      "sha256": "57fb8580c9279cb5c9f552007ce479738cfa823a01c83a51fb67ca7ea6edf6b8",
+      "bytes": 15079
     },
     {
       "path": "modules/Windows.psm1",
-      "sha256": "b7f316860c1eb6d4abd6c6b16bd5e0dcc17ca881cf5a623d7e3270052b724795",
-      "bytes": 5221
+      "sha256": "4330129da84ebb641faec8a5eea41e86266bf2e41b069a48628b6a95174106e0",
+      "bytes": 5378
+    },
+    {
+      "path": "references/android.md",
+      "sha256": "4116f0cb46743299a3ad800292fd526627a0bb85f9ecb67dd363ad4a3dbbfe83",
+      "bytes": 4832
     },
     {
       "path": "references/stage0-audit.md",
@@ -71,13 +101,18 @@
     },
     {
       "path": "references/support.md",
-      "sha256": "43fb4c4a4fb1a1bc94d3de95e7aa6c6dd2f2cc2524572c68470cf53429489597",
-      "bytes": 4646
+      "sha256": "4fc3bd050f4377015102669f4c8eb258bcc5ac75918f13a52df23076b956aa27",
+      "bytes": 5696
+    },
+    {
+      "path": "scripts/android-audit.ps1",
+      "sha256": "aba06d2118d8f5f30f8c4b8ad1942c6f47483171980ed1c845c3e9fd1aa7904e",
+      "bytes": 2999
     },
     {
       "path": "scripts/audit.ps1",
-      "sha256": "8a7085971d783fbd55018f1ea8e678c7837c9991213772d5416a1efce5d737e0",
-      "bytes": 907
+      "sha256": "f0240bfdfa109789e9daecb9c196d02a1b19b71efa7456f35b3183a0335ddbce",
+      "bytes": 1071
     },
     {
       "path": "scripts/history.ps1",
@@ -95,9 +130,19 @@
       "bytes": 597
     },
     {
+      "path": "scripts/policy.ps1",
+      "sha256": "60f85a2e16726a7bf023b91e2fd5b7112a98a6eac658cd9ead48ae25726ead56",
+      "bytes": 681
+    },
+    {
       "path": "scripts/quarantine.ps1",
-      "sha256": "39b459a671f542ce3c5eb6d7dc23d5d3cfbd5e3b0aebfba2e20b285a029b7f07",
-      "bytes": 1566
+      "sha256": "c7448854dbb720d03ff7c9231fd4292529e517cdaedb1a2d9cfa933787e4c15e",
+      "bytes": 2003
+    },
+    {
+      "path": "scripts/request-stop.ps1",
+      "sha256": "3220a3961187ccae3e9204063e652706107bd126243b38802ab9b93c83eeb918",
+      "bytes": 738
     },
     {
       "path": "scripts/run-elevated.ps1",

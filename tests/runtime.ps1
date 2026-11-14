@@ -183,6 +183,58 @@ try {
   $point=New-SyrinRestorePoint -Description 'same' -VerifySeconds 0
   Assert (-not $point.ok -and $point.created -and -not $point.registryRestored) 'Registry rollback failure hidden'
   Write-Output 'PASS restore verification checks new sequence/time and reports registry rollback failures (mocked system calls)'
+  Import-Module (Join-Path $Runtime 'modules\Policy.psm1')
+  Set-SyrinProtection -Mode audit | Out-Null
+  $point=New-SyrinRestorePoint -VerifySeconds 0
+  Assert (-not $point.ok -and -not $point.created -and $point.error -like '*Audit-only*') 'Audit-only policy reached System Restore'
+  $rejected=$false;try{Invoke-SyrinElevatedScript -Script (Join-Path $fixture 'never-run.ps1')|Out-Null}catch{$rejected=$true}
+  Assert $rejected 'Audit-only policy allowed elevation'
+  Set-SyrinProtection -Mode approve | Out-Null
+  Write-Output 'PASS audit-only policy blocks system adapters before elevation or registry access'
+
+  Import-Module (Join-Path $Runtime 'modules\Performance.psm1')
+  $frequency=[Diagnostics.Stopwatch]::Frequency
+  $before=[PSCustomObject]@{timestamp=0L;logicalProcessors=4;idleTicks=20L;totalTicks=100L;processes=@([PSCustomObject]@{id=10;startedUtc='A';cpuSeconds=1},[PSCustomObject]@{id=11;startedUtc='old';cpuSeconds=1})}
+  $after=[PSCustomObject]@{timestamp=2*$frequency;logicalProcessors=4;idleTicks=40L;totalTicks=180L;sampledUtc='2026-01-01T00:00:02Z';availableBytes=2000;uptimeMs=3000;unavailableProcesses=2;processes=@([PSCustomObject]@{id=10;startedUtc='A';cpuSeconds=5;name='Fixture';privateBytes=100},[PSCustomObject]@{id=11;startedUtc='new';cpuSeconds=9;name='ReusedPID';privateBytes=500})}
+  $interval=ConvertTo-SyrinPerformanceInterval $before $after
+  Assert ($interval.cpuPercent -eq 75 -and $interval.processes.Count -eq 1 -and $interval.processes[0].cpuPercent -eq 50 -and $interval.unavailableProcesses -eq 2) 'CPU normalization or PID reuse protection failed'
+  $after.timestamp=0
+  $rejected=$false;try{ConvertTo-SyrinPerformanceInterval $before $after|Out-Null}catch{$rejected=$true};Assert $rejected 'Zero-duration CPU interval accepted'
+  Write-Output 'PASS performance deltas normalize across cores and exclude reused process IDs'
+
+  $androidOut=Join-Path $fixture 'android';[void][IO.Directory]::CreateDirectory($androidOut)
+  $phone=@{schemaVersion=1;kind='syrin-audit';meta=@{sessionId=('c'*32);generatedUtc='2026-01-01T00:00:00Z';machineId=('d'*64);systemDrive=$null;platform='android';reportMode='simple';scope='health';warnings=@()};collectors=@{
+    system=@{status='complete';data=@(@{model='PRIVATE_PHONE';android='14';userId=10});errors=@()}
+    storage=@{status='complete';data=@(@{queriedPath='/data';mount='/data/user/0';sizeBytes=1000;freeBytes=400;usedBytes=600});errors=@()}
+    battery=@{status='complete';data=@(@{chargePercent=77;temperatureC=34;statusCode=2;healthCode=2;usbPowered=$true;extra='PRIVATE_UNEXPECTED'});errors=@()}
+    packages=@{status='complete';data=@(@{package='PRIVATE_PACKAGE'});errors=@()}
+  }}
+  Json (Join-Path $androidOut 'audit.json') $phone
+  $report=New-SyrinReport -OutDir $androidOut -Lang en -Quiet
+  Assert (Test-Path -LiteralPath $report.path) 'Android report failed'
+  $share=New-SyrinReport -OutDir $androidOut -Lang en -Share -Quiet
+  $html=[IO.File]::ReadAllText($share.path)
+  Assert (-not $html.Contains('PRIVATE_') -and -not $html.Contains(('d'*64)) -and -not $html.Contains('/data/user/0') -and $html.Contains('"mount":"/data"') -and $html.Contains('"platform":"android"') -and $html.Contains('"chargePercent":77')) 'Android aggregate export leaked identity or lost measured data'
+  $rejected=$false;try{New-SyrinReport -OutDir $androidOut -QuarantineRoot $fixture -Quiet|Out-Null}catch{$rejected=$true};Assert $rejected 'Android report accepted Windows file history'
+  $phone.collectors.storage.data[0].freeBytes=2000;Json (Join-Path $androidOut 'audit.json') $phone
+  $rejected=$false;try{New-SyrinReport -OutDir $androidOut -Quiet|Out-Null}catch{$rejected=$true};Assert $rejected 'Invalid Android storage size accepted'
+  Write-Output 'PASS Android reports preserve platform boundaries, validate measurements and minimize shared data'
+
+  $firstPython=Join-Path $fixture 'first python.ps1';$secondPython=Join-Path $fixture 'second python.ps1';$fixtureAdb=Join-Path $fixture 'adb.exe'
+  [IO.File]::WriteAllText($firstPython,('$global:LASTEXITCODE=0'+"`n"+"'{`"ok`":true,`"devices`":[{`"serial`":`"FIXTURE`",`"state`":`"device`",`"transport`":`"7`"}]}'"))
+  [IO.File]::WriteAllText($secondPython,"throw 'Second Python entry must not run'")
+  [IO.File]::WriteAllText($fixtureAdb,'fixture; not executable')
+  $discovery=& {
+    param($Entry,$Adb,$First,$Second)
+    function Get-Command {
+      param($Name,$CommandType,$ErrorAction)
+      if($Name -eq 'python.exe'){return @([PSCustomObject]@{Source=$First},[PSCustomObject]@{Source=$Second})}
+      Microsoft.PowerShell.Core\Get-Command @PSBoundParameters
+    }
+    & $Entry -AdbPath $Adb -Devices
+  } (Join-Path $Runtime 'scripts\android-audit.ps1') $fixtureAdb $firstPython $secondPython | ConvertFrom-Json
+  Assert ($discovery.ok -and $discovery.devices.Count -eq 1 -and $discovery.devices[0].serial -eq 'FIXTURE') 'Android CLI did not select one Python application from PATH'
+  Write-Output 'PASS Android CLI selects the first Python application when PATH resolves multiple entries (fixture runner)'
 } finally {
   foreach($key in $savedEnvironment.Keys){[Environment]::SetEnvironmentVariable($key,$savedEnvironment[$key],'Process')}
   [Environment]::SetEnvironmentVariable('SYRIN_TEST_RESULT',$null,'Process')

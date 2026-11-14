@@ -1,6 +1,8 @@
 # Support and qualification
 
-> updated 2026-10-30 · v4.0.0-preview.1
+> updated 2026-11-14 · v4.0.0-preview.2
+
+The local candidate is `4.1.0-preview.1`; the published version remains `4.0.0-preview.2`. Android USB diagnostics have completed one explicitly authorized read-only run on Android 14 from a Windows host with Python 3.12 and official SDK Platform Tools 37.0.1. This covers the observed collectors, not all phones/OEMs or Android recovery. Android mutation and iOS support are absent. See [device controls](devices.md) and [live validation](../research/android-live-validation.md) for exact boundaries.
 
 The preview build is not a stable release or a claim of universal compatibility. The owner explicitly deferred VM qualification because no disposable VM is available and approved a public pre-release with Pages and offline HTML. Do not replace VM qualification with system changes on a real workstation.
 
@@ -15,6 +17,7 @@ The preview build is not a stable release or a claim of universal compatibility.
 | Elevation | Quoted native arguments, UAC cancellation distinguished from other failures | Native child argument round-trip and a same-account read-only UAC run; real cancellation and alternate-account elevation remain unverified |
 | Installer | Checksums, preparation outside discovery roots, serialized update, retained backups, rollback | Both agent directories and a real failed second commit tested with an isolated profile |
 | Audit/report | Versioned collectors, explicit missing/partial states, volume identity, typed categories, guarded baselines | Fixture/model tests; a full machine audit across Windows versions and hardware remains separate |
+| Android USB | Exact device/current-user selection; bounded read-only system, memory, storage, battery, CPU and optional package/frame collectors | One authorized Android 14 run completed six collectors and generated private/aggregate HTML. First-use Python/ADB and data bind-mount regressions fixed. Real frame diagnostics, disconnect recovery, other OEMs and device mutations remain unverified |
 | HTML | English-default bilingual landing; reports with in-place language changes, history search/filtering, persistent selections, embedded fonts and bounded animation | Actual EN/VI keyboard and 320 px interaction checks; synthetic renderer lifecycle, download hashes and model tests. Real zoom, system reduced-motion/background transitions, native file opening and full screen-reader qualification remain separate |
 | Windows/architecture | Target Windows 10/11 with Windows PowerShell 5.1 | Current-host tests do not qualify all Windows editions, x64/ARM64, Admin/non-Admin or filesystems |
 | Agent integration | `.claude/skills` and `.agents/skills`; standalone runtime extraction | File installation verified; end-to-end behavior of every named agent/version remains unverified |
