@@ -10,6 +10,7 @@
 - [Bilingual HTML validation](research/bilingual-validation.md).
 
 - [English quick start](../README.md) and [Vietnamese quick start](../README.vi.md).
+- [One-minute example report and first audit](ref/demo.md), in English and Vietnamese, with Q&A and bug-report guidance.
 - [Project architecture](arch/project.md): sources, generated files and execution boundaries.
 - [Handoff](../HANDOFF.md): design decisions, verification and remaining work.
 - [Changelog](../CHANGELOG.md), [contributing](../CONTRIBUTING.md) and [security](../SECURITY.md).

@@ -2,6 +2,10 @@
 
 Syrin clean can move or permanently remove files. Preserve the safety boundary and prove failure behavior before adding new mutation capabilities.
 
+## Questions and feedback
+
+Try the [synthetic report walkthrough](docs/ref/demo.md) first. Ask usage questions in [Q&A](https://github.com/sovergarden-dev/syrin-clean/discussions/categories/q-a), and use [Issues](https://github.com/sovergarden-dev/syrin-clean/issues) for reproducible defects. English and Vietnamese are welcome. Include the version, environment and minimal reproduction; redact personal paths, credentials and private account information before sharing logs or screenshots.
+
 ## Sources
 
 Edit `src/runtime`, `src/instructions`, `src/report` and `src/web`. Skill trees, web pages, prompts and distribution archives are generated. Both languages share the same runtime; policy/phase content is authored once per language.

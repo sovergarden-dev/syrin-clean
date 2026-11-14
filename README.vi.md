@@ -6,6 +6,14 @@ Nhánh này tạo **bản ứng viên 4.1.0-preview.1 chưa phát hành**. Bản
 
 [English](README.md) · [Lệnh sử dụng](docs/ref/commands.md) · [Ma trận hỗ trợ](docs/feat/support.md) · [Kiểm chứng](docs/ref/validation.md) · [Lịch sử thay đổi](CHANGELOG.md)
 
+## Xem thử báo cáo trong một phút
+
+Mở [báo cáo tương tác mẫu](https://sovergarden-dev.github.io/syrin-clean/report-demo.html) để xem giao diện Việt/Anh, giới hạn số đo và lịch sử file trước khi cài đặt. Demo dùng dữ liệu giả, không quét máy và không thực thi thao tác file.
+
+[Hướng dẫn xem thử và lần kiểm tra đầu](docs/ref/demo.md#tiếng-việt) · [Hỏi đáp](https://github.com/sovergarden-dev/syrin-clean/discussions/categories/q-a) · [Báo lỗi có bước tái hiện](https://github.com/sovergarden-dev/syrin-clean/issues)
+
+![Báo cáo preview Syrin clean với nhãn dữ liệu minh họa và các giá trị chưa được đo](docs/images/preview-demo.png)
+
 ## Các phần đã có
 
 - Kiểm tra chỉ đọc với trạng thái đầy đủ, một phần, không khả dụng hoặc lỗi; thiếu số liệu không biến thành “0 lỗi”.

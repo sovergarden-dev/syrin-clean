@@ -5,6 +5,7 @@ All notable changes to this project. Dates are 2026.
 ## [Unreleased]
 
 ### Added
+- Add an English/Vietnamese guided report demo, a screenshot of synthetic example data and Q&A entry points for preview feedback.
 - Add Android readiness checks with distinct USB states and optional app/task inputs; preserve frame capture times and counter provenance in bilingual local reports.
 - Add a read-only Android USB diagnostic adapter with exact serial/transport selection, active-user checks, bounded subprocesses, optional package/frame inventory and bilingual local reports; real-device qualification remains open.
 - Persist Windows audit-only mode and protected paths; bind reviewed plans to policy files and revalidate restrictions between atomic items.
