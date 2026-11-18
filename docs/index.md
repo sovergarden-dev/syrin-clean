@@ -15,9 +15,10 @@
 - [Project architecture](arch/project.md): sources, generated files and execution boundaries.
 - [Handoff](../HANDOFF.md): design decisions, verification and remaining work.
 - [Changelog](../CHANGELOG.md), [contributing](../CONTRIBUTING.md) and [security](../SECURITY.md).
-- [Original version](history/README.md) and [design references](references/README.md).
+- [Original version](history/README.md) ([v2.0 HTML snapshot](history/v2.0-original.html)) and [design references](references/README.md) ([Aurora prompt](references/aurora-design-prompt.txt)).
 - [Completed rename](plan/done/syrin-clean.md).
-- [Safety audit and upgrade recommendations](research/audit-safety.md).
+- [Safety audit and upgrade recommendations](research/audit-safety.md) and [machine-readable probe evidence](research/audit-evidence.json).
+- [Zero-trust perfection audit](research/audit-perfection.md) and [completed P0-P3 remediation and upgrade plan](plan/done/perfection-upgrade.md).
 - [Hardening implementation validation](research/hardening-validation.md).
 - [Proposed hardening plan](plan/hardening.md).
 - [Completed runtime scale and composition](plan/done/runtime-scale.md).

@@ -2,7 +2,7 @@
 
 **Kiểm tra Windows và điện thoại Android, xem bằng chứng, chọn thay đổi.**
 
-**4.1.0-preview.1 là bản thử nghiệm.** Tải [các file phát hành](https://github.com/sovergarden-dev/syrin-clean/releases/tag/4.1.0-preview.1) hoặc mở trang web bên dưới. Skill và prompt song ngữ dùng runtime PowerShell cùng adapter Python tùy chọn cho Android. Cấu hình chưa thử không được coi là đã chứng nhận.
+**4.1.0-preview.2 là bản thử nghiệm.** Tải [các file phát hành](https://github.com/sovergarden-dev/syrin-clean/releases/tag/4.1.0-preview.2) hoặc mở trang web bên dưới. Skill và prompt song ngữ dùng runtime PowerShell cùng adapter Python tùy chọn cho Android. Cấu hình chưa thử không được coi là đã chứng nhận.
 
 [English](README.md) · [Lệnh sử dụng](docs/ref/commands.md) · [Ma trận hỗ trợ](docs/feat/support.md) · [Kiểm chứng](docs/ref/validation.md) · [Lịch sử thay đổi](CHANGELOG.md)
 
@@ -33,16 +33,16 @@ Windows bổ sung chính sách đường dẫn cấm/chỉ kiểm tra, yêu cầ
 
 ## Bắt đầu bằng chỉ kiểm tra
 
-1. Tải [gói tiếng Việt](https://github.com/sovergarden-dev/syrin-clean/releases/download/4.1.0-preview.1/syrin-clean-skill-v4.1.0-preview.1-vi.zip) hoặc [gói tiếng Anh](https://github.com/sovergarden-dev/syrin-clean/releases/download/4.1.0-preview.1/syrin-clean-skill-v4.1.0-preview.1-en.zip) của nhánh này.
+1. Tải [gói tiếng Việt](https://github.com/sovergarden-dev/syrin-clean/releases/download/4.1.0-preview.2/syrin-clean-skill-v4.1.0-preview.2-vi.zip) hoặc [gói tiếng Anh](https://github.com/sovergarden-dev/syrin-clean/releases/download/4.1.0-preview.2/syrin-clean-skill-v4.1.0-preview.2-en.zip) của nhánh này.
 2. Nhờ agent kiểm tra gói rồi chạy `install.ps1` bằng Windows PowerShell 5.1. Trình cài chuẩn bị và xác minh trước khi thay; bản cũ được giữ ngoài thư mục nạp skill ở `%USERPROFILE%\.syrin-clean-installer`.
 3. Mở phiên agent mới và gửi: **Dùng skill syrin-clean để kiểm tra máy và lập đề xuất, chưa thực thi thay đổi.**
 4. Đọc bằng chứng và phần chưa đo được. Với thao tác file, xem đúng danh sách và xác nhận các mã đã chọn; không duyệt mơ hồ việc liên quan file cá nhân hoặc xóa hẳn.
 
-Hai vị trí cài là `.claude/skills/syrin-clean` và `.agents/skills/syrin-clean`. Đã kiểm tra việc cài file; khả năng nạp và luồng đầy đủ của từng agent/phiên bản vẫn cần kiểm chứng. Trình cài không dọn máy.
+Mặc định trình cài ghi vào `.claude/skills/syrin-clean` và `.agents/skills/syrin-clean`, đồng thời hỗ trợ `-IncludeDetectedAgents` hoặc `-AgentTargets` cho `.codex`, `.cursor` và `.gemini\antigravity`. Đã kiểm tra việc cài file; khả năng nạp và luồng đầy đủ của từng agent/phiên bản vẫn cần kiểm chứng. Trình cài không dọn máy.
 
 ## Prompt độc lập và trang HTML
 
-[Prompt VI](prompts/syrin-clean-prompt-vi-v4.1.0-preview.1.md) và [prompt EN](prompts/syrin-clean-prompt-en-v4.1.0-preview.1.md) có cùng runtime được nhúng. Agent đọc phần PROMPT, trích bootstrap bằng lệnh filesystem rồi giải nén vào thư mục mới, trống; không chép Base64 vào ngữ cảnh model. Bootstrap kiểm tra mã băm và đường dẫn, không thực thi dọn dẹp.
+[Prompt VI](prompts/syrin-clean-prompt-vi-v4.1.0-preview.2.md) và [prompt EN](prompts/syrin-clean-prompt-en-v4.1.0-preview.2.md) có cùng runtime được nhúng. Agent đọc phần PROMPT, trích bootstrap bằng lệnh filesystem rồi giải nén vào thư mục mới, trống; không chép Base64 vào ngữ cảnh model. Bootstrap kiểm tra mã băm và đường dẫn, không thực thi dọn dẹp.
 
 Mở [bản web](https://sovergarden-dev.github.io/syrin-clean/) hoặc tải [một file HTML offline](dist/syrin-clean.html). Mặc định English, chuyển EN/VI ngay trong trang và giữ hồ sơ đang nhập. Font, cả hai gói, bộ tạo prompt và [báo cáo giả lập](dist/syrin-clean-report-demo.html) đều được nhúng. Trang không chạy lệnh Windows. File đính kèm Releases được tải về; liên kết Pages mở bản web.
 

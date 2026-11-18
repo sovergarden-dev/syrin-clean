@@ -1,5 +1,9 @@
 # Syrin clean: bàn giao
 
+## Bản 4.1.0-preview.2
+
+Ngày 2026-11-18: chuẩn bị và phát hành `4.1.0-preview.2` dưới dạng pre-release sau lượt kiểm tra zero-trust và nâng cấp `P0` đến `P3` ([biên bản audit](docs/research/audit-perfection.md), [kế hoạch đã hoàn tất](docs/plan/done/perfection-upgrade.md)). Bổ sung duyệt file native C# `CollectPlanFiles` (hạ thời gian lập kế hoạch fixture 2.048 file từ 111.344 ms xuống ~3,4 giây), nhóm thư mục tất định `G1..Gn`, biên nhận phê duyệt gọn nhẹ, các bộ thu thập `hotspots` / `devArtifacts` / `Downloads`, nút tạo yêu cầu xóa hẳn (`#purge-request`), cài đặt đa agent (`-IncludeDetectedAgents`), nhánh xử lý `elevation-unsupported` trong môi trường sandbox, chẩn đoán Android tùy chọn (`thermal`, `appSizes`, cửa sổ hai mốc `gfxinfo`) và siêu dữ liệu SEO/JSON-LD cùng `og-preview.png`, `robots.txt`, `sitemap.xml` trên GitHub Pages.
+
 ## Bản 4.1.0-preview.1
 
 Ngày 2026-11-14: đã phát hành `4.1.0-preview.1` dưới dạng pre-release sau khi [PR #6](https://github.com/sovergarden-dev/syrin-clean/pull/6) merge. Tag trỏ tới `217669768a33250fd135f2ec9e2816fef0ffefde`; tám asset tải lại khớp SHA-256 và đều xác minh được chứng thực gắn với đúng repo, workflow, commit và tag. Hai HTML trên Pages khớp asset. Xem [bằng chứng phát hành](docs/research/device-release-verification.md), [kế hoạch](docs/plan/device-support.md) và [phạm vi](docs/feat/devices.md). Gói ZIP tham khảo không được chạy, nhập dữ liệu riêng vào repo hay coi là quyền thao tác điện thoại. Các bản cài toàn cục và asset của preview 2 giữ nguyên.
@@ -22,7 +26,7 @@ Trạng thái: 4.0.0-preview.2 đã được phát hành với GitHub Pages và 
 - src/web: một template EN/VI, module và dữ liệu ngôn ngữ/hồ sơ.
 - src/report: mô hình dữ liệu, báo cáo song ngữ và dữ liệu minh họa được ghi rõ.
 - tools/build.py: sinh package, prompt, HTML, manifest và checksum.
-- tools/publish_site.py: chỉ đưa hai HTML công khai cùng metadata vào thư mục Pages rỗng, ngoài checkout.
+- tools/publish_site.py: chỉ đưa hai HTML công khai, `og-preview.png`, `robots.txt`, `sitemap.xml` cùng metadata vào thư mục Pages rỗng, ngoài checkout.
 
 ## Những gì phải giữ
 
@@ -40,7 +44,7 @@ Validate chạy trên Windows. Pages chỉ triển khai tag của bản phát h�
 
 [Bằng chứng hardening](docs/research/hardening-validation.md), [kiểm chứng giao diện](docs/research/bilingual-validation.md), [kế hoạch phát hành](docs/plan/done/bilingual-experience.md) và [ma trận hỗ trợ](docs/feat/support.md) phân biệt việc đã làm với giới hạn còn mở.
 
-[Mở trang web](https://sovergarden-dev.github.io/syrin-clean/) · [Release hiện tại](https://github.com/sovergarden-dev/syrin-clean/releases/tag/4.1.0-preview.1) · [Triển khai đã xác minh](https://github.com/sovergarden-dev/syrin-clean/actions/runs/43585731937).
+[Mở trang web](https://sovergarden-dev.github.io/syrin-clean/) · [Release hiện tại](https://github.com/sovergarden-dev/syrin-clean/releases/tag/4.1.0-preview.2) · [Triển khai 4.1.0-preview.1 trước đó](https://github.com/sovergarden-dev/syrin-clean/actions/runs/43585731937).
 
 ## Khi tiếp tục
 

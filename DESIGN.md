@@ -1,10 +1,10 @@
 # Syrin clean visual system
 
-> updated 2026-10-29 · preview work following the imported v3.6 distribution
+> updated 2026-11-18 · v4.1.0-preview.2
 
 The visual idea is a field instrument for making deliberate choices: warm paper for explanations, dark ink for the review lens, and the existing green identity for actions and selected states. The landing is a discovery/configuration surface; the report is a reading and operating surface.
 
-Use Bricolage Grotesque for landing display headings and Be Vietnam Pro for readable bilingual content and report controls. Self-host and embed the licensed font subsets. Shared color, spacing, focus, typography and motion tokens live in `src/shared/tokens.css`; report and landing styles consume them. Code uses the system monospace stack as a limited outlier role.
+Use Bricolage Grotesque for landing display headings and Be Vietnam Pro for readable bilingual content and report controls. Self-host and embed the licensed font subsets. Shared color, spacing, radius, focus, typography (`--text-xs` through `--text-display`) and motion tokens live in `src/shared/tokens.css`; report and landing styles consume them without ad-hoc typography or radius literals. Code uses the system monospace stack as a limited outlier role.
 
 The landing's authored moment is a review lens that moves abstract file marks from inspection to an explicit selection and recovery state. It explains the workflow and never pretends to scan the visitor's PC. Supporting content has visible static defaults, native controls and short state feedback. No repeated scroll reveals, card tilts or decorative counters.
 

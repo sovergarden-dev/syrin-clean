@@ -1,8 +1,8 @@
 # Device diagnostics and execution controls
 
-> updated 2026-11-14 · v4.1.0-preview.1
+> updated 2026-11-18 · v4.1.0-preview.2
 
-This document describes `4.1.0-preview.1`, a pre-release with read-only Android diagnostics and protected Windows maintenance. The qualification boundaries below remain explicit.
+This document describes `4.1.0-preview.2`, a pre-release with read-only Android diagnostics and protected Windows maintenance. The qualification boundaries below remain explicit.
 
 ## Windows protection policy
 
@@ -28,7 +28,7 @@ Before/after CPU comparisons require the same machine, method, duration, interva
 
 The Windows host needs Python 3.10+ and official Google SDK Platform Tools; neither is silently installed. `android-audit.ps1 -Devices -AdbPath <absolute-path>` lists local ADB devices. Discovery may start the normal local ADB server. It never kills/restarts that server or pairs a wireless device.
 
-The PowerShell entry point selects the first Python application in PATH. ADB uses its default local host and explicit port 5037; inherited device/server-routing environment variables are cleared. Passing an explicit `-H` would prevent a cold local server from starting and is not used.
+The PowerShell entry point skips `\Microsoft\WindowsApps\python*.exe` Store alias stubs and selects the first real Python 3.10+ executable (falling back to `py.exe -3`). On Windows hosts, `AdbClient` accepts only `adb.exe` (rejecting `.bat`/`.cmd` shims). ADB uses its default local host and explicit port 5037; inherited device/server-routing environment variables are cleared. Passing an explicit `-H` would prevent a cold local server from starting and is not used.
 
 `-Check` verifies Python 3.10+, resolves an explicit ADB path or existing PATH installation, and returns a structured readiness result. `ok` describes successful execution of the check; `ready` requires an explicitly selected, authorized USB phone that has completed booting. Device absence, offline state, missing RSA approval and duplicate serials are separate outcomes. Checking readiness collects no audit and creates no report.
 
@@ -36,13 +36,13 @@ A diagnostic run requires an exact serial and verified USB transport. Commands p
 
 Some Windows ADB backends return `unknown` for `get-devpath`. In that case the adapter requires `adb -d get-serialno` to identify exactly one USB phone with the selected serial, and repeats that proof before each read. Multiple USB devices in this mode are rejected rather than choosing one implicitly.
 
-Collectors read selected build properties, current user, `/proc/meminfo`, `/proc/uptime`, `/data` filesystem totals, battery and CPU summary. Package inventory is opt-in and scoped to the current user; optional `gfxinfo` targets an exact package. At least 120 frames is only a minimum interpretation threshold, not statistical proof of smoothness. OEM denial or unknown formats remain unavailable/partial. No settings dump, accounts, messages, photos, logcat, personal file tree or full property dump is saved.
+Collectors read selected build properties, current user, `/proc/meminfo`, `/proc/uptime`, `/data` filesystem totals, battery and CPU summary. Optional read-only flags add current-user `packages` (`-IncludePackages`), top 25 per-package storage breakdown from `dumpsys diskstats` (`-IncludeAppSizes`), thermal throttling status and skin temperature from `dumpsys thermalservice` (`-IncludeThermal`), and per-package `gfxinfo` frame counters (`-Package <exact-package>`), with optional two-point interval sampling (`-FrameWindowSeconds 2..30`) verified against matching PID and `Stats since` origin. At least 120 cumulative frames (or 30 interval frames) is only a minimum interpretation threshold, not statistical proof of smoothness. OEM denial or unknown formats remain unavailable/partial. No settings dump, accounts, messages, photos, logcat, personal file tree or full property dump is saved.
 
 Storage retains both the queried `/data` path and an observed `/data/user/<id>` bind mount where Android reports one. Shared exports normalize that mount back to `/data` to omit the user number. CPU is the Android-reported historical window; repeated reads can contain overlapping or unchanged statistics and must not be called an independent time-series benchmark.
 
 Optional app diagnostics accept `-Package` plus a one-line `-ContextLabel` of up to 240 characters. Frame rows retain capture timestamps, process ID and the Android counter origin. A missing or ambiguous process/origin remains partial even with enough frames. The bilingual report presents these as cumulative observations; it does not compute a task benchmark or speed-up. The task description is an operator assertion and is omitted from aggregate exports.
 
-Every subprocess has a 15-second ceiling and a 2 MiB cap per output stream within an overall 30–300-second budget. Local output is written only after device identity is rechecked. Reports are self-contained bilingual HTML, English by default; Android reports do not contain Windows actions/history. Existing session directories are never overwritten.
+Every subprocess has a 15-second ceiling and a 2 MiB cap per output stream within an overall 30 to 300-second budget. Local output is written only after device identity is rechecked. Reports are self-contained bilingual HTML, English by default; Android reports do not contain Windows actions/history. Existing session directories are never overwritten.
 
 Android mutations, package disable/uninstall, cache clearing, reboot, root, bootloader changes, APK installation and file transfer are not implemented. iOS/iPadOS support is not implemented. Catalog grades remain reference material; no UAD database or per-device seed list is distributed. See [the integration decision](../research/android-integration.md).
 

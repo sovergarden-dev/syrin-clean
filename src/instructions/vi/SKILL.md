@@ -24,7 +24,7 @@ Lấy vai trò máy, phạm vi, ngân sách, báo cáo, ổ đích và danh sác
 
 Dùng script đi kèm thư mục chứa SKILL.md này. Với prompt Markdown độc lập, giải nén runtime nhúng bằng phần bootstrap trước. Hai cách dùng chung một runtime; không tự viết lại helper bị thiếu theo trí nhớ. Kiểm tra hash trong skill-manifest.json trước lần dùng đầu và sau cập nhật. Đọc script khi xác minh hoặc thực thi có lỗi.
 
-Dùng Windows PowerShell 5.1 (`powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File ...`). Bypass chỉ áp dụng cho tiến trình đó. Trong PowerShell có thể truyền mảng đối số; khi gọi run-elevated.ps1 từ shell khác, dùng file JSON request gồm `script` và `arguments`. Người dùng quyết định UAC. Mã 1223 là hủy UAC; lỗi khác không được gọi là người dùng từ chối.
+Dùng Windows PowerShell 5.1 (`powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File ...`). Bypass chỉ áp dụng cho tiến trình đó. Trong PowerShell có thể truyền mảng đối số; khi gọi run-elevated.ps1 từ shell khác, dùng file JSON request gồm `script` và `arguments`. Nâng quyền cần chính sách `approve` và quyết định UAC của người dùng. Mã 1223 là hủy UAC; `failureKind=elevation-unsupported` (mã Win32 5, 50 hoặc 740 trong terminal sandbox của agent) trả kèm `manualCommand` để người dùng tự chạy trong cửa sổ PowerShell Administrator thay vì thử lại mù quáng.
 
 Phiên làm việc mặc định ở `%LOCALAPPDATA%\SyrinClean\Sessions`. Nếu đổi OutDir, chọn thư mục cục bộ mới, trống và ngoài cloud. Khu cách ly riêng có chủ sở hữu và phiên bản; không phải thư mục rác để xóa tay.
 

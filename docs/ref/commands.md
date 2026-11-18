@@ -31,7 +31,7 @@ Python 3.10+ and official Google SDK Platform Tools are additional prerequisites
 & .\syrin-clean\scripts\android-audit.ps1 -AdbPath 'C:\path-to\platform-tools\adb.exe' -Serial <exact-selected-serial> -Lang en
 ```
 
-The second command requires an authorized USB transport and writes to a new private session, never overwriting a previous audit. `-IncludePackages` adds current-user app inventory; `-Package <exact-package>` adds cumulative frame counters for that app. `-MaxSeconds` accepts 30–300; `-NoReport` suppresses HTML. No browser opens automatically. Missing/denied/OEM-specific fields remain incomplete. The HTML does not expose Windows file actions for Android. Use the existing `make-report.ps1 -Share -NoOpen` flow for an aggregate export. See [device boundaries](../feat/devices.md).
+The second command requires an authorized USB transport and writes to a new private session, never overwriting a previous audit. `-IncludePackages` adds current-user app inventory; `-IncludeAppSizes` adds top 25 per-package storage breakdown (`dumpsys diskstats`); `-IncludeThermal` adds thermal throttling state and skin temperature (`dumpsys thermalservice`); `-Package <exact-package>` adds cumulative frame counters for that app, and `-FrameWindowSeconds 2..30` samples two `gfxinfo` reads across a bounded user interaction without resetting counters. `-MaxSeconds` accepts 30 to 300; `-NoReport` suppresses HTML. No browser opens automatically. Missing/denied/OEM-specific fields remain incomplete. The HTML does not expose Windows file actions for Android. Use the existing `make-report.ps1 -Share -NoOpen` flow for an aggregate export. See [device boundaries](../feat/devices.md).
 
 ## Plan and execute selected files
 
@@ -39,12 +39,13 @@ The second command requires an authorized USB transport and writes to a new priv
 & .\syrin-clean\scripts\quarantine.ps1 -Operation quarantine -Path <files-or-directories> -QuarantineRoot <empty-local-root> -PlanFile <working-directory>\file-plan.json
 ```
 
-Inspect the exact paths, short codes, item IDs and consequences. A directory is expanded to files; no directory tree is deleted. The source and quarantine root must be on the same volume and must not overlap. A plan saved with more than 50 items returns a clearly marked summary; inspect the file or use `-AllItems` to read the remainder.
+Inspect the exact paths, short codes, directory `groups` (`G1..Gn`), item IDs and consequences. A directory is expanded to files; no directory tree is deleted. The source and quarantine root must be on the same volume and must not overlap. A plan saved with more than 50 items returns a clearly marked summary; inspect the file or use `-AllItems` to read the remainder.
 
-After the human confirms the selected plan-local codes, map those codes to their immutable IDs and execute only that selection:
+After the human confirms the selected plan-local codes or directory groups, execute only that selection:
 
 ```powershell
 & .\syrin-clean\scripts\quarantine.ps1 -Execute -PlanFile <plan.json> -Approval <exact-digest> -ItemId <id-1>,<id-2>
+& .\syrin-clean\scripts\quarantine.ps1 -Execute -PlanFile <plan.json> -Approval <exact-digest> -GroupId G1,G2
 ```
 
 Do not combine planning and automatic approval into a script. Do not edit the plan after confirmation. A mismatch requires a new review. `ok=false`, conflicts and unprocessed IDs are not completion.
@@ -87,7 +88,7 @@ Only compatible machine/volume identities are compared. Invalid data does not re
 
 `-Quiet` hides console progress but keeps the progress file; `-NoOpen` prevents launching a browser. Running phases do not estimate a percentage. Only a committed HTML reaches 100%; failures record `failed`, and `-Mode none` records `skipped` without claiming an HTML write. A completion-record failure can leave `htmlWritten=true` alongside `failed`; the HTML was saved, but status publication failed. If the process is killed or progress storage becomes unavailable, the last timestamp can be stale. Progress files are private working data and are not part of the shared export. `-Share` skips history reads even if `-QuarantineRoot` was supplied.
 
-When `-QuarantineRoot` is supplied, all loaded sessions/items are embedded in the offline report. Select a session and use the file-page, search and state controls; selections persist across pages, filters and EN/VI changes within that session. Legacy truncated snapshots remain marked as limited. Restore controls prepare a request only and never execute an OS command. The language requested by `-Lang` is the initial report language; the public sample defaults to English. Original records are not machine-translated.
+When `-QuarantineRoot` is supplied, all loaded sessions/items are embedded in the offline report. Select a session and use the file-page, search and state controls; selections persist across pages, filters and EN/VI changes within that session. Legacy truncated snapshots remain marked as limited. Restore and permanent-delete (`purge`) controls prepare a request only and never execute an OS command; the permanent-delete request button enables only when every selected item is intact `quarantined` in a non-imported session. The language requested by `-Lang` is the initial report language; the public sample defaults to English. Original records are not machine-translated.
 
 `Print summary` prints measurements and proposals, with a notice that full history and raw collector records remain in the HTML. The shared canvas renderer pauses when hidden/offscreen or disabled and has a reduced-motion path. Simple mode does not start the canvas renderer.
 
@@ -97,7 +98,7 @@ When `-QuarantineRoot` is supplied, all loaded sessions/items are embedded in th
 
 `artifact-manifest.json` lists the six release payloads by filename, and `SHA256SUMS.txt` covers those files plus the manifest itself. All paths are flat so downloaded release assets can be checked together without recreating the source tree.
 
-From a validated clean checkout, `python -B -X utf8 tools/publish_site.py <empty-directory-outside-checkout>` stages only the two HTML files, `.nojekyll` and `version.json`. It refuses nonempty staging destinations and never stages session data. GitHub Pages opens the hosted page; release attachments download as files. Opening an attachment afterward depends on the user's browser and file association.
+From a validated clean checkout, `python -B -X utf8 tools/publish_site.py <empty-directory-outside-checkout>` stages only the two HTML files, `og-preview.png`, `robots.txt`, `sitemap.xml`, `.nojekyll` and `version.json`. It refuses nonempty staging destinations and never stages session data. GitHub Pages opens the hosted page; release attachments download as files. Opening an attachment afterward depends on the user's browser and file association.
 
 The release workflow stages on Windows after validation, then deploys the transferred artifact after checking the published release digests. To redeploy an existing published tag explicitly, run `gh workflow run pages.yml --ref main -f release_tag=<published-tag>`. The `github-pages` environment must allow the intended deployment ref; do not remove its protection rules to force a deployment.
 
@@ -105,6 +106,6 @@ On release events, the workflow also stages eight current assets using `tools/st
 
 ## Elevation and Restore Point helper
 
-For a native PowerShell call, use an argument array. From another shell, write a request JSON containing `script` and `arguments`, then call `run-elevated.ps1 -RequestFile <json>`. This avoids shell-specific array parsing. `-NoElevate` runs under the existing token and does not drop privileges if the caller is already elevated.
+For a native PowerShell call, use an argument array. From another shell, write a request JSON containing `script` and `arguments`, then call `run-elevated.ps1 -RequestFile <json>`. This avoids shell-specific array parsing. Elevation requires `approve` policy mode; under `audit` mode `run-elevated.ps1` fails closed before launching a process. When a sandboxed agent environment blocks `Verb='RunAs'` (Win32 `5`, `50` or `740`), the JSON result returns `failureKind='elevation-unsupported'` and `manualCommand` so the human can run that command in an elevated PowerShell window. `-NoElevate` runs under the existing token and does not drop privileges if the caller is already elevated.
 
 `new-restorepoint.ps1 -OutDir <working-directory>` requires Windows PowerShell 5.1, administrator rights and existing System Protection. It does not enable protection. Require `ok=true`, a new sequence and `registryRestored=true`. The real system path is not qualified in this development build; use a disposable VM for verification.

@@ -60,7 +60,7 @@ Các vị trí trên dùng bản EN làm đại diện cho script/template chung
 
 - [Quarantine](../../skill/en/syrin-clean/scripts/quarantine.ps1), [audit](../../skill/en/syrin-clean/scripts/audit.ps1), [elevation](../../skill/en/syrin-clean/scripts/run-elevated.ps1).
 - [Report builder](../../skill/en/syrin-clean/scripts/make-report.ps1), [report template](../../skill/en/syrin-clean/assets/report-template.html), [installer](../../skill/en/install.ps1), [build](../../tools/build.py).
-- [Web EN](../../web/syrin-clean-en-v3.6.html), [web VI](../../web/syrin-clean-vi-v3.6.html).
+- Baseline v3.6 HTML (`web/syrin-clean-en-v3.6.html`, `web/syrin-clean-vi-v3.6.html`), replaced in 4.0+ by the [unified web page](../../web/index.html).
 
 ### Bằng chứng và giới hạn kiểm chứng
 
