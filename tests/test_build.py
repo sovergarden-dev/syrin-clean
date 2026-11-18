@@ -59,10 +59,16 @@ class PackagingTests(unittest.TestCase):
                     exec(verifier, {'__name__': '__main__'})
 
             verify('workflow_dispatch')
+            with self.assertRaises(AssertionError):
+                verify('release')
+            for extra, content in [('og-preview.png', b'\x89PNG\r\n\x1a\nfixture'), ('robots.txt', b'User-agent: *\n'), ('sitemap.xml', b'<urlset/>')]:
+                (site / extra).write_bytes(content)
+                metadata['files'][extra] = digest(content)
+            (site / 'version.json').write_text(json.dumps(metadata), encoding='utf-8')
             with self.assertRaises(FileNotFoundError):
                 verify('release')
             (site / 'index.html').write_bytes(b'tampered')
-            with self.assertRaisesRegex(AssertionError, 'Site differs'):
+            with self.assertRaisesRegex(AssertionError, 'Site metadata differs|Site differs'):
                 verify('workflow_dispatch')
             (site / 'index.html').write_bytes(payloads['syrin-clean.html'])
             subjects.mkdir()
@@ -108,10 +114,16 @@ class PackagingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="syrin-pages-test-") as temporary:
             target = Path(temporary)
             metadata = publish.stage(target)
-            self.assertEqual({path.name for path in target.iterdir()}, {"index.html", "report-demo.html", "version.json", ".nojekyll"})
+            self.assertEqual(
+                {path.name for path in target.iterdir()},
+                {"index.html", "report-demo.html", "og-preview.png", "robots.txt", "sitemap.xml", "version.json", ".nojekyll"},
+            )
             self.assertEqual(metadata["version"], build.VERSION)
             for name in ("index.html", "report-demo.html"):
                 self.assertEqual((target / name).read_bytes(), (ROOT / "web" / name).read_bytes())
+            self.assertTrue((target / "og-preview.png").read_bytes().startswith(b"\x89PNG\r\n\x1a\n"))
+            self.assertIn("Sitemap: " + build.PROJECT["homepage"] + "sitemap.xml", (target / "robots.txt").read_text(encoding="utf-8"))
+            self.assertIn("<loc>" + build.PROJECT["homepage"] + "</loc>", (target / "sitemap.xml").read_text(encoding="utf-8"))
             with self.assertRaisesRegex(ValueError, "empty"):
                 publish.stage(target)
         with self.assertRaisesRegex(ValueError, "outside"):
@@ -194,8 +206,100 @@ class PackagingTests(unittest.TestCase):
                 (directory / "skill/en/.env").write_text("SYNTHETIC_FIXTURE=not-secret", encoding="utf-8")
                 with self.assertRaisesRegex(ValueError, "Unexpected"):
                     build.allowlist("skill/en", {"install.ps1"})
+                (directory / "dist").mkdir(parents=True)
+                (directory / "dist/syrin-clean-skill-v0.0.1-en.zip").write_bytes(b"stale")
+                with self.assertRaisesRegex(ValueError, "Unexpected"):
+                    build.check_output_trees({"dist/syrin-clean.html": b"current"})
             finally:
                 build.ROOT = original
+
+    def test_json_schemas_validate_demo_plan_and_proposals(self):
+        def assert_schema(schema, value, path="$"):
+            if "const" in schema:
+                self.assertEqual(value, schema["const"], path)
+            if "enum" in schema:
+                self.assertIn(value, schema["enum"], path)
+            if "type" in schema:
+                allowed = schema["type"] if isinstance(schema["type"], list) else [schema["type"]]
+                checks = {
+                    "object": lambda v: isinstance(v, dict),
+                    "array": lambda v: isinstance(v, list),
+                    "string": lambda v: isinstance(v, str),
+                    "boolean": lambda v: isinstance(v, bool),
+                    "integer": lambda v: type(v) is int,
+                    "number": lambda v: type(v) in (int, float),
+                    "null": lambda v: v is None,
+                }
+                self.assertTrue(any(checks[kind](value) for kind in allowed), f"{path}: {value!r} not in {allowed}")
+            if isinstance(value, str) and "pattern" in schema:
+                self.assertRegex(value, schema["pattern"], path)
+            if type(value) in (int, float) and "minimum" in schema:
+                self.assertGreaterEqual(value, schema["minimum"], path)
+            if isinstance(value, list):
+                if "minItems" in schema:
+                    self.assertGreaterEqual(len(value), schema["minItems"], path)
+                if "items" in schema:
+                    for idx, item in enumerate(value):
+                        assert_schema(schema["items"], item, f"{path}[{idx}]")
+            if isinstance(value, dict):
+                for req in schema.get("required", []):
+                    self.assertIn(req, value, f"{path}.{req}")
+                props = schema.get("properties", {})
+                extra = schema.get("additionalProperties", True)
+                for key, child in value.items():
+                    if key in props:
+                        assert_schema(props[key], child, f"{path}.{key}")
+                    elif extra is False:
+                        self.fail(f"Unexpected property {path}.{key}")
+                    elif isinstance(extra, dict):
+                        assert_schema(extra, child, f"{path}.{key}")
+
+        audit_schema = json.loads((ROOT / "src/runtime/assets/audit.schema.json").read_text(encoding="utf-8"))
+        plan_schema = json.loads((ROOT / "src/runtime/assets/plan.schema.json").read_text(encoding="utf-8"))
+        proposals_schema = json.loads((ROOT / "src/runtime/assets/proposals.schema.json").read_text(encoding="utf-8"))
+        demo = json.loads((ROOT / "src/report/demo.json").read_text(encoding="utf-8"))
+        assert_schema(audit_schema, demo["audit"])
+        assert_schema(audit_schema, demo["baseline"])
+        sample_proposals = {
+            "schemaVersion": 1,
+            "kind": "syrin-proposals",
+            "sessionId": "a" * 32,
+            "items": [{"id": "C1", "title": "Review cache", "evidence": "2 GB", "benefit": "2 GB", "loss": "Cold start", "risk": "low", "undo": "reversible"}],
+        }
+        assert_schema(proposals_schema, sample_proposals)
+        with self.assertRaises(AssertionError):
+            assert_schema(proposals_schema, {**sample_proposals, "unexpected": True})
+        sample_plan = {
+            "schemaVersion": 1,
+            "kind": "syrin-file-plan",
+            "planId": "a" * 32,
+            "sessionId": "b" * 32,
+            "operation": "quarantine",
+            "ownerSid": "S-1-5-21-1",
+            "root": "D:\\Quarantine",
+            "rootId": None,
+            "legacyRoot": "",
+            "createdUtc": "2026-11-18T00:00:00Z",
+            "conflict": "skip",
+            "measuredBytes": 12,
+            "estimatedReclaimableBytes": 0,
+            "warnings": [" Metadata only "],
+            "protection": {"mode": "approve", "protectedPaths": [], "files": [{"path": "D:\\policy.json", "digest": "c" * 64}]},
+            "groups": [{"groupId": "G1", "directory": "D:\\Cache", "itemCount": 1, "measuredBytes": 12, "firstCode": "Q1", "lastCode": "Q1", "sampleFiles": ["a.bin"]}],
+            "items": [{
+                "id": "d" * 32,
+                "code": "Q1",
+                "groupId": "G1",
+                "original": "D:\\Cache\\a.bin",
+                "stored": "D:\\Quarantine\\a.bin",
+                "fingerprint": {"FileId": "1:2", "Length": 12, "LastWriteUtc": "2026-11-18T00:00:00Z", "Links": 1},
+                "destination": "D:\\Quarantine\\a.bin",
+                "expectedState": "planned",
+            }],
+        }
+        assert_schema(plan_schema, sample_plan)
+        with self.assertRaises(AssertionError):
+            assert_schema(plan_schema, {**sample_plan, "rogueField": 1})
 
 
 @unittest.skipUnless(os.name == "nt", "Windows PowerShell and native directory handles are required")
@@ -284,6 +388,17 @@ class WindowsPackageTests(unittest.TestCase):
         result = self.powershell(ROOT / "src/extract-runtime.ps1", "-PromptFile", malicious, "-OutDir", self.root / "rejected")
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse((self.root / "escape.txt").exists())
+
+    def test_install_supports_detected_and_explicit_agent_targets(self):
+        (self.profile / ".codex").mkdir()
+        (self.profile / ".gemini/antigravity").mkdir(parents=True)
+        detected = self.powershell(self.package / "install.ps1", "-ProfileRoot", self.profile, "-IncludeDetectedAgents")
+        self.assertEqual(detected.returncode, 0, detected.stdout + detected.stderr)
+        for target in (".claude", ".agents", ".codex", ".gemini/antigravity"):
+            self.assertTrue((self.profile / target / "skills/syrin-clean/SKILL.md").is_file(), target)
+        self.assertFalse((self.profile / ".cursor/skills/syrin-clean/SKILL.md").exists())
+        rejected = self.powershell(self.package / "install.ps1", "-ProfileRoot", self.profile, "-AgentTargets", ".unknown-agent")
+        self.assertNotEqual(rejected.returncode, 0)
 
 
 if __name__ == "__main__":

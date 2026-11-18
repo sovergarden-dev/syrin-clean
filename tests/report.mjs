@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createView,normalizeAudit,escapeHtml,historyPage,filterHistoryItems,measurementAge} from '../src/report/report.mjs';
+import {createView,normalizeAudit,escapeHtml,historyPage,filterHistoryItems,measurementAge,canRequestPurge} from '../src/report/report.mjs';
 import {createLens} from '../src/shared/lens.mjs';
 const complete=data=>({status:'complete',data,errors:[]});
 const audit=()=>({schemaVersion:1,kind:'syrin-audit',meta:{sessionId:'a'.repeat(32),machineId:'machine-a',systemDrive:'D:',generatedUtc:'2026-10-28T00:00:00Z',reportMode:'3d'},collectors:{system:complete([{model:'Fixture'}]),volumes:complete([{drive:'C:',volumeId:'data',sizeBytes:100,freeBytes:60},{drive:'D:',volumeId:'system',sizeBytes:100,freeBytes:1}]),startup:complete([]),events:complete([]),radar:complete([{id:'cache',label:'Cache',category:'cache',measuredBytes:2,cloudBytes:0,estimatedReclaimableBytes:null,status:'complete'},{id:'chat',label:'Telegram data',category:'app-data',measuredBytes:3,cloudBytes:0,estimatedReclaimableBytes:null,status:'complete'},{id:'vm',label:'Docker',category:'vm',measuredBytes:5,cloudBytes:0,estimatedReclaimableBytes:null,status:'complete'}])}});
@@ -106,4 +106,10 @@ function verifyLensLifecycle() {
   }
 }
 verifyLensLifecycle();
-console.log('Shared renderer: action semantics and pause/reduced-motion/hidden/offscreen/destroy cancellation passed (synthetic browser contract).');
+const purgeSession={ok:true,operation:'quarantine',items:[{id:'1'.repeat(32),state:'quarantined'},{id:'2'.repeat(32),state:'quarantined'},{id:'3'.repeat(32),state:'conflict'},{id:'4'.repeat(32),state:'purged'}]};
+assert.equal(canRequestPurge(purgeSession,['1'.repeat(32),'2'.repeat(32)]),true);
+assert.equal(canRequestPurge(purgeSession,['1'.repeat(32),'3'.repeat(32)]),false);
+assert.equal(canRequestPurge(purgeSession,['4'.repeat(32)]),false);
+assert.equal(canRequestPurge(purgeSession,[]),false);
+assert.equal(canRequestPurge({...purgeSession,operation:'import'},['1'.repeat(32)]),false);
+console.log('Shared renderer: action semantics, purge eligibility and pause/reduced-motion/hidden/offscreen/destroy cancellation passed (synthetic browser contract).');

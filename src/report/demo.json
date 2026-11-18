@@ -280,6 +280,7 @@
     {
       "ok": true,
       "sessionId": "cccccccccccccccccccccccccccccccc",
+      "operation": "quarantine",
       "createdUtc": "2026-10-29T00:00:00Z",
       "totalItems": 64,
       "items": [
@@ -672,6 +673,7 @@
     {
       "ok": true,
       "sessionId": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "operation": "quarantine",
       "createdUtc": "2026-10-28T00:00:00Z",
       "totalItems": 2,
       "items": [

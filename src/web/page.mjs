@@ -64,10 +64,20 @@ function startPage(data) {
     const bytes = Uint8Array.from(atob(data.demoBase64), character => character.charCodeAt(0));
     offlineDemoUrl = URL.createObjectURL(new Blob([bytes], {type:'text/html;charset=utf-8'}));
   }
+  function setMeta(selector, value) {
+    const el = document.querySelector(selector);
+    if (el) el.content = value;
+  }
   function translate() {
     const ui = current().ui;
     document.documentElement.lang = language; $('language').value = language;
-    document.title = ui.title; document.querySelector('meta[name="description"]').content = ui.description;
+    document.title = ui.title;
+    setMeta('meta[name="description"]', ui.description);
+    setMeta('meta[property="og:title"]', ui.title);
+    setMeta('meta[property="og:description"]', ui.description);
+    setMeta('meta[property="og:image:alt"]', ui.ogImageAlt);
+    setMeta('meta[name="twitter:title"]', ui.title);
+    setMeta('meta[name="twitter:description"]', ui.description);
     for (const element of document.querySelectorAll('[data-i18n]')) element.textContent = ui[element.dataset.i18n];
     for (const element of document.querySelectorAll('[data-i18n-aria]')) element.setAttribute('aria-label', ui[element.dataset.i18nAria]);
     for (const element of document.querySelectorAll('[data-i18n-placeholder]')) element.setAttribute('placeholder', ui[element.dataset.i18nPlaceholder]);

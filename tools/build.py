@@ -182,9 +182,65 @@ def build_outputs():
         raise ValueError("The public report must be a labeled English-default synthetic example")
     demo = runtime["assets/report-template.html"].decode("utf-8").replace("__SYRIN_DATA__", js(demo_data))
     data = {"project": PROJECT, "editions": editions, "bootstrap": read("src/extract-runtime.ps1").strip(), "demoBase64": base64.b64encode(encoded(demo)).decode()}
+    home_url = PROJECT["homepage"] if PROJECT["homepage"].endswith("/") else PROJECT["homepage"] + "/"
+    support_url = PROJECT["repository"] + "/blob/" + VERSION + "/docs/feat/support.md"
+    og_image_url = home_url + "og-preview.png"
+    en_ui = editions["en"]["ui"]
+    json_ld = {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "Organization",
+                "@id": home_url + "#organization",
+                "name": "Syrin clean",
+                "alternateName": ["Syrin Clean", "syrin-clean", "SYRIN CLEAN", "syrin clean"],
+                "url": home_url,
+                "logo": og_image_url,
+                "sameAs": [PROJECT["repository"]],
+                "knowsAbout": [
+                    "Windows storage and performance diagnostics",
+                    "Reviewed file quarantine and recovery",
+                    "Read-only Android USB diagnostics",
+                    "AI agent maintenance skills"
+                ]
+            },
+            {
+                "@type": "WebSite",
+                "@id": home_url + "#website",
+                "name": "Syrin clean",
+                "alternateName": ["Syrin Clean", "syrin-clean"],
+                "url": home_url,
+                "inLanguage": ["en", "vi"],
+                "publisher": {"@id": home_url + "#organization"}
+            },
+            {
+                "@type": "WebPage",
+                "@id": home_url + "#webpage",
+                "name": en_ui["title"],
+                "description": en_ui["description"],
+                "url": home_url,
+                "image": og_image_url,
+                "inLanguage": "en",
+                "isPartOf": {"@id": home_url + "#website"}
+            },
+            {
+                "@type": "SoftwareApplication",
+                "name": "Syrin clean",
+                "applicationCategory": "UtilitiesApplication",
+                "operatingSystem": "Windows 10, Windows 11",
+                "softwareVersion": VERSION,
+                "url": home_url,
+                "downloadUrl": PROJECT["repository"] + "/releases/tag/" + VERSION,
+                "image": og_image_url,
+                "publisher": {"@id": home_url + "#organization"},
+                "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
+            }
+        ]
+    }
     page = read("src/web/page.html")
-    page = re.sub(r"__I18N_([A-Za-z0-9]+)__", lambda match: html.escape(editions["en"]["ui"][match.group(1)], quote=True), page)
-    page = page.replace("__HOME_URL__", PROJECT["homepage"]).replace("__REPO_URL__", PROJECT["repository"]).replace("__RELEASE_URL__", PROJECT["repository"] + "/releases").replace("__HTML_DOWNLOAD_URL__", PROJECT["repository"] + "/releases/download/" + VERSION + "/syrin-clean.html")
+    page = re.sub(r"__I18N_([A-Za-z0-9]+)__", lambda match: html.escape(en_ui[match.group(1)], quote=True), page)
+    page = page.replace("__HOME_URL__", home_url).replace("__REPO_URL__", PROJECT["repository"]).replace("__SUPPORT_URL__", support_url).replace("__RELEASE_URL__", PROJECT["repository"] + "/releases").replace("__HTML_DOWNLOAD_URL__", PROJECT["repository"] + "/releases/download/" + VERSION + "/syrin-clean.html")
+    page = page.replace("__JSON_LD__", js(json_ld))
     page = page.replace("__FONT_LICENSES__", html.escape(licenses)).replace("__VERSION__", VERSION)
     page = page.replace("/*__PAGE_CSS__*/", inline_styles("src/web/page.css", fonts))
     page = page.replace("__PAGE_DATA__", js(data)).replace("/*__PAGE_JS__*/", inline_module("src/web/page.mjs"))
@@ -202,7 +258,47 @@ def build_outputs():
     return output
 
 
+def validate_seo(page_html):
+    title_match = re.search(r"<title>(.*?)</title>", page_html, re.S)
+    desc_match = re.search(r'<meta\s+name="description"\s+content="([^"]*)"', page_html)
+    canon_match = re.search(r'<link\s+rel="canonical"\s+href="([^"]*)"', page_html)
+    if not title_match or not desc_match or not canon_match:
+        raise ValueError("Missing required SEO title, description or canonical link")
+    title = html.unescape(title_match.group(1))
+    description = html.unescape(desc_match.group(1))
+    if len(title) > 60 or any(dash in title for dash in ("\u2013", "\u2014")):
+        raise ValueError(f"Invalid SEO title length or dash punctuation: {title!r}")
+    if len(description) > 155 or any(dash in description for dash in ("\u2013", "\u2014")):
+        raise ValueError(f"Invalid SEO description length or dash punctuation: {description!r}")
+    if not canon_match.group(1).endswith("/"):
+        raise ValueError("Canonical URL must end with a trailing slash")
+    for pattern in (r'<meta\s+property="og:image"\s+content="([^"]*)"', r'<meta\s+name="twitter:image"\s+content="([^"]*)"'):
+        image_match = re.search(pattern, page_html)
+        if not image_match or not image_match.group(1).startswith("https://"):
+            raise ValueError("Social preview image must be an absolute https:// URL")
+    ld_match = re.search(r'<script\s+type="application/ld\+json">(.*?)</script>', page_html, re.S)
+    if not ld_match:
+        raise ValueError("Missing JSON-LD structured data")
+    graph = json.loads(ld_match.group(1)).get("@graph", [])
+    org = next((node for node in graph if node.get("@type") == "Organization"), None)
+    if not org or not org.get("alternateName") or not org.get("sameAs"):
+        raise ValueError("Homepage Organization JSON-LD must include alternateName and sameAs")
+    for language in LANGUAGES:
+        ui = json.loads(read(f"src/web/ui.{language}.json"))
+        if len(ui["title"]) > 60 or any(dash in ui["title"] for dash in ("\u2013", "\u2014")):
+            raise ValueError(f"Invalid {language} SEO title")
+        if len(ui["description"]) > 155 or any(dash in ui["description"] for dash in ("\u2013", "\u2014")):
+            raise ValueError(f"Invalid {language} SEO description")
+
+
+def check_output_trees(outputs):
+    for folder in ("dist", "prompts"):
+        prefix = folder + "/"
+        allowlist(folder, {name[len(prefix):] for name in outputs if name.startswith(prefix)})
+
+
 def validate(outputs):
+    validate_seo(outputs["web/index.html"].decode("utf-8"))
     node = shutil.which("node")
     if not node:
         raise RuntimeError("Node.js is required to validate generated JavaScript.")
@@ -212,7 +308,7 @@ def validate(outputs):
             if not relative.endswith(".html") or not relative.startswith(("web/", "src/runtime/assets/")):
                 continue
             for index, (attrs, script) in enumerate(re.findall(r"<script\b([^>]*)>(.*?)</script>", data.decode("utf-8"), re.S)):
-                if "application/json" in attrs:
+                if "application/json" in attrs or "application/ld+json" in attrs:
                     continue
                 path = folder / (str(index) + (".mjs" if "module" in attrs else ".js"))
                 path.write_bytes(script.encode("utf-8"))
@@ -229,6 +325,7 @@ def main():
     validate(outputs)
     changed = [name for name, data in outputs.items() if not (ROOT / name).exists() or (ROOT / name).read_bytes() != data]
     if args.check:
+        check_output_trees(outputs)
         if changed:
             raise SystemExit("Generated files are stale:\n" + "\n".join(changed))
         print(f"Build check OK: {len(outputs)} files match canonical sources")
@@ -242,6 +339,7 @@ def main():
             temporary.replace(target)
         finally:
             temporary.unlink(missing_ok=True)
+    check_output_trees(outputs)
     print(f"Build OK: {len(outputs)} validated files; {len(changed)} updated")
 
 

@@ -28,4 +28,20 @@ for(const language of ['en','vi']){
   assert.ok(invalid.includes(edition.profile.androidInvalidPackage) && !invalid.includes(';reboot'));
 }
 assert.deepEqual(Object.keys(data.editions.en.ui).sort(),Object.keys(data.editions.vi.ui).sort());
-console.log('Landing model: both default Markdown downloads match their artifacts; profile choices and embedded packages are exact.');
+assert.ok(!('downloaded' in data.editions.en.ui) && !('startupError' in data.editions.en.ui));
+assert.ok(!page.includes('/blob/main/'));
+assert.ok(page.includes('/blob/'+data.project.version+'/docs/feat/support.md'));
+assert.ok(page.includes('<title>'+data.editions.en.ui.title+'</title>'));
+assert.ok(page.includes('property="og:image" content="'+data.project.homepage+'og-preview.png"'));
+const ldJson=JSON.parse(page.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)[1]);
+const orgNode=ldJson['@graph'].find(node=>node['@type']==='Organization');
+assert.ok(orgNode && Array.isArray(orgNode.alternateName) && orgNode.alternateName.includes('syrin-clean') && Array.isArray(orgNode.sameAs) && orgNode.sameAs.includes(data.project.repository));
+for(const language of ['en','vi']){
+  const ui=data.editions[language].ui;
+  assert.ok(ui.title.length<=60 && !/[\u2013\u2014]/.test(ui.title));
+  assert.ok(ui.description.length<=155 && !/[\u2013\u2014]/.test(ui.description));
+}
+const demoHtml=readFileSync(new URL('../web/report-demo.html',import.meta.url),'utf8');
+assert.equal(demoHtml.includes("'purge-request'"),true);
+assert.equal(/30[\u2013\u2014]300/.test(demoHtml),false);
+console.log('Landing model: both default Markdown downloads match their artifacts; profile choices, SEO metadata and embedded packages are exact.');

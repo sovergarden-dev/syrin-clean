@@ -57,9 +57,116 @@ export function measurementAge(meta,now=Date.now()) {
   return Number.isFinite(captured) && captured<=now ? Math.floor((now-captured)/60000) : null;
 }
 
+export function canRequestPurge(session, selectedIds) {
+  const ids = list(selectedIds);
+  if (!ids.length || !session || !session.ok || session.operation === 'import') return false;
+  const byId = new Map(list(session.items).map(item => [item.id, item]));
+  return ids.every(id => /^[a-f0-9]{32}$/.test(String(id)) && byId.get(id)?.state === 'quarantined');
+}
+
 const copy={
-  en:{report:'Read-only report',pc:'This PC',summary:'Measurements and confidence',unknown:'Not measured',partial:'Partial or unverified',complete:'Measured',startup:'Enabled startup items',events:'Critical errors in 7 days',space:'System volume free space',estimate:'Estimated reclaimable space',measured:'Measured folder groups',measurementNote:'Logical folder sizes are not promises of recoverable disk space. Application data, virtual disks and personal files are not junk. Partial scans are lower bounds.',all:'All categories',category:'Show category',cache:'Caches', 'app-data':'Application data','user-data':'Personal data',vm:'Virtual machines',system:'System data', 'unknown-category':'Unclassified',comparison:'Before and after',comparisonNote:'Observed free-space change can include activity outside Syrin clean.',before:'Before',after:'After',delta:'Observed change',proposals:'Proposals',proposalNote:'A report does not authorize changes. Review the files, consequences and plan reference; the agent executes only the items you confirm.',empty:'No data available.',history:'File operation history',historyNote:'Select stored items to ask your agent for a new restore plan. This page never executes commands.',restore:'Prepare restore request',details:'Collector details',pause:'Pause 3D',resume:'Enable 3D',scene:'Measured groups; use the table for exact values. Arrow keys or drag rotate the scene.',share:'Prepare a private-data-reduced export',request:'Request for your agent',copy:'Copy request',copied:'Copied.',manual:'Copy the text manually; clipboard access was unavailable.',footer:'Generated locally by Syrin clean. No automatic upload. Your agent/provider may process command output externally. Restore and purge have different consequences; review each plan.',incomplete:'Collectors not fully measured: ',legacy:'Legacy data is unverified. New audits use explicit categories and collector status.',shared:'Aggregate-only export: raw paths, commands, names and history were omitted. Review before sharing.',limited:'Only the first items are shown. Ask the agent for the complete session list.',beforeApproval:'Create a plan only; do not execute it until I confirm the exact plan and item IDs.'},
-  vi:{report:'Báo cáo chỉ đọc',pc:'Máy tính này',summary:'Số liệu và mức độ tin cậy',unknown:'Chưa đo được',partial:'Chưa đầy đủ hoặc chưa xác minh',complete:'Đã đo',startup:'Mục khởi động đang bật',events:'Lỗi nghiêm trọng trong 7 ngày',space:'Ổ hệ thống còn trống',estimate:'Dung lượng thu hồi ước tính',measured:'Các nhóm thư mục đã đo',measurementNote:'Kích thước logic của thư mục không phải cam kết dung lượng sẽ giải phóng. Dữ liệu ứng dụng, ổ máy ảo và file cá nhân không phải rác. Số đo chưa đầy đủ chỉ là mức tối thiểu đã thấy.',all:'Tất cả nhóm',category:'Hiển thị nhóm',cache:'Bộ đệm','app-data':'Dữ liệu ứng dụng','user-data':'Dữ liệu cá nhân',vm:'Máy ảo',system:'Dữ liệu hệ thống','unknown-category':'Chưa phân loại',comparison:'Trước và sau',comparisonNote:'Thay đổi dung lượng trống có thể gồm hoạt động ngoài Syrin clean.',before:'Trước',after:'Sau',delta:'Thay đổi quan sát được',proposals:'Đề xuất',proposalNote:'Báo cáo không cấp quyền thay đổi. Xem file, hậu quả và mã kế hoạch; agent chỉ thực thi đúng các mục bạn xác nhận.',empty:'Chưa có dữ liệu.',history:'Lịch sử thao tác file',historyNote:'Chọn mục đang lưu để nhờ agent lập kế hoạch khôi phục mới. Trang này không thực thi lệnh.',restore:'Tạo yêu cầu khôi phục',details:'Chi tiết bộ thu thập',pause:'Tạm dừng 3D',resume:'Bật 3D',scene:'Các nhóm đã đo; xem bảng để biết số chính xác. Dùng phím mũi tên hoặc kéo để xoay.',share:'Tạo yêu cầu xuất bản đã lược thông tin riêng',request:'Yêu cầu gửi agent',copy:'Sao chép yêu cầu',copied:'Đã sao chép.',manual:'Hãy sao chép phần chữ; trình duyệt chưa cho truy cập clipboard.',footer:'Syrin clean tạo báo cáo cục bộ, không tự upload. Agent/nhà cung cấp có thể xử lý đầu ra lệnh ngoài máy. Khôi phục và xóa hẳn có hậu quả khác nhau; hãy xem từng kế hoạch.',incomplete:'Các bộ thu thập chưa đo đầy đủ: ',legacy:'Dữ liệu cũ chưa được xác minh. Lần kiểm tra mới có phân loại và trạng thái đo rõ ràng.',shared:'Bản chỉ gồm số tổng hợp: đã bỏ đường dẫn, lệnh, tên riêng và lịch sử thô. Xem lại trước khi chia sẻ.',limited:'Chỉ hiện các mục đầu tiên. Nhờ agent liệt kê đầy đủ phiên để chọn tiếp.',beforeApproval:'Chỉ lập kế hoạch; chưa thực thi cho đến khi tôi xác nhận đúng kế hoạch và ID.'}
+  en:{
+    report:'Read-only report',pc:'This PC',summary:'At a glance',unknown:'Not measured',partial:'Partial or unverified',complete:'Measured',
+    startup:'Enabled startup items',events:'Critical errors in 7 days',space:'System volume free space',estimate:'Estimated reclaimable space',
+    measured:'Measured folder groups',
+    measurementNote:'Logical folder sizes can overlap and are not a promise of recoverable space. Application data, virtual disks and personal files are not junk. Partial measurements are lower bounds.',
+    all:'All categories',category:'Show category',cache:'Caches','app-data':'Application data','user-data':'Personal data',vm:'Virtual machines',system:'System data','unknown-category':'Unclassified',
+    comparison:'Before and after',comparisonNote:'Observed free-space change can include activity outside Syrin clean.',before:'Before',after:'After',delta:'Observed change',
+    proposals:'Proposals',proposalNote:'A report does not authorize changes. Review the files, consequences and plan reference; the agent executes only the items you confirm.',
+    empty:'No data was included.',history:'File operation history',
+    historyNote:'Select stored items to ask your agent for a restore plan, or choose intact quarantined items to request a separate irreversible purge plan. This page never executes commands.',
+    restore:'Prepare restore request',purge:'Prepare permanent delete request',details:'Collector details',
+    pause:'Pause animation',resume:'Resume animation',reduced:'Reduced motion',
+    scene:'A spatial view of measured groups. Exact values are in the table. Drag or use the arrow keys to rotate.',
+    share:'Prepare shared export',request:'Request for your agent',copy:'Copy request',copied:'Copied.',
+    manual:'Copy the text manually; clipboard access was unavailable.',
+    footer:'Generated locally by Syrin clean. No automatic upload. Original records retain their source language. Your agent/provider has its own data boundary. Review a fresh plan before any file operation.',
+    incomplete:'Collectors not fully measured: ',
+    legacy:'Legacy data is unverified. New audits use explicit categories and collector status.',
+    shared:'Aggregate-only export: raw paths, commands, names and history were omitted. Review before sharing.',
+    limited:'Only the first items are shown. Ask the agent for the complete session list.',
+    beforeApproval:'Create a plan only; do not execute it until I confirm the exact plan and item IDs.',
+    purgeApproval:'Irreversible permanent deletion: create a separate purge plan only; do not execute it until I confirm the exact P-codes and plan digest.',
+    chooseSession:'Choose a session',previousPage:'Previous files',nextPage:'Next files',page:'Page',files:'files',selected:'Selected',sessionCount:'Sessions',
+    reducedMotion:'Motion is disabled by your system preference.',
+    memory:'Available memory',defender:'Defender real-time protection',on:'Active',off:'Not active',securityNote:'Defender status only; other security software may be active.',
+    print:'Print summary',language:'Language',skip:'Skip to report',tools:'Report tools',fontCredits:'Font licenses',
+    search:'Find a file',searchPlaceholder:'Path, code or item ID',stateFilter:'State',
+    allStates:'All states',storedState:'In quarantine',attentionState:'Needs attention',plannedState:'Planned',restoredState:'Restored',purgedState:'Permanently deleted',
+    clearSelection:'Clear selection',noMatches:'No files match these filters. Try another term or state.',noHistory:'No file operations are included in this report.',
+    noProposals:'No proposals were included. Ask your agent to review the audit before preparing a plan.',
+    noMeasurements:'No folder measurements are available. Ask your agent which collectors were skipped or incomplete.',
+    pageStatus:'Page {page}/{pages}. Files {start}-{end} of {total}.',coverage:'{filtered} of {total} files match the current filters.',selectedCount:'Selected in this session: {count} files.',
+    demo:'Example data. This report does not describe your PC.',examplePC:'Example PC',demoRequest:'This is a synthetic example. Do not execute it.',
+    requestNote:'This text asks your agent to prepare a plan. It does not authorize execution.',printNote:'Printed summary only. The full file history and original collector records remain in the HTML report.',
+    phone:'Android phone',phoneSpace:'Phone storage free',charge:'Battery charge',temperature:'Battery temperature',
+    androidNotice:'Android preview: USB diagnostics only. No app, setting or file changes. Package grades are not authorization; RAM or swap alone does not prove a cause of lag.',
+    snapshot:'This is a saved snapshot. Rebuilding HTML does not collect new measurements.',age:'Minutes since capture',
+    performance:'Performance over time',
+    performanceNote:'CPU is normalized across logical processors. Process rows omit command lines and paths. Changes in workload, reboot, charging or temperature can explain differences; these measurements do not establish a speed-up.',
+    cpuMean:'Average CPU',cpuPeak:'Peak CPU',sampleTime:'Sample time',cpu:'CPU',topProcess:'Highest sampled process',cpuDelta:'CPU change (percentage points)',
+    recovery:'Recovery integrity is checked again when you request a plan.',
+    appTitle:'App rendering observations',
+    appNote:'Cumulative counters since the app counter started, plus optional two-point window deltas when sampled. Missing process or counter origin stays partial.',
+    appTotal:'Recorded frames',appJanky:'Janky frames',appWindowFrames:'Window frames',appWindowJanky:'Window janky frames',appTask:'Described task',
+    collectorNames:{system:'System',volumes:'Volumes',memory:'Memory',startup:'Startup',events:'Event log',security:'Defender',cpu:'Processor',gpu:'Graphics',ram:'RAM modules',disks:'Physical disks',diskHealth:'Disk health',power:'Power plan',battery:'Battery',restorePoints:'Restore points',processes:'Processes',tasks:'Startup tasks',services:'Services',apps:'Applications',radar:'Storage groups',hotspots:'Unclassified large folders',devArtifacts:'Stale build environments',largeFiles:'Large files',storage:'Phone storage',packages:'App inventory',appSizes:'App storage usage',thermal:'Thermal status',frames:'App frames',performance:'Performance samples'},
+    states:{planned:'Planned',moving:'Transfer needs reconciliation',quarantined:'In quarantine',restoring:'Restore needs reconciliation',restored:'Restored',conflict:'Name conflict',failed:'Needs attention',purging:'Purge needs reconciliation',purged:'Permanently deleted'},
+    qualities:{complete:'Measured',partial:'Partial',unavailable:'Unavailable',failed:'Failed'},
+    proposalColumns:{id:'Code',title:'Action',evidence:'Evidence',benefit:'Expected benefit',loss:'What you lose',risk:'Review level',undo:'Recovery'},
+    risks:{low:'Low',review:'Review carefully',high:'High'},
+    undoLabels:{reversible:'While recovery data remains intact',partial:'Partial',irreversible:'Cannot be undone','not-applicable':'Not applicable'}
+  },
+  vi:{
+    report:'Báo cáo chỉ đọc',pc:'Máy tính này',summary:'Tổng quan',unknown:'Chưa đo được',partial:'Chưa đầy đủ hoặc chưa xác minh',complete:'Đã đo',
+    startup:'Mục khởi động đang bật',events:'Lỗi nghiêm trọng trong 7 ngày',space:'Ổ hệ thống còn trống',estimate:'Dung lượng thu hồi ước tính',
+    measured:'Các nhóm thư mục đã đo',
+    measurementNote:'Kích thước logic có thể chồng lặp và không phải cam kết dung lượng thu hồi. Dữ liệu ứng dụng, ổ máy ảo và file cá nhân không phải rác. Số đo chưa đầy đủ là mức tối thiểu đã thấy.',
+    all:'Tất cả nhóm',category:'Hiển thị nhóm',cache:'Bộ đệm','app-data':'Dữ liệu ứng dụng','user-data':'Dữ liệu cá nhân',vm:'Máy ảo',system:'Dữ liệu hệ thống','unknown-category':'Chưa phân loại',
+    comparison:'Trước và sau',comparisonNote:'Thay đổi dung lượng trống có thể gồm hoạt động ngoài Syrin clean.',before:'Trước',after:'Sau',delta:'Thay đổi quan sát được',
+    proposals:'Đề xuất',proposalNote:'Báo cáo không cấp quyền thay đổi. Xem file, hậu quả và mã kế hoạch; agent chỉ thực thi đúng các mục bạn xác nhận.',
+    empty:'Chưa có dữ liệu đi kèm.',history:'Lịch sử thao tác file',
+    historyNote:'Chọn mục đang lưu để nhờ agent lập kế hoạch khôi phục, hoặc chọn các mục đang cách ly nguyên vẹn để yêu cầu kế hoạch xóa hẳn riêng (không hoàn tác được). Trang này không thực thi lệnh.',
+    restore:'Tạo yêu cầu khôi phục',purge:'Tạo yêu cầu xóa hẳn',details:'Chi tiết bộ thu thập',
+    pause:'Tạm dừng hiệu ứng',resume:'Bật hiệu ứng',reduced:'Đã giảm chuyển động',
+    scene:'Góc nhìn không gian của các nhóm đã đo. Số chính xác nằm trong bảng. Kéo hoặc dùng phím mũi tên để xoay.',
+    share:'Chuẩn bị bản chia sẻ',request:'Yêu cầu gửi agent',copy:'Sao chép yêu cầu',copied:'Đã sao chép.',
+    manual:'Hãy sao chép phần chữ; trình duyệt chưa cho truy cập clipboard.',
+    footer:'Syrin clean tạo báo cáo cục bộ, không tự tải lên. Bản ghi gốc giữ nguyên ngôn ngữ nguồn. Agent/nhà cung cấp có ranh giới dữ liệu riêng. Xem kế hoạch mới trước mỗi thao tác file.',
+    incomplete:'Các bộ thu thập chưa đo đầy đủ: ',
+    legacy:'Dữ liệu cũ chưa được xác minh. Lần kiểm tra mới có phân loại và trạng thái đo rõ ràng.',
+    shared:'Bản chỉ gồm số tổng hợp: đã bỏ đường dẫn, lệnh, tên riêng và lịch sử thô. Xem lại trước khi chia sẻ.',
+    limited:'Chỉ hiện các mục đầu tiên. Nhờ agent liệt kê đầy đủ phiên để chọn tiếp.',
+    beforeApproval:'Chỉ lập kế hoạch; chưa thực thi cho đến khi tôi xác nhận đúng kế hoạch và ID.',
+    purgeApproval:'Xóa vĩnh viễn không hoàn tác được: chỉ lập kế hoạch xóa hẳn riêng; chưa thực thi cho đến khi tôi xác nhận đúng mã P và mã băm kế hoạch.',
+    chooseSession:'Chọn phiên',previousPage:'File trước',nextPage:'File tiếp',page:'Trang',files:'file',selected:'Đã chọn',sessionCount:'Số phiên',
+    reducedMotion:'Hiệu ứng chuyển động đang tắt theo tùy chọn hệ thống.',
+    memory:'Bộ nhớ còn dùng được',defender:'Bảo vệ thời gian thực của Defender',on:'Đang bật',off:'Chưa bật',securityNote:'Đây là trạng thái Defender; có thể đang dùng phần mềm bảo mật khác.',
+    print:'In tóm tắt',language:'Ngôn ngữ',skip:'Đến báo cáo',tools:'Công cụ báo cáo',fontCredits:'Giấy phép font',
+    search:'Tìm file',searchPlaceholder:'Đường dẫn, mã hoặc ID file',stateFilter:'Trạng thái',
+    allStates:'Mọi trạng thái',storedState:'Đang cách ly',attentionState:'Cần xem xét',plannedState:'Đã lập kế hoạch',restoredState:'Đã khôi phục',purgedState:'Đã xóa hẳn',
+    clearSelection:'Bỏ chọn',noMatches:'Không có file khớp bộ lọc. Thử từ khóa hoặc trạng thái khác.',noHistory:'Báo cáo này chưa có lịch sử thao tác file.',
+    noProposals:'Chưa có đề xuất đi kèm. Nhờ agent xem báo cáo trước khi lập kế hoạch.',
+    noMeasurements:'Chưa có số đo thư mục. Nhờ agent làm rõ bộ thu thập nào bị bỏ qua hoặc chưa hoàn tất.',
+    pageStatus:'Trang {page}/{pages}. File {start}-{end} trên {total}.',coverage:'{filtered} trên {total} file khớp bộ lọc hiện tại.',selectedCount:'Đã chọn trong phiên: {count} file.',
+    demo:'Dữ liệu minh họa. Báo cáo này không mô tả máy của bạn.',examplePC:'Máy minh họa',demoRequest:'Đây là ví dụ giả lập. Không thực thi.',
+    requestNote:'Nội dung này nhờ agent lập kế hoạch, chưa cấp quyền thực thi.',printNote:'Bản in chỉ gồm tóm tắt. Lịch sử file đầy đủ và bản ghi thu thập gốc vẫn nằm trong HTML.',
+    phone:'Điện thoại Android',phoneSpace:'Bộ nhớ điện thoại còn trống',charge:'Mức pin',temperature:'Nhiệt độ pin',
+    androidNotice:'Android thử nghiệm: chỉ kiểm tra qua USB. Không đổi app, cài đặt hay file. Xếp hạng package không cấp quyền thao tác; riêng RAM hoặc swap chưa chứng minh nguyên nhân giật.',
+    snapshot:'Đây là bản chụp đã lưu. Tạo lại HTML không thu thập số liệu mới.',age:'Số phút từ lúc thu thập',
+    performance:'Hiệu năng theo thời gian',
+    performanceNote:'CPU được chuẩn hóa trên các bộ xử lý logic. Không thu dòng lệnh hay đường dẫn tiến trình. Tác vụ, reboot, sạc và nhiệt độ có thể làm số đo thay đổi; đây chưa phải bằng chứng tăng tốc.',
+    cpuMean:'CPU trung bình',cpuPeak:'CPU cao nhất',sampleTime:'Thời điểm đo',cpu:'CPU',topProcess:'Tiến trình cao nhất trong mẫu',cpuDelta:'Thay đổi CPU (điểm phần trăm)',
+    recovery:'Tính toàn vẹn dữ liệu khôi phục sẽ được kiểm tra lại khi bạn yêu cầu lập kế hoạch.',
+    appTitle:'Quan sát khung hình ứng dụng',
+    appNote:'Bộ đếm tích lũy từ lúc app bắt đầu đếm, kèm chênh lệch hai mốc khi lấy mẫu theo cửa sổ. Thiếu tiến trình hoặc mốc đếm vẫn là chưa đầy đủ.',
+    appTotal:'Khung hình đã ghi',appJanky:'Khung hình bị giật',appWindowFrames:'Khung hình trong cửa sổ đo',appWindowJanky:'Khung hình giật trong cửa sổ đo',appTask:'Tác vụ mô tả',
+    collectorNames:{system:'Hệ thống',volumes:'Các ổ đĩa',memory:'Bộ nhớ',startup:'Khởi động',events:'Nhật ký lỗi',security:'Defender',cpu:'Bộ xử lý',gpu:'Đồ họa',ram:'Thanh RAM',disks:'Ổ vật lý',diskHealth:'Sức khỏe ổ',power:'Chế độ nguồn',battery:'Pin',restorePoints:'Điểm khôi phục',processes:'Tiến trình',tasks:'Tác vụ khởi động',services:'Dịch vụ',apps:'Ứng dụng',radar:'Nhóm dung lượng',hotspots:'Thư mục lớn chưa phân loại',devArtifacts:'Thư mục build lập trình cũ',largeFiles:'File lớn',storage:'Bộ nhớ điện thoại',packages:'Danh sách app',appSizes:'Dung lượng theo ứng dụng',thermal:'Trạng thái nhiệt',frames:'Khung hình app',performance:'Mẫu hiệu năng'},
+    states:{planned:'Đã lập kế hoạch',moving:'Đang chuyển, cần đối chiếu',quarantined:'Đang cách ly',restoring:'Đang khôi phục, cần đối chiếu',restored:'Đã khôi phục',conflict:'Trùng tên',failed:'Cần xử lý lỗi',purging:'Đang xóa hẳn, cần đối chiếu',purged:'Đã xóa hẳn'},
+    qualities:{complete:'Đã đo',partial:'Chưa đầy đủ',unavailable:'Chưa khả dụng',failed:'Có lỗi'},
+    proposalColumns:{id:'Mã',title:'Việc làm',evidence:'Bằng chứng',benefit:'Bạn được gì',loss:'Bạn mất gì',risk:'Mức cần xem xét',undo:'Khôi phục'},
+    risks:{low:'Thấp',review:'Cần xem kỹ',high:'Cao'},
+    undoLabels:{reversible:'Khi file và journal còn nguyên',partial:'Một phần',irreversible:'Không hoàn tác được','not-applicable':'Không áp dụng'}
+  }
 };
 
 export function formatBytes(value,lang='en') {return number(value)===null ? copy[lang].unknown : (value/2**30).toLocaleString(lang==='vi'?'vi-VN':'en-US',{maximumFractionDigits:2})+' GiB';}
@@ -72,59 +179,7 @@ export function historyPage(items,page=0,pageSize=50) {
   return {items:rows.slice(start,end),page:current,pages,total:rows.length,start,end};
 }
 
-Object.assign(copy.en,{chooseSession:'Choose a session',previousPage:'Previous files',nextPage:'Next files',page:'Page',files:'files',selected:'Selected',sessionCount:'Sessions',reducedMotion:'Motion is disabled by your system preference.'});
-Object.assign(copy.vi,{chooseSession:'Chọn phiên',previousPage:'File trước',nextPage:'File tiếp',page:'Trang',files:'file',selected:'Đã chọn',sessionCount:'Số phiên',reducedMotion:'Hiệu ứng chuyển động đang tắt theo tùy chọn hệ thống.'});
-
-Object.assign(copy.en,{memory:'Available memory',defender:'Defender real-time protection',on:'Active',off:'Not active',securityNote:'Defender status only; other security software may be active.'});
-Object.assign(copy.vi,{memory:'Bộ nhớ còn dùng được',defender:'Bảo vệ thời gian thực của Defender',on:'Đang bật',off:'Chưa bật',securityNote:'Đây là trạng thái Defender; có thể đang dùng phần mềm bảo mật khác.'});
-
-Object.assign(copy.en,{
-  collectorNames:{system:'System',volumes:'Volumes',memory:'Memory',startup:'Startup',events:'Event log',security:'Defender',cpu:'Processor',gpu:'Graphics',ram:'RAM modules',disks:'Physical disks',diskHealth:'Disk health',power:'Power plan',battery:'Battery',restorePoints:'Restore points',processes:'Processes',tasks:'Startup tasks',services:'Services',apps:'Applications',radar:'Storage groups',largeFiles:'Large files'},
-  states:{planned:'Planned',moving:'Transfer needs reconciliation',quarantined:'In quarantine',restoring:'Restore needs reconciliation',restored:'Restored',conflict:'Name conflict',failed:'Needs attention',purging:'Purge needs reconciliation',purged:'Permanently deleted'},
-  qualities:{complete:'Measured',partial:'Partial',unavailable:'Unavailable',failed:'Failed'},
-  proposalColumns:{id:'Code',title:'Action',evidence:'Evidence',benefit:'Expected benefit',loss:'What you lose',risk:'Review level',undo:'Recovery'},
-  risks:{low:'Low',review:'Review carefully',high:'High'},
-  undoLabels:{reversible:'While recovery data remains intact',partial:'Partial',irreversible:'Cannot be undone','not-applicable':'Not applicable'}
-});
-Object.assign(copy.vi,{
-  collectorNames:{system:'Hệ thống',volumes:'Các ổ đĩa',memory:'Bộ nhớ',startup:'Khởi động',events:'Nhật ký lỗi',security:'Defender',cpu:'Bộ xử lý',gpu:'Đồ họa',ram:'Thanh RAM',disks:'Ổ vật lý',diskHealth:'Sức khỏe ổ',power:'Chế độ nguồn',battery:'Pin',restorePoints:'Điểm khôi phục',processes:'Tiến trình',tasks:'Tác vụ khởi động',services:'Dịch vụ',apps:'Ứng dụng',radar:'Nhóm dung lượng',largeFiles:'File lớn'},
-  states:{planned:'Đã lập kế hoạch',moving:'Đang chuyển, cần đối chiếu',quarantined:'Đang cách ly',restoring:'Đang khôi phục, cần đối chiếu',restored:'Đã khôi phục',conflict:'Trùng tên',failed:'Cần xử lý lỗi',purging:'Đang xóa hẳn, cần đối chiếu',purged:'Đã xóa hẳn'},
-  qualities:{complete:'Đã đo',partial:'Chưa đầy đủ',unavailable:'Chưa khả dụng',failed:'Có lỗi'},
-  proposalColumns:{id:'Mã',title:'Việc làm',evidence:'Bằng chứng',benefit:'Bạn được gì',loss:'Bạn mất gì',risk:'Mức cần xem xét',undo:'Khôi phục'},
-  risks:{low:'Thấp',review:'Cần xem kỹ',high:'Cao'},
-  undoLabels:{reversible:'Khi file và journal còn nguyên',partial:'Một phần',irreversible:'Không hoàn tác được','not-applicable':'Không áp dụng'}
-});
 function localDate(value,lang){const date=new Date(value);return Number.isNaN(date.getTime())?String(value||''):date.toLocaleString(lang==='vi'?'vi-VN':'en-US');}
-
-
-Object.assign(copy.en, {
-  summary:'At a glance',print:'Print summary',language:'Language',skip:'Skip to report',tools:'Report tools',fontCredits:'Font licenses',
-  share:'Prepare shared export',chooseSession:'Choose a session',search:'Find a file',searchPlaceholder:'Path, code or item ID',stateFilter:'State',
-  allStates:'All states',storedState:'In quarantine',attentionState:'Needs attention',plannedState:'Planned',restoredState:'Restored',purgedState:'Permanently deleted',
-  clearSelection:'Clear selection',noMatches:'No files match these filters. Try another term or state.',noHistory:'No file operations are included in this report.',
-  noProposals:'No proposals were included. Ask your agent to review the audit before preparing a plan.',
-  noMeasurements:'No folder measurements are available. Ask your agent which collectors were skipped or incomplete.',
-  pageStatus:'Page {page}/{pages}. Files {start}–{end} of {total}.',coverage:'{filtered} of {total} files match the current filters.',selectedCount:'Selected in this session: {count} files.',
-  demo:'Example data. This report does not describe your PC.',examplePC:'Example PC',demoRequest:'This is a synthetic example. Do not execute it.',
-  requestNote:'This text asks your agent to prepare a plan. It does not authorize execution.',printNote:'Printed summary only. The full file history and original collector records remain in the HTML report.',
-  pause:'Pause animation',resume:'Resume animation',reduced:'Reduced motion',scene:'A spatial view of measured groups. Exact values are in the table. Drag or use the arrow keys to rotate.',
-  empty:'No data was included.',measurementNote:'Logical folder sizes can overlap and are not a promise of recoverable space. Application data, virtual disks and personal files are not junk. Partial measurements are lower bounds.',
-  footer:'Generated locally by Syrin clean. No automatic upload. Original records retain their source language. Your agent/provider has its own data boundary. Review a fresh plan before any file operation.'
-});
-Object.assign(copy.vi, {
-  summary:'Tổng quan',print:'In tóm tắt',language:'Ngôn ngữ',skip:'Đến báo cáo',tools:'Công cụ báo cáo',fontCredits:'Giấy phép font',
-  share:'Chuẩn bị bản chia sẻ',chooseSession:'Chọn phiên',search:'Tìm file',searchPlaceholder:'Đường dẫn, mã hoặc ID file',stateFilter:'Trạng thái',
-  allStates:'Mọi trạng thái',storedState:'Đang cách ly',attentionState:'Cần xem xét',plannedState:'Đã lập kế hoạch',restoredState:'Đã khôi phục',purgedState:'Đã xóa hẳn',
-  clearSelection:'Bỏ chọn',noMatches:'Không có file khớp bộ lọc. Thử từ khóa hoặc trạng thái khác.',noHistory:'Báo cáo này chưa có lịch sử thao tác file.',
-  noProposals:'Chưa có đề xuất đi kèm. Nhờ agent xem báo cáo trước khi lập kế hoạch.',
-  noMeasurements:'Chưa có số đo thư mục. Nhờ agent làm rõ bộ thu thập nào bị bỏ qua hoặc chưa hoàn tất.',
-  pageStatus:'Trang {page}/{pages}. File {start}–{end} trên {total}.',coverage:'{filtered} trên {total} file khớp bộ lọc hiện tại.',selectedCount:'Đã chọn trong phiên: {count} file.',
-  demo:'Dữ liệu minh họa. Báo cáo này không mô tả máy của bạn.',examplePC:'Máy minh họa',demoRequest:'Đây là ví dụ giả lập. Không thực thi.',
-  requestNote:'Nội dung này nhờ agent lập kế hoạch, chưa cấp quyền thực thi.',printNote:'Bản in chỉ gồm tóm tắt. Lịch sử file đầy đủ và bản ghi thu thập gốc vẫn nằm trong HTML.',
-  pause:'Tạm dừng hiệu ứng',resume:'Bật hiệu ứng',reduced:'Đã giảm chuyển động',scene:'Góc nhìn không gian của các nhóm đã đo. Số chính xác nằm trong bảng. Kéo hoặc dùng phím mũi tên để xoay.',
-  empty:'Chưa có dữ liệu đi kèm.',measurementNote:'Kích thước logic có thể chồng lặp và không phải cam kết dung lượng thu hồi. Dữ liệu ứng dụng, ổ máy ảo và file cá nhân không phải rác. Số đo chưa đầy đủ là mức tối thiểu đã thấy.',
-  footer:'Syrin clean tạo báo cáo cục bộ, không tự tải lên. Bản ghi gốc giữ nguyên ngôn ngữ nguồn. Agent/nhà cung cấp có ranh giới dữ liệu riêng. Xem kế hoạch mới trước mỗi thao tác file.'
-});
 
 export function filterHistoryItems(items, {query = '', state = 'all'} = {}) {
   const needle = String(query).trim().normalize('NFC').toLowerCase();
@@ -137,13 +192,6 @@ export function filterHistoryItems(items, {query = '', state = 'all'} = {}) {
 }
 
 const interpolate = (text, values) => text.replace(/\{(\w+)\}/g, (_, key) => String(values[key] ?? ''));
-
-Object.assign(copy.en,{phone:'Android phone',phoneSpace:'Phone storage free',charge:'Battery charge',temperature:'Battery temperature',androidNotice:'Android preview: USB diagnostics only. No app, setting or file changes. Package grades are not authorization; RAM or swap alone does not prove a cause of lag.',snapshot:'This is a saved snapshot. Rebuilding HTML does not collect new measurements.',age:'Minutes since capture',performance:'Performance over time',performanceNote:'CPU is normalized across logical processors. Process rows omit command lines and paths. Changes in workload, reboot, charging or temperature can explain differences; these measurements do not establish a speed-up.',cpuMean:'Average CPU',cpuPeak:'Peak CPU',sampleTime:'Sample time',cpu:'CPU',topProcess:'Highest sampled process',cpuDelta:'CPU change (percentage points)',recovery:'Recovery integrity is checked again when you request a plan.'});
-Object.assign(copy.vi,{phone:'Điện thoại Android',phoneSpace:'Bộ nhớ điện thoại còn trống',charge:'Mức pin',temperature:'Nhiệt độ pin',androidNotice:'Android thử nghiệm: chỉ kiểm tra qua USB. Không đổi app, cài đặt hay file. Xếp hạng package không cấp quyền thao tác; riêng RAM hoặc swap chưa chứng minh nguyên nhân giật.',snapshot:'Đây là bản chụp đã lưu. Tạo lại HTML không thu thập số liệu mới.',age:'Số phút từ lúc thu thập',performance:'Hiệu năng theo thời gian',performanceNote:'CPU được chuẩn hóa trên các bộ xử lý logic. Không thu dòng lệnh hay đường dẫn tiến trình. Tác vụ, reboot, sạc và nhiệt độ có thể làm số đo thay đổi; đây chưa phải bằng chứng tăng tốc.',cpuMean:'CPU trung bình',cpuPeak:'CPU cao nhất',sampleTime:'Thời điểm đo',cpu:'CPU',topProcess:'Tiến trình cao nhất trong mẫu',cpuDelta:'Thay đổi CPU (điểm phần trăm)',recovery:'Tính toàn vẹn dữ liệu khôi phục sẽ được kiểm tra lại khi bạn yêu cầu lập kế hoạch.'});
-Object.assign(copy.en.collectorNames,{storage:'Phone storage',packages:'App inventory',frames:'App frames',performance:'Performance samples'});
-Object.assign(copy.vi.collectorNames,{storage:'Bộ nhớ điện thoại',packages:'Danh sách app',frames:'Khung hình app',performance:'Mẫu hiệu năng'});
-Object.assign(copy.en,{appTitle:'App rendering observations',appNote:'Cumulative counters since the app counter started. They do not isolate the described task or establish a speed-up. Missing process or counter origin stays partial.',appTotal:'Recorded frames',appJanky:'Janky frames',appTask:'Described task'});
-Object.assign(copy.vi,{appTitle:'Quan sát khung hình ứng dụng',appNote:'Bộ đếm tích lũy từ lúc app bắt đầu đếm. Số liệu chưa tách riêng tác vụ mô tả và chưa chứng minh tăng tốc. Thiếu tiến trình hoặc mốc đếm vẫn là chưa đầy đủ.',appTotal:'Khung hình đã ghi',appJanky:'Khung hình bị giật',appTask:'Tác vụ mô tả'});
 
 function renderReport(payload) {
   const $ = id => document.getElementById(id), esc = escapeHtml;
@@ -174,7 +222,8 @@ function renderReport(payload) {
   }
   function renderRequest(action, focus = true) {
     state.request = action;
-    $('request').value = (payload.demo ? T.demoRequest : T.beforeApproval) + '\n' + JSON.stringify(action, null, 2);
+    const headerNote = payload.demo ? T.demoRequest : (action.operation === 'purge' ? T.purgeApproval : T.beforeApproval);
+    $('request').value = headerNote + '\n' + JSON.stringify(action, null, 2);
     $('request-section').hidden = false; $('request-status').textContent = '';
     if (focus) $('request').focus();
   }
@@ -194,8 +243,15 @@ function renderReport(payload) {
     const coverage = document.createElement('p'); coverage.className = 'history-page'; coverage.textContent = interpolate(T.coverage,{filtered:filtered.length,total:source.length}); identity.append(coverage);
     const selectedText = document.createElement('p'); selectedText.className = 'selection-summary'; selectedText.setAttribute('role','status'); selectedText.setAttribute('aria-live','polite'); header.append(selectedText);
     const restore = document.createElement('button'); restore.className = 'button button-primary'; restore.type = 'button'; restore.id = 'restore-request'; restore.textContent = T.restore;
+    const purge = document.createElement('button'); purge.className = 'button button-danger'; purge.type = 'button'; purge.id = 'purge-request'; purge.textContent = T.purge;
     const clear = document.createElement('button'); clear.type = 'button'; clear.className = 'button button-quiet'; clear.textContent = T.clearSelection;
-    function updateSelection() { selectedText.textContent = interpolate(T.selectedCount,{count:selected.size}); restore.disabled = selected.size === 0; clear.disabled = selected.size === 0; }
+    function updateSelection() {
+      const ids = [...selected];
+      selectedText.textContent = interpolate(T.selectedCount,{count:ids.length});
+      restore.disabled = ids.length === 0;
+      purge.disabled = !canRequestPurge(session, ids);
+      clear.disabled = ids.length === 0;
+    }
     for (const item of page.items) {
       const row = document.createElement('label'); row.className = 'selection';
       const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.dataset.itemId = item.id;
@@ -215,7 +271,8 @@ function renderReport(payload) {
     const selectionButtons = document.createElement('div'); selectionButtons.className = 'toolbar';
     clear.addEventListener('click', () => { selected.clear(); renderHistory(); $('history-search').focus(); });
     restore.addEventListener('click', () => { if (selected.size) renderRequest({operation:'restore',root:payload.historyRoot,sessionId:session.sessionId,itemIds:[...selected]}); });
-    selectionButtons.append(clear,restore); navigation.append(pageButtons,selectionButtons); box.append(navigation);
+    purge.addEventListener('click', () => { const ids=[...selected]; if (canRequestPurge(session,ids)) renderRequest({operation:'purge',root:payload.historyRoot,sessionId:session.sessionId,itemIds:ids}); });
+    selectionButtons.append(clear,restore,purge); navigation.append(pageButtons,selectionButtons); box.append(navigation);
     if (session.totalItems > source.length) { const warning = document.createElement('p'); warning.className = 'notice'; warning.textContent = T.limited; box.append(warning); }
     updateSelection();
   }
@@ -257,7 +314,11 @@ function renderReport(payload) {
       const frames=view.collector('frames'),data=first(frames.data);
       $('app-title').textContent=T.appTitle;$('app-note').textContent=T.appNote;
       $('app-context').textContent=[data.package,data.contextLabel?T.appTask+': '+data.contextLabel:''].filter(Boolean).join(' · ');
-      $('app-facts').innerHTML=fact(T.appTotal,number(data.totalFrames)===null?T.unknown:data.totalFrames,frames.status)+fact(T.appJanky,number(data.jankyFrames)===null?T.unknown:data.jankyFrames,frames.status);
+      let frameFacts=fact(T.appTotal,number(data.totalFrames)===null?T.unknown:data.totalFrames,frames.status)+fact(T.appJanky,number(data.jankyFrames)===null?T.unknown:data.jankyFrames,frames.status);
+      if(data.windowOriginVerified){
+        frameFacts+=fact(T.appWindowFrames,number(data.windowTotalFrames)===null?T.unknown:data.windowTotalFrames,frames.status)+fact(T.appWindowJanky,number(data.windowJankyFrames)===null?T.unknown:data.windowJankyFrames,frames.status);
+      }
+      $('app-facts').innerHTML=frameFacts;
     }
     $('performance-section').hidden=!view.performance.sampleCount;
     $('performance-title').textContent=T.performance;$('performance-note').textContent=T.performanceNote;

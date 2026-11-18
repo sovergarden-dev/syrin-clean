@@ -60,8 +60,13 @@ jobs:
           import hashlib, json, os, urllib.parse, urllib.request
           from pathlib import Path
           root = Path(os.environ['SITE_DIR'])
-          expected = {'index.html', 'report-demo.html', 'version.json', '.nojekyll'}
-          assert {path.name for path in root.iterdir()} == expected, 'Unexpected site files'
+          actual_names = {path.name for path in root.iterdir()}
+          current_expected = {'index.html', 'report-demo.html', 'og-preview.png', 'robots.txt', 'sitemap.xml', 'version.json', '.nojekyll'}
+          legacy_expected = {'index.html', 'report-demo.html', 'version.json', '.nojekyll'}
+          if os.environ['PAGES_EVENT'] == 'release':
+              assert actual_names == current_expected, 'Unexpected site files'
+          else:
+              assert actual_names in (current_expected, legacy_expected), 'Unexpected site files'
           assert all(path.is_file() and not path.is_symlink() for path in root.iterdir()), 'Only regular public files are allowed'
           tag = os.environ['PAGES_TAG']
           url = 'https://api.github.com/repos/' + os.environ['PAGES_REPOSITORY'] + '/releases/tags/' + urllib.parse.quote(tag, safe='')
@@ -78,11 +83,14 @@ jobs:
                   assert assets[path.name]['digest'] == 'sha256:' + hashlib.sha256(path.read_bytes()).hexdigest(), 'Release asset differs from validated build'
           metadata = json.loads((root / 'version.json').read_text())
           assert metadata['version'] == tag, 'Site version differs from release'
+          tracked_files = actual_names - {'version.json', '.nojekyll'}
+          assert set(metadata['files']) == tracked_files, 'Site metadata file set differs'
+          for name in tracked_files:
+              assert metadata['files'][name] == hashlib.sha256((root / name).read_bytes()).hexdigest(), 'Site metadata differs'
           for site, asset in [('index.html', 'syrin-clean.html'), ('report-demo.html', 'syrin-clean-report-demo.html')]:
               digest = hashlib.sha256((root / site).read_bytes()).hexdigest()
               assert assets[asset]['digest'] == 'sha256:' + digest, 'Site differs from published asset'
-              assert metadata['files'][site] == digest, 'Site metadata differs'
-          print('Published HTML digests and the four-file allowlist verified.')
+          print('Published HTML digests and the site allowlist verified.')
           PY
       - name: Attest the validated published assets
         if: github.event_name == 'release'
