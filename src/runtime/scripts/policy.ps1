@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param([ValidateSet('audit','approve')][string]$Mode,[string[]]$ProtectedPath=@(),[switch]$Set)
 $ErrorActionPreference='Stop'
 try {

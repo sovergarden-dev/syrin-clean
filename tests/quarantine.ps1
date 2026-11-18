@@ -290,6 +290,23 @@ try {
   Set-SyrinProtection -Mode approve -ProtectedPath @() | Out-Null
   Assert ((Get-SyrinProtection).protectedPaths.Count -eq 0) 'Explicitly clearing exclusions failed'
 
+  $grpA=File 'groups\alpha\one.cache' '1111';$grpB=File 'groups\alpha\two.cache' '22222';$grpC=File 'groups\beta\three.cache' '333'
+  $grpRoot=Join-Path $fixture 'group-storage'
+  $grpPlan=Plan @{Path=@((Join-Path $fixture 'groups'));Root=$grpRoot}
+  Assert ($grpPlan.plan.groups.Count -eq 2 -and $grpPlan.plan.groups[0].groupId -eq 'G1' -and $grpPlan.plan.groups[0].itemCount -eq 2 -and $grpPlan.plan.groups[0].measuredBytes -eq 9) 'Directory groups were not computed deterministically'
+  $rejected=$false;try{Invoke-SyrinFilePlan -PlanFile $grpPlan.planFile -Approval $grpPlan.approval -GroupId @('G99')|Out-Null}catch{$rejected=$true}
+  Assert $rejected 'Unknown group ID was accepted'
+  $cliPlanGroup=& powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File (Join-Path $Runtime 'scripts\quarantine.ps1') -Operation restore -QuarantineRoot $grpRoot -SessionId $grpPlan.plan.sessionId -GroupId G1 | ConvertFrom-Json
+  Assert (-not $cliPlanGroup.ok -and $cliPlanGroup.error -like '*-GroupId*-Execute*') 'Planning mode accepted -GroupId without -Execute'
+  $grpRes=Invoke-SyrinFilePlan -PlanFile $grpPlan.planFile -Approval $grpPlan.approval -GroupId @('G1')
+  Assert ($grpRes.ok -and $grpRes.items.Count -eq 2 -and -not(Test-Path -LiteralPath $grpA) -and -not(Test-Path -LiteralPath $grpB) -and (Test-Path -LiteralPath $grpC)) 'Group selection did not move exact group members'
+  $approvalsDir=Join-Path (Join-Path (Join-Path $grpRoot 'sessions') $grpPlan.plan.sessionId) 'approvals'
+  $receiptFiles=@(Get-ChildItem -LiteralPath $approvalsDir -Filter '*.json')
+  Assert ($receiptFiles.Count -eq 1 -and $receiptFiles[0].Length -lt 4096) 'Approval receipt was missing or bloated'
+  $receiptObj=Get-Content -LiteralPath $receiptFiles[0].FullName -Raw -Encoding UTF8 | ConvertFrom-Json
+  Assert ($receiptObj.kind -ceq 'syrin-approval-receipt' -and $receiptObj.digest -ceq $grpPlan.approval -and @($receiptObj.selectedGroups) -contains 'G1' -and -not $receiptObj.PSObject.Properties['plan']) 'Approval receipt duplicated full plan instead of storing compact reference'
+  Pass 'directory groups select exact members and approval receipts stay compact'
+
   Write-Output "Quarantine tests: $script:count passed"
 } finally {
   foreach($key in $savedEnv.Keys){[Environment]::SetEnvironmentVariable($key,$savedEnv[$key],'Process')}

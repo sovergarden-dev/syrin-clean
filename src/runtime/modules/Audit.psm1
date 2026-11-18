@@ -9,35 +9,43 @@ function Get-SyrinValue($Object,[string]$Name,$Default=$null) {
 }
 
 function Get-SyrinScan {
-  param([string]$Path,[int]$Seconds=30,[switch]$LargeFiles)
+  param([string]$Path,[int]$Seconds=30,[switch]$LargeFiles,[string[]]$ExcludeNames=@())
   $full=Get-SyrinPath $Path
   [void](Assert-SyrinLocalPath ([IO.Path]::GetDirectoryName($full)))
-  $timer=[Diagnostics.Stopwatch]::StartNew();$bytes=0L;$cloud=0L;$count=0;$complete=$true
+  $timer=[Diagnostics.Stopwatch]::StartNew();$bytes=0L;$cloud=0L;$count=0;$complete=$true;$latest=[DateTime]::MinValue
   $errors=New-Object 'System.Collections.Generic.List[string]';$large=New-Object 'System.Collections.Generic.List[object]'
-  $stack=New-Object 'System.Collections.Generic.Stack[string]';$stack.Push($full)
-  while($stack.Count){
-    if($timer.Elapsed.TotalSeconds -ge $Seconds){$complete=$false;$errors.Add('Scan budget exhausted.');break}
-    $current=$stack.Pop()
-    try {
-      $entry=Get-Item -LiteralPath $current -Force -ErrorAction Stop
-      $flags=[int]$entry.Attributes
-      if(($flags -band 0x400) -ne 0){$complete=$false;$errors.Add("Reparse point skipped: $current");continue}
-      if($entry -is [IO.DirectoryInfo]){
-        if(($flags -band 0x441000) -ne 0){$complete=$false;$errors.Add("Cloud directory not enumerated: $current");continue}
-        foreach($child in $entry.EnumerateFileSystemInfos()){
-          if($timer.Elapsed.TotalSeconds -ge $Seconds){$complete=$false;$errors.Add('Scan budget exhausted.');break}
-          if($LargeFiles -and $child.Name -match '^(\.git|\.ssh|\.aws|\.azure|\.gnupg|\.kube|AppData)$'){continue}
-          $stack.Push($child.FullName)
+  $excluded=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+  foreach($item in $ExcludeNames){if($item){[void]$excluded.Add($item)}}
+  try {
+    $rootEntry=Get-Item -LiteralPath $full -Force -ErrorAction Stop
+    $stack=New-Object 'System.Collections.Generic.Stack[IO.FileSystemInfo]'
+    $stack.Push($rootEntry)
+    while($stack.Count){
+      if($timer.Elapsed.TotalSeconds -ge $Seconds){$complete=$false;$errors.Add('Scan budget exhausted.');break}
+      $entry=$stack.Pop()
+      try {
+        $flags=[int]$entry.Attributes
+        if(($flags -band 0x400) -ne 0){$complete=$false;$errors.Add("Reparse point skipped: $($entry.FullName)");continue}
+        if($entry -is [IO.DirectoryInfo]){
+          if(($flags -band 0x441000) -ne 0){$complete=$false;$errors.Add("Cloud directory not enumerated: $($entry.FullName)");continue}
+          foreach($child in $entry.EnumerateFileSystemInfos()){
+            if($timer.Elapsed.TotalSeconds -ge $Seconds){$complete=$false;$errors.Add('Scan budget exhausted.');break}
+            if($excluded.Contains($child.Name)){continue}
+            if($LargeFiles -and $child.Name -match '^(\.git|\.ssh|\.aws|\.azure|\.gnupg|\.kube|AppData|node_modules|\.venv|target)$'){continue}
+            $stack.Push($child)
+          }
+        } else {
+          $count++
+          if($entry.LastWriteTimeUtc -gt $latest){$latest=$entry.LastWriteTimeUtc}
+          if(($flags -band 0x441000) -ne 0){$cloud+=$entry.Length;continue}
+          $bytes+=$entry.Length
+          if($LargeFiles -and $entry.Length -ge 300MB){$large.Add([PSCustomObject]@{path=$entry.FullName;measuredBytes=[long]$entry.Length;lastWriteUtc=$entry.LastWriteTimeUtc.ToString('o');category='user-data'})}
         }
-      } else {
-        $count++
-        if(($flags -band 0x441000) -ne 0){$cloud+=$entry.Length;continue}
-        $bytes+=$entry.Length
-        if($LargeFiles -and $entry.Length -ge 300MB){$large.Add([PSCustomObject]@{path=$entry.FullName;measuredBytes=[long]$entry.Length;lastWriteUtc=$entry.LastWriteTimeUtc.ToString('o');category='user-data'})}
-      }
-    } catch {$complete=$false;$errors.Add($_.Exception.Message)}
-  }
-  return [PSCustomObject]@{path=$full;measuredBytes=$bytes;cloudBytes=$cloud;files=$count;complete=$complete;errors=$errors.ToArray();largeFiles=@($large | Sort-Object measuredBytes -Descending | Select-Object -First 20)}
+      } catch {$complete=$false;$errors.Add($_.Exception.Message)}
+    }
+  } catch {$complete=$false;$errors.Add($_.Exception.Message)}
+  $latestIso=if($latest -gt [DateTime]::MinValue){$latest.ToString('o')}else{$null}
+  return [PSCustomObject]@{path=$full;measuredBytes=$bytes;cloudBytes=$cloud;files=$count;latestWriteUtc=$latestIso;complete=$complete;errors=$errors.ToArray();largeFiles=@($large | Sort-Object measuredBytes -Descending | Select-Object -First 20)}
 }
 
 function Get-SyrinStartup {
@@ -63,50 +71,233 @@ function Get-SyrinStartup {
   return [PSCustomObject]@{data=$entries.ToArray();errors=$errors.ToArray()}
 }
 
+function Get-SyrinBrowserCacheTargets([string]$UserDataRoot) {
+  $targets=New-Object 'System.Collections.Generic.List[string]'
+  if(-not $UserDataRoot -or -not (Test-Path -LiteralPath $UserDataRoot)){return @()}
+  foreach($sub in @('ShaderCache','GrShaderCache','GraphiteDawnCache')){
+    $candidate=Join-Path $UserDataRoot $sub
+    if(Test-Path -LiteralPath $candidate){$targets.Add($candidate)}
+  }
+  foreach($profileDir in @(Get-ChildItem -LiteralPath $UserDataRoot -Directory -Force -ErrorAction SilentlyContinue | Where-Object {$_.Name -eq 'Default' -or $_.Name -like 'Profile *' -or $_.Name -eq 'System Profile'})){
+    foreach($cacheRel in @('Cache','Code Cache','GPUCache','Service Worker\CacheStorage')){
+      $candidate=Join-Path $profileDir.FullName $cacheRel
+      if(Test-Path -LiteralPath $candidate){$targets.Add($candidate)}
+    }
+  }
+  return $targets.ToArray()
+}
+
+function Invoke-SyrinMultiPathScan([string[]]$Paths,[int]$Seconds,[string[]]$ExcludeNames=@()) {
+  $timer=[Diagnostics.Stopwatch]::StartNew();$bytes=0L;$cloud=0L;$complete=$true
+  $errors=New-Object 'System.Collections.Generic.List[string]'
+  foreach($target in $Paths){
+    $remaining=[math]::Max(1,[int]($Seconds-$timer.Elapsed.TotalSeconds))
+    if($timer.Elapsed.TotalSeconds -ge $Seconds){$complete=$false;$errors.Add('Scan budget exhausted.');break}
+    if(-not $target -or -not (Test-Path -LiteralPath $target)){continue}
+    $scan=Get-SyrinScan -Path $target -Seconds $remaining -ExcludeNames $ExcludeNames
+    $bytes+=$scan.measuredBytes;$cloud+=$scan.cloudBytes
+    if(-not $scan.complete){$complete=$false}
+    foreach($err in $scan.errors){$errors.Add($err)}
+  }
+  return [PSCustomObject]@{measuredBytes=$bytes;cloudBytes=$cloud;complete=$complete;errors=$errors.ToArray()}
+}
+
 function Get-SyrinRadar {
   param([int]$Seconds=40)
-  $sys=$env:SystemDrive;$L=$env:LOCALAPPDATA;$R=$env:APPDATA;$U=$env:USERPROFILE;$W=$env:windir;$PD=$env:ProgramData
+  $sys=$env:SystemDrive;$L=$env:LOCALAPPDATA;$R=$env:APPDATA;$U=(Get-SyrinUserFolder 'UserProfile');$W=$env:windir;$PD=$env:ProgramData
+  $ownerSid=Get-SyrinOwner
+  $quarantineSessions=Join-Path $L 'SyrinClean\Quarantine\sessions'
+  $storedFilesPaths=@();$journalPaths=@()
+  if(Test-Path -LiteralPath $quarantineSessions){
+    foreach($sdir in @(Get-ChildItem -LiteralPath $quarantineSessions -Directory -Force -ErrorAction SilentlyContinue)){
+      $fPath=Join-Path $sdir.FullName 'files';if(Test-Path -LiteralPath $fPath){$storedFilesPaths+=$fPath}
+      foreach($jName in @('events','approvals','plan.json','session.json')){$jp=Join-Path $sdir.FullName $jName;if(Test-Path -LiteralPath $jp){$journalPaths+=$jp}}
+    }
+  }
+  $updaterDirs=@()
+  if($L -and (Test-Path -LiteralPath $L)){
+    $updaterDirs=@(Get-ChildItem -LiteralPath $L -Directory -Force -ErrorAction SilentlyContinue | Where-Object {$_.Name -like '*-updater'} | ForEach-Object {$_.FullName})
+  }
   $radar = [ordered]@{
-    'User Temp' = $env:TEMP; 'Windows Temp' = "$W\Temp"; 'WU Download' = "$W\SoftwareDistribution\Download"
-    'Delivery Optimization' = "$W\SoftwareDistribution\DeliveryOptimization"
+    'User Temp' = $env:TEMP; 'Windows Temp' = "$W\Temp"; 'Recycle Bin (Current User)' = "$sys\`$Recycle.Bin\$ownerSid"
+    'WU Download' = "$W\SoftwareDistribution\Download"; 'Delivery Optimization' = "$W\SoftwareDistribution\DeliveryOptimization"
     'Windows.old' = "$sys\Windows.old"; '$Windows.~BT' = "$sys\`$Windows.~BT"; '$WinREAgent' = "$sys\`$WinREAgent"
     'CBS Logs' = "$W\Logs\CBS"; 'MEMORY.DMP' = "$W\MEMORY.DMP"; 'Minidump' = "$W\Minidump"; 'LiveKernelReports' = "$W\LiveKernelReports"
     'WER (ProgramData)' = "$PD\Microsoft\Windows\WER"; 'CrashDumps' = "$L\CrashDumps"; 'Explorer thumbcache' = "$L\Microsoft\Windows\Explorer"
     'D3DSCache' = "$L\D3DSCache"; 'NVIDIA DXCache' = "$L\NVIDIA\DXCache"; 'NVIDIA GLCache' = "$L\NVIDIA\GLCache"
     'AMD DxCache' = "$L\AMD\DxCache"; 'AMD DxcCache' = "$L\AMD\DxcCache"; 'AMD VkCache' = "$L\AMD\VkCache"; 'Intel ShaderCache' = "$U\AppData\LocalLow\Intel\ShaderCache"
     'C:\NVIDIA' = "$sys\NVIDIA"; 'C:\AMD' = "$sys\AMD"; 'C:\Intel' = "$sys\Intel"; 'C:\SWSetup' = "$sys\SWSetup"; 'C:\Drivers' = "$sys\Drivers"
-    'NVIDIA Downloader' = "$PD\NVIDIA Corporation\Downloader"
-    'Zalo PC' = "$L\ZaloPC"; 'Telegram tdata' = "$R\Telegram Desktop\tdata"; 'Discord Cache' = "$R\discord\Cache"
+    'NVIDIA Downloader' = "$PD\NVIDIA Corporation\Downloader"; 'NVIDIA UpdateFramework' = "$PD\NVIDIA Corporation\NVIDIA app\UpdateFramework"
+    'Electron App Updaters' = @{displayPath="$L\*-updater";paths=$updaterDirs}
+    'Chrome Cache (All Profiles)' = @{displayPath="$L\Google\Chrome\User Data";paths=(Get-SyrinBrowserCacheTargets "$L\Google\Chrome\User Data")}
+    'Edge Cache (All Profiles)' = @{displayPath="$L\Microsoft\Edge\User Data";paths=(Get-SyrinBrowserCacheTargets "$L\Microsoft\Edge\User Data")}
+    'Brave Cache (All Profiles)' = @{displayPath="$L\BraveSoftware\Brave-Browser\User Data";paths=(Get-SyrinBrowserCacheTargets "$L\BraveSoftware\Brave-Browser\User Data")}
+    'CocCoc Cache (All Profiles)' = @{displayPath="$L\CocCoc\Browser\User Data";paths=(Get-SyrinBrowserCacheTargets "$L\CocCoc\Browser\User Data")}
+    'Zalo PC (Local)' = "$L\ZaloPC"; 'Zalo Data (Roaming)' = "$R\ZaloData"; 'Telegram tdata' = "$R\Telegram Desktop\tdata"; 'Discord Cache' = "$R\discord\Cache"
     'Teams (new)' = "$L\Packages\MSTeams_8wekyb3d8bbwe\LocalCache"; 'Spotify Storage' = "$L\Spotify\Storage"
     'Adobe Media Cache' = "$R\Adobe\Common\Media Cache Files"; 'Adobe Peak Files' = "$R\Adobe\Common\Peak Files"; 'CapCut Cache' = "$L\CapCut\User Data\Cache"
-    'Chrome Cache (Default)' = "$L\Google\Chrome\User Data\Default\Cache"; 'Edge Cache (Default)' = "$L\Microsoft\Edge\User Data\Default\Cache"
-    'npm cache' = "$L\npm-cache"; 'pnpm store' = "$L\pnpm\store"; 'Yarn cache' = "$L\Yarn\Cache"; 'pip cache' = "$L\pip\Cache"; 'uv cache' = "$L\uv\cache"
-    'NuGet packages' = "$U\.nuget\packages"; 'Gradle caches' = "$U\.gradle\caches"; 'Maven .m2' = "$U\.m2\repository"; 'Cargo registry' = "$U\.cargo\registry"; 'Go build cache' = "$L\go-build"
+    'npm cache' = "$L\npm-cache"; 'pnpm store' = "$L\pnpm\store"; 'Yarn cache' = "$L\Yarn\Cache"; 'bun cache' = "$U\.bun\install\cache"; 'pip cache' = "$L\pip\Cache"; 'uv cache' = "$L\uv\cache"
+    'Playwright browsers' = "$L\ms-playwright"; 'NuGet packages' = "$U\.nuget\packages"; 'Gradle caches' = "$U\.gradle\caches"; 'Maven .m2' = "$U\.m2\repository"; 'Cargo registry' = "$U\.cargo\registry"; 'Go build cache' = "$L\go-build"
     'HuggingFace' = "$U\.cache\huggingface"; 'PyTorch' = "$U\.cache\torch"; 'Ollama models' = "$U\.ollama\models"; 'LM Studio models' = "$U\.lmstudio\models"
-    'Docker Desktop VHDX' = "$L\Docker\wsl"; 'Android SDK' = "$L\Android\Sdk"; 'Android AVD' = "$U\.android\avd"
-    'iPhone backup (CHI LIET KE)' = "$R\Apple Computer\MobileSync\Backup"
-    'Captures (DU LIEU CA NHAN)' = (Join-Path ([Environment]::GetFolderPath('MyVideos')) 'Captures')
+    'Docker Desktop VHDX' = "$L\Docker\wsl"; 'WSL2 Distributions' = "$L\wsl"; 'Android SDK' = "$L\Android\Sdk"; 'Android AVD' = "$U\.android\avd"
+    'Syrin Quarantine (Stored Files)' = @{displayPath="$L\SyrinClean\Quarantine\sessions\*\files";paths=$storedFilesPaths}
+    'Syrin Quarantine (Journals)' = @{displayPath="$L\SyrinClean\Quarantine\sessions";paths=$journalPaths}
+    'System Hibernate and Pagefile' = @{displayPath="$sys\hiberfil.sys, pagefile.sys, swapfile.sys";systemFiles=@("$sys\hiberfil.sys","$sys\pagefile.sys","$sys\swapfile.sys")}
+    'iPhone backup (Apple Computer)' = "$R\Apple Computer\MobileSync\Backup"; 'iPhone backup (Microsoft Store)' = "$U\Apple\MobileSync\Backup"
+    'Video Captures' = (Join-Path (Get-SyrinUserFolder 'MyVideos') 'Captures')
   }
   $categories=@{
-    'cache'=@('User Temp','Windows Temp','WU Download','Delivery Optimization','WER (ProgramData)','CrashDumps','D3DSCache','NVIDIA DXCache','NVIDIA GLCache','AMD DxCache','AMD DxcCache','AMD VkCache','Intel ShaderCache','Discord Cache','Adobe Media Cache','Adobe Peak Files','CapCut Cache','Chrome Cache (Default)','Edge Cache (Default)','npm cache','Yarn cache','pip cache','uv cache','Go build cache')
-    'app-data'=@('Zalo PC','Telegram tdata','Teams (new)','Spotify Storage','NuGet packages','Gradle caches','Maven .m2','Cargo registry','HuggingFace','PyTorch','Ollama models','LM Studio models','Android SDK','pnpm store')
-    'vm'=@('Docker Desktop VHDX','Android AVD')
-    'user-data'=@('iPhone backup (CHI LIET KE)','Captures (DU LIEU CA NHAN)')
-    'system'=@('Windows.old','$Windows.~BT','$WinREAgent','CBS Logs','MEMORY.DMP','Minidump','LiveKernelReports','Explorer thumbcache','C:\NVIDIA','C:\AMD','C:\Intel','C:\SWSetup','C:\Drivers','NVIDIA Downloader')
+    'cache'=@('User Temp','Windows Temp','Recycle Bin (Current User)','WU Download','Delivery Optimization','WER (ProgramData)','CrashDumps','D3DSCache','NVIDIA DXCache','NVIDIA GLCache','NVIDIA UpdateFramework','Electron App Updaters','AMD DxCache','AMD DxcCache','AMD VkCache','Intel ShaderCache','Discord Cache','Adobe Media Cache','Adobe Peak Files','CapCut Cache','Chrome Cache (All Profiles)','Edge Cache (All Profiles)','Brave Cache (All Profiles)','CocCoc Cache (All Profiles)','npm cache','Yarn cache','bun cache','pip cache','uv cache','Go build cache')
+    'app-data'=@('Zalo PC (Local)','Zalo Data (Roaming)','Telegram tdata','Teams (new)','Spotify Storage','Playwright browsers','NuGet packages','Gradle caches','Maven .m2','Cargo registry','HuggingFace','PyTorch','Ollama models','LM Studio models','Android SDK','pnpm store','Syrin Quarantine (Stored Files)')
+    'vm'=@('Docker Desktop VHDX','WSL2 Distributions','Android AVD')
+    'user-data'=@('iPhone backup (Apple Computer)','iPhone backup (Microsoft Store)','Video Captures')
+    'system'=@('Windows.old','$Windows.~BT','$WinREAgent','CBS Logs','MEMORY.DMP','Minidump','LiveKernelReports','Explorer thumbcache','C:\NVIDIA','C:\AMD','C:\Intel','C:\SWSetup','C:\Drivers','NVIDIA Downloader','Syrin Quarantine (Journals)','System Hibernate and Pagefile')
   }
   $timer=[Diagnostics.Stopwatch]::StartNew();$data=New-Object 'System.Collections.Generic.List[object]';$errors=New-Object 'System.Collections.Generic.List[string]'
   foreach($entry in $radar.GetEnumerator()){
     if($timer.Elapsed.TotalSeconds -ge $Seconds){$errors.Add('Radar budget exhausted; remaining locations were not measured.');break}
-    if(-not $entry.Value -or -not(Test-Path -LiteralPath $entry.Value)){continue}
     $category='unknown';foreach($key in $categories.Keys){if($entry.Key -in $categories[$key]){$category=$key;break}}
+    $rowId=([regex]::Replace($entry.Key.ToLowerInvariant(),'[^a-z0-9]+','-').Trim('-'))
+    $locationBudget=[math]::Max(8,[int]($Seconds/4))
+    $budget=[math]::Max(1,[math]::Min($locationBudget,[int]($Seconds-$timer.Elapsed.TotalSeconds)))
     try {
-      $locationBudget=[math]::Max(10,[int]($Seconds/4))
-      $scan=Get-SyrinScan -Path $entry.Value -Seconds ([math]::Max(1,[math]::Min($locationBudget,$Seconds-$timer.Elapsed.TotalSeconds)))
-      $data.Add([PSCustomObject]@{id=([regex]::Replace($entry.Key.ToLowerInvariant(),'[^a-z0-9]+','-').Trim('-'));label=$entry.Key;path=$scan.path;category=$category;measuredBytes=$scan.measuredBytes;cloudBytes=$scan.cloudBytes;estimatedReclaimableBytes=$null;status=$(if($scan.complete){'complete'}else{'partial'});errors=$scan.errors})
+      if($entry.Value -is [hashtable]){
+        if($entry.Value.ContainsKey('systemFiles')){
+          $sum=0L;$found=$false
+          foreach($sf in $entry.Value.systemFiles){
+            try{$fi=New-Object IO.FileInfo $sf;if($fi.Exists){$found=$true;$sum+=[long]$fi.Length}}catch{}
+          }
+          if(-not $found){continue}
+          $data.Add([PSCustomObject]@{id=$rowId;label=$entry.Key;path=$entry.Value.displayPath;category=$category;measuredBytes=$sum;cloudBytes=0L;estimatedReclaimableBytes=$null;status='complete';errors=@()})
+        } else {
+          $targets=@($entry.Value.paths)
+          if(-not $targets.Count){continue}
+          $multi=Invoke-SyrinMultiPathScan -Paths $targets -Seconds $budget
+          $data.Add([PSCustomObject]@{id=$rowId;label=$entry.Key;path=$entry.Value.displayPath;category=$category;measuredBytes=$multi.measuredBytes;cloudBytes=$multi.cloudBytes;estimatedReclaimableBytes=$null;status=$(if($multi.complete){'complete'}else{'partial'});errors=$multi.errors})
+          foreach($errorText in $multi.errors){$errors.Add($errorText)}
+        }
+        continue
+      }
+      if(-not $entry.Value -or -not(Test-Path -LiteralPath $entry.Value)){continue}
+      $scan=Get-SyrinScan -Path $entry.Value -Seconds $budget
+      $data.Add([PSCustomObject]@{id=$rowId;label=$entry.Key;path=$scan.path;category=$category;measuredBytes=$scan.measuredBytes;cloudBytes=$scan.cloudBytes;estimatedReclaimableBytes=$null;status=$(if($scan.complete){'complete'}else{'partial'});errors=$scan.errors})
       foreach($errorText in $scan.errors){$errors.Add($errorText)}
     } catch {$errors.Add($_.Exception.Message)}
   }
   return [PSCustomObject]@{data=$data.ToArray();errors=$errors.ToArray()}
+}
+
+function Get-SyrinHotspots {
+  param([int]$Seconds=25,[long]$MinimumBytes=524288000)
+  $timer=[Diagnostics.Stopwatch]::StartNew();$rows=New-Object 'System.Collections.Generic.List[object]';$errors=New-Object 'System.Collections.Generic.List[string]'
+  $U=Get-SyrinUserFolder 'UserProfile';$L=$env:LOCALAPPDATA;$R=$env:APPDATA
+  $skipProfile=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+  foreach($known in @('AppData','Desktop','Documents','My Documents','Downloads','Videos','Pictures','Music','OneDrive','Dropbox','Google Drive','GoogleDrive','iCloudDrive','iCloud Drive','.ssh','.gnupg','.aws','.azure','.kube','.docker','.nuget','.gradle','.m2','.cargo','.cache','.ollama','.lmstudio','.android','.bun','.syrin-clean-installer')){[void]$skipProfile.Add($known)}
+  $skipLocal=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+  foreach($known in @('Temp','CrashDumps','D3DSCache','NVIDIA','AMD','Google','Microsoft','BraveSoftware','CocCoc','ZaloPC','Packages','Spotify','CapCut','npm-cache','pnpm','Yarn','pip','uv','ms-playwright','go-build','Docker','wsl','Android','SyrinClean')){[void]$skipLocal.Add($known)}
+  $skipRoaming=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+  foreach($known in @('ZaloData','Telegram Desktop','discord','Adobe','Apple Computer','Microsoft')){[void]$skipRoaming.Add($known)}
+  $clouds=@(Get-SyrinCloudRoots)
+  $roots=@(
+    @{label='LocalAppData';path=$L;skip=$skipLocal},
+    @{label='RoamingAppData';path=$R;skip=$skipRoaming},
+    @{label='UserProfile';path=$U;skip=$skipProfile}
+  )
+  foreach($scopeRoot in $roots){
+    if($timer.Elapsed.TotalSeconds -ge $Seconds){$errors.Add('Hotspot scan budget exhausted.');break}
+    if(-not $scopeRoot.path -or -not (Test-Path -LiteralPath $scopeRoot.path)){continue}
+    foreach($dir in @(Get-ChildItem -LiteralPath $scopeRoot.path -Directory -Force -ErrorAction SilentlyContinue)){
+      if($timer.Elapsed.TotalSeconds -ge $Seconds){$errors.Add('Hotspot scan budget exhausted.');break}
+      if($scopeRoot.skip.Contains($dir.Name) -or $dir.Name -like '*-updater'){continue}
+      if((([int]$dir.Attributes) -band 0x441400) -ne 0){continue}
+      $inCloud=$false;foreach($c in $clouds){if((Test-SyrinWithin $dir.FullName $c) -or (Test-SyrinWithin $c $dir.FullName)){$inCloud=$true;break}}
+      if($inCloud){continue}
+      $perDir=[math]::Max(1,[math]::Min(4,[int]($Seconds-$timer.Elapsed.TotalSeconds)))
+      $scan=Get-SyrinScan -Path $dir.FullName -Seconds $perDir
+      if($scan.measuredBytes -ge $MinimumBytes){
+        $rows.Add([PSCustomObject]@{path=$scan.path;label=$dir.Name;location=$scopeRoot.label;category='unknown';measuredBytes=$scan.measuredBytes;files=$scan.files;rootLastWriteUtc=$dir.LastWriteTimeUtc.ToString('o');latestContentWriteUtc=$scan.latestWriteUtc;status=$(if($scan.complete){'complete'}else{'partial'})})
+      }
+    }
+  }
+  return [PSCustomObject]@{data=@($rows | Sort-Object measuredBytes -Descending | Select-Object -First 15);errors=$errors.ToArray()}
+}
+
+function Get-SyrinDevArtifacts {
+  param([int]$Seconds=25,[int]$MaxDepth=4)
+  $timer=[Diagnostics.Stopwatch]::StartNew();$rows=New-Object 'System.Collections.Generic.List[object]';$errors=New-Object 'System.Collections.Generic.List[string]'
+  $U=Get-SyrinUserFolder 'UserProfile'
+  $realProfile=[Environment]::GetFolderPath('UserProfile')
+  $isolated=$realProfile -and -not $U.TrimEnd('\').Equals($realProfile.TrimEnd('\'),[StringComparison]::OrdinalIgnoreCase)
+  $searchRoots=New-Object 'System.Collections.Generic.List[string]'
+  if($U -and (Test-Path -LiteralPath $U)){$searchRoots.Add($U)}
+  if(-not $isolated -and $env:SystemDrive){
+    foreach($devDir in @('AI','Projects','Repos','src','dev','work','workspace','code')){
+      $candidate=Join-Path ($env:SystemDrive+'\') $devDir
+      if(Test-Path -LiteralPath $candidate){$searchRoots.Add($candidate)}
+    }
+  }
+  $clouds=@(Get-SyrinCloudRoots)
+  $skipNames=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+  foreach($n in @('AppData','Application Data','Local Settings','Cookies','Windows','Program Files','Program Files (x86)','ProgramData','$Recycle.Bin','.git','.ssh','.gnupg','.aws','.azure','.kube','.docker','.nuget','.cargo','.gradle','.m2','.cache','.bun','.ollama','.lmstudio','.syrin-clean-installer')){[void]$skipNames.Add($n)}
+  $queue=New-Object 'System.Collections.Generic.Queue[object]'
+  $visited=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+  foreach($rootPath in $searchRoots){
+    $canonical=Get-SyrinPath $rootPath
+    if($visited.Add($canonical)){$queue.Enqueue([PSCustomObject]@{path=$canonical;depth=0})}
+  }
+  while($queue.Count -gt 0){
+    if($timer.Elapsed.TotalSeconds -ge $Seconds){$errors.Add('Developer artifact scan budget exhausted.');break}
+    $node=$queue.Dequeue()
+    try {
+      $dirInfo=New-Object IO.DirectoryInfo $node.path
+      if(-not $dirInfo.Exists -or (([int]$dirInfo.Attributes) -band 0x441400) -ne 0){continue}
+      foreach($child in $dirInfo.EnumerateDirectories()){
+        if($timer.Elapsed.TotalSeconds -ge $Seconds){$errors.Add('Developer artifact scan budget exhausted.');break}
+        if((([int]$child.Attributes) -band 0x441400) -ne 0){continue}
+        if($skipNames.Contains($child.Name)){continue}
+        $inCloud=$false;foreach($c in $clouds){if((Test-SyrinWithin $child.FullName $c) -or (Test-SyrinWithin $c $child.FullName)){$inCloud=$true;break}}
+        if($inCloud){continue}
+        $artifactType=$null
+        if($child.Name -ieq 'node_modules' -and [IO.File]::Exists((Join-Path $dirInfo.FullName 'package.json'))){$artifactType='node_modules'}
+        elseif($child.Name -ieq 'target' -and [IO.File]::Exists((Join-Path $dirInfo.FullName 'Cargo.toml'))){$artifactType='rust-target'}
+        elseif($child.Name -in @('.venv','venv') -and [IO.File]::Exists((Join-Path $child.FullName 'pyvenv.cfg'))){$artifactType='python-venv'}
+        if($artifactType){
+          $perArtifact=[math]::Max(1,[math]::Min(5,[int]($Seconds-$timer.Elapsed.TotalSeconds)))
+          $scan=Get-SyrinScan -Path $child.FullName -Seconds $perArtifact
+          $projectLatest=$dirInfo.LastWriteTimeUtc
+          foreach($sibling in $dirInfo.EnumerateFileSystemInfos()){
+            if($sibling.Name -in @('node_modules','target','.venv','venv','.git')){continue}
+            if($sibling.LastWriteTimeUtc -gt $projectLatest){$projectLatest=$sibling.LastWriteTimeUtc}
+          }
+          $staleDays=[math]::Max(0,[int]([DateTime]::UtcNow - $projectLatest).TotalDays)
+          $rows.Add([PSCustomObject]@{path=$scan.path;projectRoot=$dirInfo.FullName;artifactType=$artifactType;measuredBytes=$scan.measuredBytes;files=$scan.files;projectLastWriteUtc=$projectLatest.ToString('o');staleDays=$staleDays;status=$(if($scan.complete){'complete'}else{'partial'})})
+          continue
+        }
+        if($node.depth + 1 -le $MaxDepth -and $visited.Add($child.FullName)){
+          $queue.Enqueue([PSCustomObject]@{path=$child.FullName;depth=($node.depth+1)})
+        }
+      }
+    } catch {$errors.Add($_.Exception.Message)}
+  }
+  return [PSCustomObject]@{data=@($rows | Sort-Object measuredBytes -Descending | Select-Object -First 25);errors=$errors.ToArray()}
+}
+
+function Get-SyrinShallowLatestUtc([string]$DirectoryPath) {
+  if(-not $DirectoryPath -or -not (Test-Path -LiteralPath $DirectoryPath)){return $null}
+  try {
+    $dir=New-Object IO.DirectoryInfo $DirectoryPath
+    if(-not $dir.Exists -or (([int]$dir.Attributes) -band 0x441400) -ne 0){return $null}
+    $latest=$dir.LastWriteTimeUtc
+    foreach($entry in ($dir.EnumerateFileSystemInfos() | Select-Object -First 64)){
+      if($entry.LastWriteTimeUtc -gt $latest){$latest=$entry.LastWriteTimeUtc}
+      if($entry -is [IO.DirectoryInfo] -and (([int]$entry.Attributes) -band 0x441400) -eq 0){
+        foreach($sub in ($entry.EnumerateFileSystemInfos() | Select-Object -First 32)){
+          if($sub.LastWriteTimeUtc -gt $latest){$latest=$sub.LastWriteTimeUtc}
+        }
+      }
+    }
+    return $latest.ToString('o')
+  } catch {return $null}
 }
 
 function Invoke-SyrinCollector {
@@ -150,7 +341,7 @@ function Invoke-SyrinCollector {
       'power' {$lines=@(& powercfg.exe /getactivescheme);if($LASTEXITCODE -ne 0){throw 'Power plan query failed.'};$data=@([PSCustomObject]@{activePlan=($lines -join ' ')})}
       'battery' {$data=@(Get-CimInstance Win32_Battery -OperationTimeoutSec 10 -ErrorAction Stop | Select-Object Name,BatteryStatus,EstimatedChargeRemaining)}
       'largeFiles' {
-        $roots=@([Environment]::GetFolderPath('Desktop'),[Environment]::GetFolderPath('MyDocuments'),[Environment]::GetFolderPath('MyVideos')) | Select-Object -Unique
+        $roots=@((Get-SyrinUserFolder 'Desktop'),(Get-SyrinUserFolder 'MyDocuments'),(Get-SyrinUserFolder 'MyVideos'),(Get-SyrinUserFolder 'Downloads')) | Select-Object -Unique
         $data=New-Object 'System.Collections.Generic.List[object]';$issues=New-Object 'System.Collections.Generic.List[string]'
         foreach($rootPath in $roots){if(-not $rootPath -or -not(Test-Path -LiteralPath $rootPath)){continue};$scan=Get-SyrinScan -Path $rootPath -LargeFiles -Seconds ([math]::Max(1,[int]($Seconds/$roots.Count)));foreach($file in $scan.largeFiles){$data.Add($file)};foreach($errorText in $scan.errors){$issues.Add($errorText)}}
         $data=@($data | Sort-Object measuredBytes -Descending | Select-Object -First 20);$errors=$issues.ToArray()
@@ -164,8 +355,26 @@ function Invoke-SyrinCollector {
       }
       'security' {$d=Get-MpComputerStatus -ErrorAction Stop;$data=@([PSCustomObject]@{realTimeProtection=$d.RealTimeProtectionEnabled;signatureAgeDays=$d.AntivirusSignatureAge;mode=$d.AMRunningMode})}
       'restorePoints' {$data=@(Get-ComputerRestorePoint -ErrorAction Stop | Select-Object -Last 3 SequenceNumber,Description,CreationTime)}
-      'apps' {$data=@(Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*','HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*','HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction Stop | Where-Object {$_.PSObject.Properties['DisplayName'] -and $_.PSObject.Properties['EstimatedSize']} | Sort-Object EstimatedSize -Descending | Select-Object -First 25 DisplayName,DisplayVersion,Publisher,EstimatedSize)}
+      'apps' {
+        $rawApps=@(Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*','HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*','HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction Stop | Where-Object {$_.PSObject.Properties['DisplayName'] -and [string]$_.DisplayName -ne ''})
+        $sized=@($rawApps | ForEach-Object {
+          $est=Get-SyrinValue $_ 'EstimatedSize'
+          $installLoc=Get-SyrinValue $_ 'InstallLocation'
+          [PSCustomObject]@{
+            DisplayName=[string]$_.DisplayName
+            DisplayVersion=(Get-SyrinValue $_ 'DisplayVersion')
+            Publisher=(Get-SyrinValue $_ 'Publisher')
+            EstimatedSize=$(if($null -ne $est){[long]$est}else{$null})
+            InstallDate=(Get-SyrinValue $_ 'InstallDate')
+            hasQuietUninstall=[bool](Get-SyrinValue $_ 'QuietUninstallString')
+            latestActivityUtc=$(if($installLoc){Get-SyrinShallowLatestUtc ([string]$installLoc)}else{$null})
+          }
+        } | Sort-Object @{Expression={if($null -ne $_.EstimatedSize){$_.EstimatedSize}else{-1L}};Descending=$true}, DisplayName | Select-Object -First 30)
+        $data=$sized
+      }
       'radar' {$result=Get-SyrinRadar -Seconds $Seconds;$data=@($result.data);$errors=@($result.errors)}
+      'hotspots' {$result=Get-SyrinHotspots -Seconds $Seconds;$data=@($result.data);$errors=@($result.errors)}
+      'devArtifacts' {$result=Get-SyrinDevArtifacts -Seconds $Seconds;$data=@($result.data);$errors=@($result.errors)}
       default {throw 'Unknown read-only collector.'}
     }
     if($errors.Count){$status='partial'}
@@ -200,22 +409,22 @@ function Invoke-SyrinAudit {
     Write-SyrinAtomicJson $markerPath $session -CreateOnly
   }
   $timer=[Diagnostics.Stopwatch]::StartNew();$collectors=[ordered]@{}
-  $names=@('system','volumes','memory','startup','events','security','cpu','gpu','ram','disks','diskHealth','power','battery','restorePoints','processes','tasks','services','apps','radar','largeFiles')
+  $names=@('system','volumes','memory','startup','events','security','cpu','gpu','ram','disks','diskHealth','power','battery','restorePoints','processes','tasks','services','apps','radar','hotspots','devArtifacts','largeFiles')
   if($PerformanceSeconds -eq 1){throw 'Performance sampling requires at least two seconds.'}
   if($PerformanceSeconds -eq 0 -and $Scope -eq 'speed'){$PerformanceSeconds=30}
   if($PerformanceSeconds){$names=@('system','performance')+@($names|Where-Object {$_ -ne 'system'})}
   $progressPath=Join-Path $full 'audit-progress.json'
   foreach($name in $names){
     $remaining=[int]($MaxSeconds-$timer.Elapsed.TotalSeconds)
-    if($remaining -le 0 -or ($name -in @('radar','largeFiles') -and $Scope -in @('health','speed'))){$collectors[$name]=[PSCustomObject]@{status='unavailable';data=@();errors=@('Not requested or total audit budget exhausted.');durationMs=0};continue}
+    if($remaining -le 0 -or ($name -in @('radar','hotspots','devArtifacts','largeFiles') -and $Scope -in @('health','speed'))){$collectors[$name]=[PSCustomObject]@{status='unavailable';data=@();errors=@('Not requested or total audit budget exhausted.');durationMs=0};continue}
     Write-SyrinAtomicJson $progressPath ([ordered]@{schemaVersion=1;kind='syrin-audit-progress';sessionId=$session.sessionId;status='running';activeCollector=$name;completedCount=$collectors.Count;totalCount=$names.Count;elapsedMs=$timer.ElapsedMilliseconds;updatedUtc=[DateTime]::UtcNow.ToString('o')})
     if(-not $Quiet){Write-Progress -Activity 'Syrin clean audit' -Status $name -PercentComplete (100*$collectors.Count/$names.Count)}
-    $budget=[math]::Min($remaining,$(if($name -in @('radar','largeFiles')){[math]::Max(45,[int]($MaxSeconds/3))}else{20}))
+    $budget=[math]::Min($remaining,$(if($name -in @('radar','largeFiles')){[math]::Max(40,[int]($MaxSeconds/4))}elseif($name -in @('hotspots','devArtifacts')){[math]::Max(20,[int]($MaxSeconds/6))}else{20}))
     if($name -eq 'performance'){$budget=[math]::Min($remaining,$PerformanceSeconds+5)}
     $collectors[$name]=Invoke-SyrinCollectorJob $name $budget $ContextLabel
   }
   $system=@($collectors.system.data) | Select-Object -First 1
-  $audit=[ordered]@{schemaVersion=1;kind='syrin-audit';meta=[ordered]@{sessionId=$session.sessionId;generatedUtc=[DateTime]::UtcNow.ToString('o');machineId=(Get-SyrinValue $system 'machineId');systemDrive=(Get-SyrinValue $system 'systemDrive');reportMode=$ReportMode;scope=$Scope;warnings=@();warningCodes=@('agent-privacy','support-unverified')};collectors=$collectors}
+  $audit=[ordered]@{schemaVersion=1;kind='syrin-audit';meta=[ordered]@{sessionId=$session.sessionId;generatedUtc=[DateTime]::UtcNow.ToString('o');machineId=(Get-SyrinValue $system 'machineId');systemDrive=(Get-SyrinValue $system 'systemDrive');reportMode=$ReportMode;scope=$Scope;durationMs=$timer.ElapsedMilliseconds;warnings=@();warningCodes=@('agent-privacy','support-unverified')};collectors=$collectors}
   Write-SyrinAtomicJson (Join-Path $full 'audit.json') $audit
   Write-SyrinAtomicJson (Join-Path $full 'state.json') ([ordered]@{schemaVersion=1;kind='syrin-state';sessionId=$session.sessionId;phase='audited';updatedUtc=[DateTime]::UtcNow.ToString('o');approvedItemIds=@();completed=@();failed=@()})
   $incomplete=@($collectors.Keys | Where-Object {$collectors[$_].status -ne 'complete'})

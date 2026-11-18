@@ -7,7 +7,7 @@ $auditModule=Get-Module Audit;$windowsModule=Get-Module Windows
 $fixture=Join-Path ([IO.Path]::GetTempPath()) ('syrin-runtime-tests-'+[guid]::NewGuid().ToString('N'))
 [void][IO.Directory]::CreateDirectory($fixture)
 $savedEnvironment=@{}
-foreach($key in @('USERPROFILE','LOCALAPPDATA','APPDATA','TEMP','TMP')){$savedEnvironment[$key]=[Environment]::GetEnvironmentVariable($key,'Process')}
+foreach($key in @('USERPROFILE','LOCALAPPDATA','APPDATA','TEMP','TMP','SystemDrive','windir','ProgramData')){$savedEnvironment[$key]=[Environment]::GetEnvironmentVariable($key,'Process')}
 $env:USERPROFILE=Join-Path $fixture 'profile';$env:LOCALAPPDATA=Join-Path $env:USERPROFILE 'local';$env:APPDATA=Join-Path $env:USERPROFILE 'roaming';$env:TEMP=Join-Path $fixture 'temp';$env:TMP=$env:TEMP
 foreach($directory in @($env:LOCALAPPDATA,$env:APPDATA,$env:TEMP)){[void][IO.Directory]::CreateDirectory($directory)}
 function Assert($Condition,[string]$Message){if(-not $Condition){throw $Message}}
@@ -221,20 +221,61 @@ try {
   Write-Output 'PASS Android reports preserve platform boundaries, validate measurements and minimize shared data'
 
   $firstPython=Join-Path $fixture 'first python.ps1';$secondPython=Join-Path $fixture 'second python.ps1';$fixtureAdb=Join-Path $fixture 'adb.exe'
+  $stubDir=Join-Path $fixture 'Microsoft\WindowsApps';[void][IO.Directory]::CreateDirectory($stubDir)
+  $storeStub=Join-Path $stubDir 'python.exe';[IO.File]::WriteAllText($storeStub,'store alias stub')
   [IO.File]::WriteAllText($firstPython,('$global:LASTEXITCODE=0'+"`n"+"'{`"ok`":true,`"devices`":[{`"serial`":`"FIXTURE`",`"state`":`"device`",`"transport`":`"7`"}]}'"))
   [IO.File]::WriteAllText($secondPython,"throw 'Second Python entry must not run'")
   [IO.File]::WriteAllText($fixtureAdb,'fixture; not executable')
   $discovery=& {
-    param($Entry,$Adb,$First,$Second)
+    param($Entry,$Adb,$Stub,$First,$Second)
     function Get-Command {
       param($Name,$CommandType,$ErrorAction)
-      if($Name -eq 'python.exe'){return @([PSCustomObject]@{Source=$First},[PSCustomObject]@{Source=$Second})}
+      if($Name -eq 'python.exe'){return @([PSCustomObject]@{Source=$Stub},[PSCustomObject]@{Source=$First},[PSCustomObject]@{Source=$Second})}
       Microsoft.PowerShell.Core\Get-Command @PSBoundParameters
     }
     & $Entry -AdbPath $Adb -Devices
-  } (Join-Path $Runtime 'scripts\android-audit.ps1') $fixtureAdb $firstPython $secondPython | ConvertFrom-Json
-  Assert ($discovery.ok -and $discovery.devices.Count -eq 1 -and $discovery.devices[0].serial -eq 'FIXTURE') 'Android CLI did not select one Python application from PATH'
-  Write-Output 'PASS Android CLI selects the first Python application when PATH resolves multiple entries (fixture runner)'
+  } (Join-Path $Runtime 'scripts\android-audit.ps1') $fixtureAdb $storeStub $firstPython $secondPython | ConvertFrom-Json
+  Assert ($discovery.ok -and $discovery.devices.Count -eq 1 -and $discovery.devices[0].serial -eq 'FIXTURE') 'Android CLI did not skip WindowsApps stub and select the first real Python application'
+  Write-Output 'PASS Android CLI skips WindowsApps alias stubs and selects the first real Python application (fixture runner)'
+
+  & $auditModule {
+    function script:Get-SyrinCloudRoots{return @()}
+    Remove-Item Function:Invoke-SyrinCollectorJob -ErrorAction SilentlyContinue
+  }
+  $env:SystemDrive=Join-Path $fixture 'sysdrive';$env:windir=Join-Path $fixture 'windows';$env:ProgramData=Join-Path $fixture 'programdata'
+  foreach($sysFolder in @($env:SystemDrive,$env:windir,$env:ProgramData)){[void][IO.Directory]::CreateDirectory($sysFolder)}
+  $downloadsDir=Join-Path $env:USERPROFILE 'Downloads';[void][IO.Directory]::CreateDirectory($downloadsDir)
+  $isoStream=[IO.File]::Create((Join-Path $downloadsDir 'installer.iso'));try{$isoStream.SetLength(315621376L)}finally{$isoStream.Dispose()}
+  $capturesDir=Join-Path (Join-Path $env:USERPROFILE 'Videos') 'Captures';[void][IO.Directory]::CreateDirectory($capturesDir)
+  [IO.File]::WriteAllBytes((Join-Path $capturesDir 'clip.mp4'),(New-Object byte[] 1024))
+  $radarRes=Invoke-SyrinCollector -Name 'radar' -Seconds 20
+  $labels=@($radarRes.data | ForEach-Object {[string]$_.label})
+  Assert ($labels -contains 'Video Captures' -and @($labels | Where-Object {$_ -match 'CHI LIET KE|DU LIEU CA NHAN'}).Count -eq 0) 'Radar retained hardcoded Vietnamese labels or missed Video Captures'
+  $largeRes=Invoke-SyrinCollector -Name 'largeFiles' -Seconds 10
+  Assert ($largeRes.data.Count -eq 1 -and $largeRes.data[0].path.EndsWith('\Downloads\installer.iso',[StringComparison]::OrdinalIgnoreCase) -and $largeRes.data[0].measuredBytes -eq 315621376L) 'Downloads folder was not measured for large files'
+  $unclassifiedDir=Join-Path $env:LOCALAPPDATA 'CustomHeavyTool';[void][IO.Directory]::CreateDirectory($unclassifiedDir)
+  $modelStream=[IO.File]::Create((Join-Path $unclassifiedDir 'model.bin'));try{$modelStream.SetLength(536870912L)}finally{$modelStream.Dispose()}
+  $hotspots=Invoke-SyrinCollector -Name 'hotspots' -Seconds 10
+  Assert (@($hotspots.data | Where-Object {$_.label -eq 'CustomHeavyTool' -and $_.location -eq 'LocalAppData' -and $_.measuredBytes -eq 536870912L}).Count -eq 1) 'Hotspot collector missed unclassified LocalAppData folder'
+  $projDir=Join-Path $env:USERPROFILE 'demo-web';$nmDir=Join-Path $projDir 'node_modules\pkg';[void][IO.Directory]::CreateDirectory($nmDir)
+  [IO.File]::WriteAllText((Join-Path $projDir 'package.json'),'{"name":"demo"}')
+  [IO.File]::WriteAllBytes((Join-Path $nmDir 'index.js'),(New-Object byte[] 4096))
+  $devRes=Invoke-SyrinCollector -Name 'devArtifacts' -Seconds 10
+  Assert (@($devRes.data | Where-Object {$_.artifactType -eq 'node_modules' -and $_.measuredBytes -eq 4096}).Count -eq 1) 'Developer artifact collector missed anchored node_modules'
+  $env:SystemDrive=$savedEnvironment['SystemDrive'];$env:windir=$savedEnvironment['windir'];$env:ProgramData=$savedEnvironment['ProgramData']
+  Write-Output 'PASS English radar labels, Downloads large-file scan, hotspots and anchored devArtifacts verified'
+
+  & $windowsModule {
+    function script:Test-SyrinAdministrator{return $false}
+    function script:Start-Process{throw (New-Object ComponentModel.Win32Exception 50)}
+  }
+  try {
+    $sandboxed=Invoke-SyrinElevatedScript -Script $echo -Arguments @('-Quiet')
+    Assert (-not $sandboxed.ok -and $sandboxed.exitCode -eq 50 -and $sandboxed.failureKind -ceq 'elevation-unsupported' -and $sandboxed.manualCommand -like '*powershell.exe*-File*') 'Sandbox elevation block did not return manualCommand'
+  } finally {
+    & $windowsModule {Remove-Item Function:Start-Process -ErrorAction SilentlyContinue}
+  }
+  Write-Output 'PASS sandboxed elevation block returns elevation-unsupported and manualCommand'
 } finally {
   foreach($key in $savedEnvironment.Keys){[Environment]::SetEnvironmentVariable($key,$savedEnvironment[$key],'Process')}
   [Environment]::SetEnvironmentVariable('SYRIN_TEST_RESULT',$null,'Process')

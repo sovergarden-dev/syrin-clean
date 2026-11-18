@@ -30,7 +30,7 @@ function Assert-SyrinAudit($Audit) {
   if(-not(Test-SyrinNumber $Audit.schemaVersion) -or $Audit.schemaVersion -ne 1 -or $Audit.kind -isnot [string] -or $Audit.kind -cne 'syrin-audit'){throw 'Unsupported audit schema.'}
   if($Audit.meta.sessionId -notmatch '^[a-f0-9]{32}$' -or $Audit.meta.reportMode -notin @('3d','simple','none')){throw 'Invalid audit session or report mode.'}
   if($Audit.meta.machineId -and $Audit.meta.machineId -cnotmatch '^[a-f0-9]{64}$'){throw 'Invalid machine identity.'}
-  [void][DateTime]::Parse([string]$Audit.meta.generatedUtc,[Globalization.CultureInfo]::InvariantCulture)
+  [void][DateTime]::Parse([string]$Audit.meta.generatedUtc,[Globalization.CultureInfo]::InvariantCulture,[Globalization.DateTimeStyles]::RoundtripKind)
   if($Audit.meta.systemDrive -and $Audit.meta.systemDrive -notmatch '^[A-Za-z]:$'){throw 'Invalid system volume.'}
   $platform=if($Audit.meta.PSObject.Properties['platform']){$Audit.meta.platform}else{'windows'}
   if($platform -cnotin @('windows','android')){throw 'Unsupported audit platform.'}
@@ -114,7 +114,7 @@ function Get-SyrinShareAudit($Audit) {
       $collectors[$name]=[PSCustomObject]@{status=$source.status;data=$rows;errors=@();durationMs=0}
     }
   }
-  return [PSCustomObject]@{schemaVersion=1;kind='syrin-audit';meta=[PSCustomObject]@{sessionId=[guid]::NewGuid().ToString('N');generatedUtc=([DateTime]::Parse($Audit.meta.generatedUtc).ToUniversalTime().ToString('yyyy-MM-dd'));machineId=$null;platform=$platform;systemDrive=$Audit.meta.systemDrive;reportMode='simple';scope=$Audit.meta.scope;shared=$true;warnings=@();warningCodes=@('aggregate-only')};collectors=[PSCustomObject]$collectors}
+  return [PSCustomObject]@{schemaVersion=1;kind='syrin-audit';meta=[PSCustomObject]@{sessionId=[guid]::NewGuid().ToString('N');generatedUtc=([DateTime]::Parse([string]$Audit.meta.generatedUtc,[Globalization.CultureInfo]::InvariantCulture,[Globalization.DateTimeStyles]::RoundtripKind).ToUniversalTime().ToString('yyyy-MM-dd'));machineId=$null;platform=$platform;systemDrive=$Audit.meta.systemDrive;reportMode='simple';scope=$Audit.meta.scope;shared=$true;warnings=@();warningCodes=@('aggregate-only')};collectors=[PSCustomObject]$collectors}
 }
 
 function New-SyrinReport {
@@ -161,7 +161,8 @@ function New-SyrinReport {
       $onHistory={param($Detail) $progress.history=$Detail;& $publish}.GetNewClosure()
       $history=@(Get-SyrinHistory $QuarantineRoot -OnProgress $onHistory | Sort-Object createdUtc -Descending | ForEach-Object {
         if(-not $_.ok){return [PSCustomObject]@{ok=$false;sessionId=$_.sessionId;error=$_.error;items=@()}}
-        [PSCustomObject]@{ok=$true;sessionId=$_.sessionId;createdUtc=$_.createdUtc;totalItems=@($_.items).Count;items=@($_.items)}
+        $opProp=if($_.PSObject.Properties['operation']){[string]$_.operation}else{'quarantine'}
+        [PSCustomObject]@{ok=$true;sessionId=$_.sessionId;createdUtc=$_.createdUtc;operation=$opProp;totalItems=@($_.items).Count;items=@($_.items)}
       })
     }
     if($Share){$audit=Get-SyrinShareAudit $audit;$base=$null;$proposals=$null;$history=@();$QuarantineRoot='';$Mode='simple'}

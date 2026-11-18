@@ -1,4 +1,4 @@
-Set-StrictMode -Version 2
+﻿Set-StrictMode -Version 2
 Import-Module (Join-Path $PSScriptRoot 'IO.psm1')
 
 function Get-SyrinPerformanceSample {

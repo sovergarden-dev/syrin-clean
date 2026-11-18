@@ -216,3 +216,67 @@ class AndroidTests(unittest.TestCase):
             self.assertEqual(timeout.status, "timeout")
             capped = run_command([sys.executable, "-I", "-c", "print('x'*100000)"], 5, limit=1024)
             self.assertEqual((capped.status, capped.text), ("output-limit", ""))
+
+    def test_windows_adb_executable_rejects_batch_shims(self):
+        shim = self.root / "adb.bat"
+        shim.write_text("@echo off\n", encoding="utf-8")
+        with patch.object(os, "name", "nt"), self.assertRaises(ValueError):
+            AdbClient(str(shim), runner=self.runner)
+
+    def test_optional_thermal_app_sizes_and_two_point_frame_window(self):
+        self.answers[("shell", "dumpsys", "thermalservice")] = (
+            "IsStatusOverride: false\n"
+            "Current Temperatures:\n"
+            "  Temperature{mValue=36.4, mType=3, mName=skin, mStatus=0}\n"
+            "Thermal Status: 1\n"
+        )
+        self.answers[("shell", "dumpsys", "diskstats")] = (
+            'Package Names: ["com.example.notes", "com.example.heavy"]\n'
+            "App Sizes: [1000, 5000]\n"
+            "App Data Sizes: [2000, 15000]\n"
+            "Cache Sizes: [500, 4000]\n"
+        )
+        frame_reads = [
+            "** Graphics info for pid 321 [com.example.notes] **\nStats since: 555ns\nTotal frames rendered: 100\nJanky frames: 4 (4%)\n",
+            "** Graphics info for pid 321 [com.example.notes] **\nStats since: 555ns\nTotal frames rendered: 150\nJanky frames: 9 (6%)\n",
+        ]
+        key = ("shell", "dumpsys", "gfxinfo", "com.example.notes")
+        original_runner = self.runner
+
+        def windowed_runner(argv, timeout):
+            if tuple(argv[5:]) == key:
+                return Result("complete", frame_reads.pop(0), 0, 1)
+            return original_runner(argv, timeout)
+
+        client = AdbClient(str(self.adb), runner=windowed_runner)
+        client.select("PHONE")
+        slept = []
+        report = android_audit.collect(
+            client,
+            session_id="e" * 32,
+            include_thermal=True,
+            include_app_sizes=True,
+            package="com.example.notes",
+            frame_window_seconds=5,
+            context_label="Scroll notes feed",
+            sleeper=lambda sec: slept.append(sec),
+        )
+        self.assertEqual(slept, [5])
+        self.assertEqual(report["collectors"]["thermal"]["data"][0], {"statusCode": 1, "throttlingState": "light", "throttlingActive": True, "skinTemperatureC": 36.4})
+        self.assertEqual([row["package"] for row in report["collectors"]["appSizes"]["data"]], ["com.example.heavy", "com.example.notes"])
+        self.assertEqual(report["collectors"]["appSizes"]["data"][0]["totalBytes"], 24000)
+        frame_row = report["collectors"]["frames"]["data"][0]
+        self.assertEqual(report["collectors"]["frames"]["status"], "complete")
+        self.assertTrue(frame_row["windowOriginVerified"])
+        self.assertEqual((frame_row["windowTotalFrames"], frame_row["windowJankyFrames"], frame_row["windowJankPercent"]), (50, 5, 10.0))
+
+        frame_reads[:] = [
+            "** Graphics info for pid 321 [com.example.notes] **\nStats since: 555ns\nTotal frames rendered: 100\nJanky frames: 4 (4%)\n",
+            "** Graphics info for pid 999 [com.example.notes] **\nStats since: 888ns\nTotal frames rendered: 40\nJanky frames: 2 (5%)\n",
+        ]
+        reset_report = android_audit.collect(client, session_id="f" * 32, package="com.example.notes", frame_window_seconds=5, sleeper=lambda _: None)
+        self.assertEqual(reset_report["collectors"]["frames"]["status"], "partial")
+        self.assertFalse(reset_report["collectors"]["frames"]["data"][0]["windowOriginVerified"])
+        self.assertIsNone(reset_report["collectors"]["frames"]["data"][0]["windowTotalFrames"])
+        with self.assertRaises(ValueError):
+            android_audit.collect(client, session_id="a" * 32, frame_window_seconds=5, sleeper=lambda _: None)
