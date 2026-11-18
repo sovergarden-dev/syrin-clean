@@ -2,6 +2,36 @@
 
 All notable changes to this project. Dates are 2026.
 
+## [4.1.0-preview.2] - 2026-11-18
+
+### Added
+- Add native C# `CollectPlanFiles` directory traversal and `SHGetKnownFolderPath` redirected-folder resolution in `IO.psm1`, cutting 2,048-file planning overhead while preserving per-node reparse, recall and policy checks.
+- Add deterministic directory grouping (`groups[]` with `G1..Gn`) in `New-SyrinFilePlan` and `-GroupId` selection in `Invoke-SyrinFilePlan` and `quarantine.ps1`.
+- Add Windows `hotspots` (unclassified directories >= 500 MB with `rootLastWriteUtc` versus `latestContentWriteUtc`), project-anchored `devArtifacts` (`node_modules`, `target`, `.venv`), redirected `Downloads` in `largeFiles`, and expanded multi-profile browser, GPU/Electron updater, Zalo, bun, Playwright, WSL2, Recycle Bin and hibernate/pagefile radar entries.
+- Add `Prepare permanent delete request` (`#purge-request`) in offline reports when all selected history items are intact `quarantined` in a non-imported session.
+- Add `-IncludeDetectedAgents` and `-AgentTargets` (`@('.claude','.agents','.codex','.cursor','.gemini\antigravity')`) in `install.ps1`, plus `failureKind='elevation-unsupported'` and `manualCommand` fallback in `Windows.psm1` when sandboxed agent terminals block `Verb='RunAs'`.
+- Add optional read-only Android `thermal` (`dumpsys thermalservice`), `appSizes` (`dumpsys diskstats` top 25 packages) and two-point `--frame-window-seconds 2..30` `gfxinfo` interval deltas with PID and `Stats since` origin verification.
+- Add Open Graph, Twitter Card, Schema.org JSON-LD (`Organization`, `WebSite`, `WebPage`, `SoftwareApplication`), `og-preview.png`, `robots.txt`, `sitemap.xml` and build-time SEO validation for public HTML delivery.
+- Add `CLAUDE.md`, JSON Schema contract tests and the zero-trust audit and upgrade records (`docs/research/audit-perfection.md`, `docs/plan/done/perfection-upgrade.md`).
+
+### Changed
+- Store compact `syrin-approval-receipt` records in `approvals/<guid>.json` instead of duplicating the entire immutable `plan.json` payload on every execution.
+- Consolidate typography and border-radius values into `src/shared/tokens.css` (`--text-xs` through `--text-display`, `--radius-sm` through `--radius-pill`) across landing and report stylesheets.
+- Tighten `audit.schema.json`, `plan.schema.json` and `proposals.schema.json` with `additionalProperties: false` and complete runtime field definitions; enforce output-tree allowlists on `dist/` and `prompts/` in `tools/build.py`.
+- Synchronize architecture, execution, device, command, validation and support documentation with the current runtime and `4.1.0-preview.1` baseline.
+
+### Removed
+- Remove superseded `v4.0.0-preview.2` and `v4.1.0-preview.1` ZIP and Markdown files from trunk `dist/` and `prompts/` (published release tags and assets remain intact), two unused i18n keys (`downloaded`, `startupError`) from `ui.{en,vi}.json`, and 18 duplicate overwritten keys in `src/report/report.mjs`.
+
+### Fixed
+- Filter out `\Microsoft\WindowsApps\python*.exe` Store alias stubs, add `py.exe -3` fallback and reject `-FrameWindowSeconds` without `-Package` in `android-audit.ps1`; enforce `adb.exe` on Windows in `adbclient.py`, reject `-GroupId` outside `-Execute` in `quarantine.ps1`, and emit structured JSON when `audit.py` is invoked under Python < 3.10.
+- Parse serialized ISO-8601 file timestamps with `DateTimeStyles::RoundtripKind` in `IO.psm1` and `Report.psm1` so timezone conversion never rejects valid fingerprints.
+- Replace hardcoded Vietnamese suffixes in `Get-SyrinRadar` labels with English canonical labels, wire `__I18N_title__` and `__I18N_description__` in `src/web/page.html`, pin support-matrix links to `/blob/<version>/docs/feat/support.md`, and remove en-dash punctuation from report copy.
+- Clarify in `stage0-audit.md` (EN/VI) that `run-elevated.ps1` requires `approve` policy mode and is blocked under `audit` mode, and repair broken historical v3.6 HTML links in `docs/research/audit-safety.md`.
+
+### Security
+- Reject batch/command script shims (`adb.bat`, `adb.cmd`) on Windows hosts in `AdbClient` and restrict multi-agent installer targets to a closed profile-relative allowlist with transactional staging and rollback.
+
 ## [4.1.0-preview.1] - 2026-11-14
 
 ### Added

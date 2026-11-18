@@ -1,6 +1,6 @@
 # Giai đoạn 1: đề xuất và xác nhận
 
-Hiện mã ngắn trong từng kế hoạch (Q1, R1, P1), tên file, dung lượng và hậu quả. Ánh xạ chúng vào ID cố định trong kế hoạch. Giữ mã băm đầy đủ trong hồ sơ; hiện mã tham chiếu ngắn để người dùng phân biệt lần sửa. Chỉ tra mã đã xác nhận trong đúng kế hoạch đó; không bắt người dùng gõ UUID dài.
+Hiện mã ngắn trong từng kế hoạch (`Q1`, `R1`, `P1`) hoặc mã nhóm thư mục cố định (`G1`, `G2`, ... trong `plan.groups` khi một thư mục cache mở rộng ra hàng chục file), tên file, dung lượng và hậu quả. Ánh xạ chúng vào ID cố định trong kế hoạch. Giữ mã băm đầy đủ trong hồ sơ; hiện mã tham chiếu ngắn để người dùng phân biệt lần sửa. Chỉ tra mã file hoặc nhóm `G` đã xác nhận trong đúng kế hoạch đó; không bắt người dùng gõ UUID dài.
 
 Dùng cột lời thường: ID, việc làm, bằng chứng, lợi ích dự kiến, mất mát/rủi ro và hoàn tác. Tách tư vấn hiệu năng, rà soát cache, lựa chọn file cá nhân, sửa chữa và phần cứng. Thao tác hệ thống chưa được hỗ trợ giữ ở dạng tư vấn, ghi rõ; Restore Point không làm việc không thể hoàn tác trở thành có thể hoàn tác.
 

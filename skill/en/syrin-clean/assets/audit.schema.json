@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Syrin clean audit",
   "type": "object",
+  "additionalProperties": false,
   "required": [
     "schemaVersion",
     "kind",
@@ -15,8 +16,12 @@
     "kind": {
       "const": "syrin-audit"
     },
+    "legacy": {
+      "type": "boolean"
+    },
     "meta": {
       "type": "object",
+      "additionalProperties": false,
       "required": [
         "sessionId",
         "generatedUtc",
@@ -69,6 +74,32 @@
         },
         "readOnly": {
           "type": "boolean"
+        },
+        "shared": {
+          "type": "boolean"
+        },
+        "uptimeSeconds": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "durationMs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "warningCodes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -76,6 +107,7 @@
       "type": "object",
       "additionalProperties": {
         "type": "object",
+        "additionalProperties": false,
         "required": [
           "status",
           "data",
@@ -101,6 +133,13 @@
             "items": {
               "type": "string"
             }
+          },
+          "durationMs": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "source": {
+            "type": "string"
           }
         }
       }

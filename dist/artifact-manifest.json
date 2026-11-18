@@ -1,38 +1,38 @@
 {
   "schemaVersion": 1,
   "package": "syrin-clean",
-  "version": "4.1.0-preview.1",
+  "version": "4.1.0-preview.2",
   "channel": "prerelease",
   "files": [
     {
-      "path": "syrin-clean-prompt-en-v4.1.0-preview.1.md",
-      "sha256": "f616b8c502ad6d2f4545ff2c98007db904e990df8c9c4ba34120b2f1bbfad69e",
-      "bytes": 452472
+      "path": "syrin-clean-prompt-en-v4.1.0-preview.2.md",
+      "sha256": "4b4244283de4b6ab2b28d24e0d5e5cd4088bca8c9584264a3b16e164615432fc",
+      "bytes": 465933
     },
     {
-      "path": "syrin-clean-prompt-vi-v4.1.0-preview.1.md",
-      "sha256": "efbf320c15640f9d5d01874ffd3971a206f39de56c6dc639a7531694ab54706b",
-      "bytes": 456710
+      "path": "syrin-clean-prompt-vi-v4.1.0-preview.2.md",
+      "sha256": "8f12085f60014c614ffeb98352f0758995c37f600842cb256629c0dc0b733686",
+      "bytes": 470382
     },
     {
       "path": "syrin-clean-report-demo.html",
-      "sha256": "7dbaead23e86d5af1d29e673eb4a840e8bd7f63ecac67e5b46c73fc20ff08cb9",
-      "bytes": 397467
+      "sha256": "b12c50dc0b97c9c101076dba38702522fda21507f743267789b9dfa94cdc8f84",
+      "bytes": 399375
     },
     {
-      "path": "syrin-clean-skill-v4.1.0-preview.1-en.zip",
-      "sha256": "76d19fc2edba5ebf5e7b1d324926eead77fa1e2f68a2e4759d527e9475d6d7da",
-      "bytes": 323142
+      "path": "syrin-clean-skill-v4.1.0-preview.2-en.zip",
+      "sha256": "075df6d2eb38c596a377fcdd7313970251864d544783e3c0cc5dae7c8142b827",
+      "bytes": 332465
     },
     {
-      "path": "syrin-clean-skill-v4.1.0-preview.1-vi.zip",
-      "sha256": "1b015a7d0ee2a4c1efe87e817e1911582b29beaf41f249b46256da82b8e23426",
-      "bytes": 324125
+      "path": "syrin-clean-skill-v4.1.0-preview.2-vi.zip",
+      "sha256": "a80df29c5469fd6e08da64a0e8613e6bcf5e6b23fa8843e5e2101f1a78decdf6",
+      "bytes": 333479
     },
     {
       "path": "syrin-clean.html",
-      "sha256": "e725842410ef9febf8f0e32ab2dd464e2b11ae4bc20bbdeed61af2024f3bc361",
-      "bytes": 1837354
+      "sha256": "0b76e60ef0cfe1a1ed2a3e24fb977681ce1a5f3c9290ee7409b469791bb3b279",
+      "bytes": 1871484
     }
   ]
 }

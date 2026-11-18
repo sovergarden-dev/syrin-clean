@@ -100,13 +100,16 @@ COMMANDS = {
     "battery": ("dumpsys", "battery"),
     "storage": ("df", "-k", "/data"),
     "cpu": ("dumpsys", "cpuinfo"),
+    "thermal": ("dumpsys", "thermalservice"),
+    "diskstats": ("dumpsys", "diskstats"),
 }
 
 
 class AdbClient:
     def __init__(self, executable: str, runner=run_command, seconds: int = 120):
         path = Path(executable)
-        if not path.is_absolute() or not path.is_file() or path.stem.lower() != "adb":
+        valid_name = path.name.lower() == "adb.exe" if os.name == "nt" else path.stem.lower() == "adb"
+        if not path.is_absolute() or not path.is_file() or not valid_name:
             raise ValueError("Supply the absolute path to adb from Google's SDK Platform Tools.")
         self.base = [str(path.resolve()), "-P", "5037"]
         self.runner = runner

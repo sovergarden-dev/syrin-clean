@@ -1,4 +1,4 @@
-﻿param([string]$ProfileRoot=$env:USERPROFILE)
+﻿param([string]$ProfileRoot=$env:USERPROFILE,[string[]]$AgentTargets=@(),[switch]$IncludeDetectedAgents)
 $ErrorActionPreference='Stop'
 $transaction=[guid]::NewGuid().ToString('N')
 $targets=New-Object 'System.Collections.Generic.List[object]'
@@ -39,15 +39,32 @@ try {
   foreach($protected in @($env:windir,$env:ProgramFiles,${env:ProgramFiles(x86)},$env:ProgramData)){
     if($protected -and ($profile.Equals($protected,[StringComparison]::OrdinalIgnoreCase) -or $profile.StartsWith($protected.TrimEnd('\')+'\',[StringComparison]::OrdinalIgnoreCase))){throw 'System directories cannot be installation profiles.'}
   }
+  $allowedTargets=@('.claude','.agents','.codex','.cursor','.gemini\antigravity')
+  $selectedAgents=New-Object 'System.Collections.Generic.List[string]'
+  if($AgentTargets.Count){
+    foreach($t in $AgentTargets){
+      $normalized=([string]$t).Replace('/','\').TrimEnd('\')
+      if($normalized -notin $allowedTargets){throw "Unsupported agent target '$t'. Allowed targets: $($allowedTargets -join ', ')"}
+      if($normalized -notin $selectedAgents){$selectedAgents.Add($normalized)}
+    }
+  } else {
+    foreach($baseTarget in @('.claude','.agents')){$selectedAgents.Add($baseTarget)}
+    if($IncludeDetectedAgents){
+      foreach($extraTarget in @('.codex','.cursor','.gemini\antigravity')){
+        if((Test-Path -LiteralPath (Join-Path $profile $extraTarget)) -and $extraTarget -notin $selectedAgents){$selectedAgents.Add($extraTarget)}
+      }
+    }
+  }
   $workRoot=Safe-Path (Join-Path $profile '.syrin-clean-installer') $profile
   [void][IO.Directory]::CreateDirectory($workRoot)
   $lockPath=Safe-Path (Join-Path $workRoot '.lock') $workRoot
   $installLock=New-Object IO.FileStream($lockPath,[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
-  foreach($agent in @('.claude','.agents')){
+  foreach($agent in $selectedAgents){
     $base=Safe-Path (Join-Path $profile ($agent+'\skills')) $profile
     [void][IO.Directory]::CreateDirectory($base)
     $destination=Safe-Path (Join-Path $base 'syrin-clean') $base
-    $transactionRoot=Safe-Path (Join-Path (Join-Path $workRoot $transaction) $agent.TrimStart('.')) $workRoot
+    $slotName=([regex]::Replace($agent.TrimStart('.'), '[^A-Za-z0-9]+', '-')).Trim('-')
+    $transactionRoot=Safe-Path (Join-Path (Join-Path $workRoot $transaction) $slotName) $workRoot
     [void][IO.Directory]::CreateDirectory($transactionRoot)
     $stage=Safe-Path (Join-Path $transactionRoot 'staged') $workRoot
     $backup=Safe-Path (Join-Path $transactionRoot 'previous') $workRoot

@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "package": "syrin-clean",
-  "version": "4.1.0-preview.1",
+  "version": "4.1.0-preview.2",
   "language": "vi",
   "channel": "prerelease",
   "files": [
     {
       "path": "CAI-DAT.txt",
-      "sha256": "304795825e4191878df8e9352ff0059799075a8d12624dae322bfc3eaef27878",
-      "bytes": 446
+      "sha256": "17dc0dcd7ba90f01c924676230eea2b9f394116c831fb48552724ebbfb580b8b",
+      "bytes": 587
     },
     {
       "path": "FONT-LICENSES.txt",
@@ -22,58 +22,58 @@
     },
     {
       "path": "install.ps1",
-      "sha256": "cf1ccb05bf83d042b88e7bede8bedc3fbf086ae87efe7f39c4069fa6f883b07a",
-      "bytes": 7638
+      "sha256": "6e3be0fee59bcd8280678a5e8ad1514351f8f32775523a0f2c43de4041ffd931",
+      "bytes": 8644
     },
     {
       "path": "syrin-clean/SKILL.md",
-      "sha256": "37ec6acb6e4b0f8f4da16a38347bd6c6b8c94641419be3b7ffb4a8969a53a3ea",
-      "bytes": 8757
+      "sha256": "0e45cb4e7febad10d6445fe7824ab6bf3786f44ffcd5d443674e4aad47d9ab02",
+      "bytes": 8979
     },
     {
       "path": "syrin-clean/android/adbclient.py",
-      "sha256": "114264b859c3fbcfd8be31288645eae05346192a30aeb37c615598bafeb233d6",
-      "bytes": 9858
+      "sha256": "3305dfd0e435c2b47cf5550be121782a67788d91f9a78458c2a8d986b77bb59a",
+      "bytes": 10038
     },
     {
       "path": "syrin-clean/android/audit.py",
-      "sha256": "e5c5f92059d8fc0c3cd4fa42e8e75c46aca4e63e85da875198a8573b6b319b40",
-      "bytes": 7736
+      "sha256": "38ebbddec68a5b5d2b2d6d077d789ce9472ea2452b63f09293ebd24440c2d98d",
+      "bytes": 10799
     },
     {
       "path": "syrin-clean/android/model.py",
-      "sha256": "ec7ea35e5a7c5a99731b1bbe8f1b4375b66ec391af1cbe7061ee323c8eda3b22",
-      "bytes": 3753
+      "sha256": "71f29dab2cf65aeb9074a26651ca753e89fefa37e43b45a7de43123b5d5d3d82",
+      "bytes": 7711
     },
     {
       "path": "syrin-clean/assets/audit.schema.json",
-      "sha256": "a853edf1ae063ad6f780d7eef41fbbd060ad4f27821af486369d774ec935cade",
-      "bytes": 2087
+      "sha256": "c98d6107915e7fa96689a0638e7feca21bbc04c321f360f2919eb12e9d819147",
+      "bytes": 2931
     },
     {
       "path": "syrin-clean/assets/plan.schema.json",
-      "sha256": "70b1cc0989ec653327975cf121dd42df4d2fd0a8af1cd3d7376ce4c339be6099",
-      "bytes": 1693
+      "sha256": "91881164a9bf243680ac39b3854a79cc85bd643b48024aca47eafa68a8798476",
+      "bytes": 4858
     },
     {
       "path": "syrin-clean/assets/proposals.schema.json",
-      "sha256": "1aa8527774588e9018644be1e8ffa42c9296a434c0fc2afce12d55d697776c7a",
-      "bytes": 1435
+      "sha256": "03fa1c9c0c9f76e4024fe3e412b70abbc18ace1f3185f88f34e0f473e6cc5dfe",
+      "bytes": 1507
     },
     {
       "path": "syrin-clean/assets/report-template.html",
-      "sha256": "cdc0573cd72d7f024abbe3e5ae4928baee8e12903d27b64db8d7d182b6f2b90d",
-      "bytes": 383599
+      "sha256": "6ebf62494d3b0280b0a8b6432ae8fe45aacbceeb8f394f6bcfbbc9af5371f71c",
+      "bytes": 385453
     },
     {
       "path": "syrin-clean/modules/Audit.psm1",
-      "sha256": "149cf2a15655bb73748c225b06277e6b9b583a26bcc9680bfefa61c2268c1fd2",
-      "bytes": 22563
+      "sha256": "68e276b14ed6783b85793b67235153b07d960bee15d5dc8f01a6f19f2c07ce9e",
+      "bytes": 38234
     },
     {
       "path": "syrin-clean/modules/IO.psm1",
-      "sha256": "e6630ee2c8fe3a7ed5d5f9b659ec1f687c8a5d5c6bab71c9ecc0ff308ef86098",
-      "bytes": 22848
+      "sha256": "e50c48af56a41fd3c77bc10f8f89fe383ac7fea2d3c8ad75d42461b91d106ab1",
+      "bytes": 26730
     },
     {
       "path": "syrin-clean/modules/Performance.psm1",
@@ -87,48 +87,48 @@
     },
     {
       "path": "syrin-clean/modules/Quarantine.psm1",
-      "sha256": "e41b99200162369de28a1c6fad0f85cdc7a8c9cb09ac34d18e77a6daec3542fd",
-      "bytes": 31243
+      "sha256": "943d6eae9ebab2416d06b4daaaac77828d68b62e8bfd5e04002995da14f24d54",
+      "bytes": 33596
     },
     {
       "path": "syrin-clean/modules/Report.psm1",
-      "sha256": "57fb8580c9279cb5c9f552007ce479738cfa823a01c83a51fb67ca7ea6edf6b8",
-      "bytes": 15079
+      "sha256": "1dc185149607deec1e9091f8d736a42e45b3da44f46e460827f3066e14a221ca",
+      "bytes": 15340
     },
     {
       "path": "syrin-clean/modules/Windows.psm1",
-      "sha256": "4330129da84ebb641faec8a5eea41e86266bf2e41b069a48628b6a95174106e0",
-      "bytes": 5378
+      "sha256": "d18ecf59a88c360f58fcca96cacb9728fa599e6964666e9cc9a93a2bb0becb3b",
+      "bytes": 5912
     },
     {
       "path": "syrin-clean/references/android.md",
-      "sha256": "4116f0cb46743299a3ad800292fd526627a0bb85f9ecb67dd363ad4a3dbbfe83",
-      "bytes": 4832
+      "sha256": "538a95e5b54a3e6417ff04c485d05cb71e28b0d22415ec524361374f6ddff87e",
+      "bytes": 5138
     },
     {
       "path": "syrin-clean/references/stage0-audit.md",
-      "sha256": "3fe2e8ebc7bb9aae4013b79709f19304e0468d299f4a204ded22b6e1a2230ab9",
-      "bytes": 1715
+      "sha256": "74b5fe8a2d2e1966199cfac1db0b3d1acc65635c7302675d5f67abd063f78d54",
+      "bytes": 2128
     },
     {
       "path": "syrin-clean/references/stage1-proposals.md",
-      "sha256": "9d8f81aaa661114c377dbad9677257291855feeaebf0cb564d8ae22db89e06aa",
-      "bytes": 3148
+      "sha256": "cb6245877f4fb2983967a1fe6a454ce03d29f5897e86c8d5f3865bad865ab7f3",
+      "bytes": 3315
     },
     {
       "path": "syrin-clean/references/stage2-execution.md",
-      "sha256": "966af6fbea5437e8515330082b06f2fd1b039f9185be0faca429da13ba9b0d9a",
-      "bytes": 2377
+      "sha256": "5c8bd7ef1c9748a3cb14c774e85658d88215e21040ad8c23a9d2db9f4e69108a",
+      "bytes": 2469
     },
     {
       "path": "syrin-clean/references/support.md",
-      "sha256": "1d921aef925a515097cbf416b837bf776f22bb24778e1b22a3ad26ae77b1d1c7",
-      "bytes": 5672
+      "sha256": "3733823a493afbcd80c5f348c93d4f844237d97b6cdeea02ced93b4c2c581241",
+      "bytes": 6400
     },
     {
       "path": "syrin-clean/scripts/android-audit.ps1",
-      "sha256": "aba06d2118d8f5f30f8c4b8ad1942c6f47483171980ed1c845c3e9fd1aa7904e",
-      "bytes": 2999
+      "sha256": "1b08119902b40824dbe60bfa07d6f1bb0d4c22dbbbc0b14af2038d46a4abd77c",
+      "bytes": 4161
     },
     {
       "path": "syrin-clean/scripts/audit.ps1",
@@ -157,8 +157,8 @@
     },
     {
       "path": "syrin-clean/scripts/quarantine.ps1",
-      "sha256": "c7448854dbb720d03ff7c9231fd4292529e517cdaedb1a2d9cfa933787e4c15e",
-      "bytes": 2003
+      "sha256": "8e90294fc190d225da1902558eafca5dd5356f536c7ee47982bbef268c739072",
+      "bytes": 2205
     },
     {
       "path": "syrin-clean/scripts/request-stop.ps1",
@@ -172,8 +172,8 @@
     },
     {
       "path": "syrin-clean/skill-manifest.json",
-      "sha256": "6d4f086fb24dbb7941796d2aad736c6629506e5be6a0bf1ddb5829c3e0504646",
-      "bytes": 4666
+      "sha256": "a74f324a25e20e991c045e41e8f4a7c5ffe9fdf3ef873eb05f2693a8818db9f7",
+      "bytes": 4668
     }
   ]
 }

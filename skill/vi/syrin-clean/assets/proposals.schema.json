@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Syrin clean proposals (display data, not execution approval)",
   "type": "object",
+  "additionalProperties": false,
   "required": [
     "schemaVersion",
     "kind",
@@ -23,6 +24,7 @@
       "type": "array",
       "items": {
         "type": "object",
+        "additionalProperties": false,
         "required": [
           "id",
           "title",

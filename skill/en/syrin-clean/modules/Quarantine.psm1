@@ -57,7 +57,8 @@ function Read-SyrinSession([string]$Root,[string]$SessionId,[scriptblock]$OnProg
   $items = @{}
   foreach ($item in @($plan.items)) {
     if ($item.id -notmatch '^[a-f0-9]{32}$' -or $items.ContainsKey($item.id)) { throw 'Invalid item identity.' }
-    $items[$item.id] = [PSCustomObject]@{id=$item.id;code=$item.code;original=$item.original;stored=$item.stored;fingerprint=$item.fingerprint;state='planned';error='';restoredPath=''}
+    $groupCode = if ($item.PSObject.Properties['groupId']) { [string]$item.groupId } else { '' }
+    $items[$item.id] = [PSCustomObject]@{id=$item.id;code=$item.code;groupId=$groupCode;original=$item.original;stored=$item.stored;fingerprint=$item.fingerprint;state='planned';error='';restoredPath=''}
   }
   $sequence=0; $previous=''
   $eventsPath = Assert-SyrinLocalPath (Join-Path $folder 'events')
@@ -174,7 +175,25 @@ function New-SyrinFilePlan {
   if (-not $items.Count) { throw 'No regular files were selected.' }
   $prefix=@{quarantine='Q';restore='R';purge='P';resume='S';import='I'}[$Operation]
   for($index=0;$index -lt $items.Count;$index++){$items[$index]|Add-Member -NotePropertyName code -NotePropertyValue ($prefix+($index+1))}
-  $plan=[ordered]@{schemaVersion=1;kind='syrin-file-plan';planId=$planId;sessionId=$SessionId;operation=$Operation;ownerSid=(Get-SyrinOwner);root=$rootPath;rootId=$rootId;legacyRoot=$LegacyRoot;createdUtc=[DateTime]::UtcNow.ToString('o');conflict=$Conflict;items=$items.ToArray();measuredBytes=[long](($items | ForEach-Object {$_.fingerprint.Length} | Measure-Object -Sum).Sum);estimatedReclaimableBytes=$null;warnings=@('No content was read. File identity and metadata are checked again before execution.','Unknown cloud-provider locations must be excluded explicitly.');}
+  $dirMap=[ordered]@{}
+  foreach($entry in $items){
+    $dir=[IO.Path]::GetDirectoryName([string]$entry.original)
+    if(-not $dirMap.Contains($dir)){$dirMap[$dir]=New-Object 'System.Collections.Generic.List[object]'}
+    $dirMap[$dir].Add($entry)
+  }
+  $groups=New-Object 'System.Collections.Generic.List[object]'
+  $groupIndex=0
+  foreach($dir in $dirMap.Keys){
+    $groupIndex++
+    $gid='G'+$groupIndex
+    $members=$dirMap[$dir]
+    $groupBytes=0L
+    foreach($m in $members){$groupBytes+=[long]$m.fingerprint.Length;$m|Add-Member -NotePropertyName groupId -NotePropertyValue $gid}
+    $samples=@($members | Select-Object -First 3 | ForEach-Object {[IO.Path]::GetFileName([string]$_.original)})
+    $groups.Add([PSCustomObject]@{groupId=$gid;directory=$dir;itemCount=$members.Count;measuredBytes=$groupBytes;firstCode=$members[0].code;lastCode=$members[$members.Count-1].code;sampleFiles=$samples})
+  }
+  $totalBytes=0L;foreach($entry in $items){$totalBytes+=[long]$entry.fingerprint.Length}
+  $plan=[ordered]@{schemaVersion=1;kind='syrin-file-plan';planId=$planId;sessionId=$SessionId;operation=$Operation;ownerSid=(Get-SyrinOwner);root=$rootPath;rootId=$rootId;legacyRoot=$LegacyRoot;createdUtc=[DateTime]::UtcNow.ToString('o');conflict=$Conflict;groups=$groups.ToArray();items=$items.ToArray();measuredBytes=$totalBytes;estimatedReclaimableBytes=$null;warnings=@('No content was read. File identity and metadata are checked again before execution.','Unknown cloud-provider locations must be excluded explicitly.')}
   if ($Operation -eq 'quarantine') { $plan.estimatedReclaimableBytes=0 }
   $plan.protection=$protection
   if ($Operation -eq 'purge') { $plan.estimatedReclaimableBytes=$plan.measuredBytes; $plan.warnings+= 'Purge is irreversible. Logical file length is only an estimate of disk space recovered.' }
@@ -199,7 +218,7 @@ function New-SyrinSession([string]$Root,$Marker,$Plan,[string]$PlanText) {
 }
 
 function Invoke-SyrinFilePlan {
-  param([string]$PlanFile,[string]$Approval,[string[]]$ItemId,[string]$StopFile='',[string]$RunId='')
+  param([string]$PlanFile,[string]$Approval,[string[]]$ItemId=@(),[string[]]$GroupId=@(),[string]$StopFile='',[string]$RunId='')
   $planPath=Assert-SyrinLocalPath $PlanFile
   $document=Read-SyrinJsonDocument $planPath
   $digest=$document.digest
@@ -216,7 +235,21 @@ function Invoke-SyrinFilePlan {
     $StopFile=Assert-SyrinLocalPath $StopFile
     if($RunId -notmatch '^[a-f0-9]{32}$'){throw 'Stop requests require a unique 32-character run ID.'}
   } elseif($RunId){throw 'Run ID requires a stop file.'}
-  if (-not $ItemId.Count -or @($ItemId | Select-Object -Unique).Count -ne $ItemId.Count) { throw 'An explicit unique selection of item IDs is required.' }
+  if ($ItemId.Count -and @($ItemId | Select-Object -Unique).Count -ne $ItemId.Count) { throw 'An explicit unique selection of item IDs is required.' }
+  if ($GroupId.Count -and @($GroupId | Select-Object -Unique).Count -ne $GroupId.Count) { throw 'An explicit unique selection of group IDs is required.' }
+  $resolvedIds = New-Object 'System.Collections.Generic.List[string]'
+  $seenIds = New-Object 'System.Collections.Generic.HashSet[string]'
+  foreach ($id in $ItemId) { if ($seenIds.Add($id)) { $resolvedIds.Add($id) } }
+  if ($GroupId.Count) {
+    if (-not $plan.PSObject.Properties['groups'] -or -not @($plan.groups).Count) { throw 'This plan has no directory groups; select explicit item IDs.' }
+    $knownGroups = @($plan.groups | ForEach-Object { [string]$_.groupId })
+    foreach ($gid in $GroupId) { if ($gid -notin $knownGroups) { throw "Selection contains a group outside this plan: $gid" } }
+    foreach ($entry in @($plan.items | Where-Object { $_.PSObject.Properties['groupId'] -and $_.groupId -in $GroupId })) {
+      if ($seenIds.Add([string]$entry.id)) { $resolvedIds.Add([string]$entry.id) }
+    }
+  }
+  $ItemId = $resolvedIds.ToArray()
+  if (-not $ItemId.Count) { throw 'An explicit unique selection of item IDs is required.' }
   $selected=@($plan.items | Where-Object {$_.id -in $ItemId})
   if ($selected.Count -ne $ItemId.Count) { throw 'Selection contains an item outside this plan.' }
   $root=Get-SyrinRootPath $plan.root
@@ -249,7 +282,7 @@ function Invoke-SyrinFilePlan {
       if($requested.original -ne $current.original -or $requested.stored -ne $current.stored -or $requested.fingerprint.FileId -ne $current.fingerprint.FileId){throw 'Item identity differs from its source session.'}
     }
     $receipt=Join-Path (Join-Path $session.folder 'approvals') ([guid]::NewGuid().ToString('N')+'.json')
-    Write-SyrinAtomicJson $receipt ([ordered]@{plan=$plan;digest=$digest;selected=$ItemId;timeUtc=[DateTime]::UtcNow.ToString('o')}) -CreateOnly
+    Write-SyrinAtomicJson $receipt ([ordered]@{schemaVersion=1;kind='syrin-approval-receipt';planId=$plan.planId;sessionId=$plan.sessionId;operation=$plan.operation;digest=$digest;selected=$ItemId;selectedGroups=@($GroupId);timeUtc=[DateTime]::UtcNow.ToString('o')}) -CreateOnly
     foreach ($requested in $selected) {
       try {
         if($StopFile -and (Test-Path -LiteralPath $StopFile)){

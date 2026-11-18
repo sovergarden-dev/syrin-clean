@@ -14,19 +14,29 @@ function Invoke-SyrinElevatedScript {
   $argsList=@('-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',$full)+$Arguments
   $commandLine=(@($argsList | ForEach-Object {ConvertTo-SyrinCommandArgument ([string]$_)}) -join ' ')
   if ($commandLine.Length -gt 30000) { throw 'Argument list is too long; use a request file.' }
+  $powershellExe=Join-Path $env:windir 'System32\WindowsPowerShell\v1.0\powershell.exe'
   $elevate=-not $NoElevate -and -not (Test-SyrinAdministrator)
   try {
-    $params=@{FilePath=(Join-Path $env:windir 'System32\WindowsPowerShell\v1.0\powershell.exe');ArgumentList=$commandLine;WindowStyle='Hidden';Wait=$true;PassThru=$true;ErrorAction='Stop'}
+    $params=@{FilePath=$powershellExe;ArgumentList=$commandLine;WindowStyle='Hidden';Wait=$true;PassThru=$true;ErrorAction='Stop'}
     if ($elevate) { $params.Verb='RunAs' }
     $process=Start-Process @params
-    return [PSCustomObject]@{ok=($process.ExitCode -eq 0);exitCode=$process.ExitCode;elevationRequested=$elevate;error=''}
+    return [PSCustomObject]@{ok=($process.ExitCode -eq 0);exitCode=$process.ExitCode;elevationRequested=$elevate;failureKind=$(if($process.ExitCode -eq 0){''}else{'script-failed'});manualCommand='';error=''}
   } catch {
-    $errorCode=2; $exception=$_.Exception
+    $errorCode=2;$failureKind='launch-failed';$manualCommand='';$exception=$_.Exception
     while ($exception) {
-      if ($exception -is [ComponentModel.Win32Exception]) { if ($exception.NativeErrorCode -eq 1223) {$errorCode=1223}; break }
+      if ($exception -is [ComponentModel.Win32Exception]) {
+        $native=$exception.NativeErrorCode
+        if ($native -eq 1223) {
+          $errorCode=1223;$failureKind='uac-cancelled'
+        } elseif ($elevate -and $native -in @(5,50,740)) {
+          $errorCode=$native;$failureKind='elevation-unsupported'
+          $manualCommand=(ConvertTo-SyrinCommandArgument $powershellExe)+' '+$commandLine
+        }
+        break
+      }
       $exception=$exception.InnerException
     }
-    return [PSCustomObject]@{ok=$false;exitCode=$errorCode;elevationRequested=$elevate;error=$_.Exception.Message}
+    return [PSCustomObject]@{ok=$false;exitCode=$errorCode;elevationRequested=$elevate;failureKind=$failureKind;manualCommand=$manualCommand;error=$_.Exception.Message}
   }
 }
 

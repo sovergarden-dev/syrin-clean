@@ -19,6 +19,24 @@ function Assert-SyrinLocalPath([string]$Path) {
   return [Syrin.NativeFiles]::LocalPath($Path,$true)
 }
 
+function Get-SyrinUserFolder([ValidateSet('UserProfile','Desktop','MyDocuments','MyVideos','Downloads')][string]$Kind) {
+  Initialize-SyrinNative
+  $realProfile = [Environment]::GetFolderPath('UserProfile')
+  $activeProfile = if ($env:USERPROFILE) { $env:USERPROFILE } else { $realProfile }
+  $isolated = $realProfile -and -not $activeProfile.TrimEnd('\').Equals($realProfile.TrimEnd('\'), [StringComparison]::OrdinalIgnoreCase)
+  if ($Kind -eq 'UserProfile') { return Get-SyrinPath $activeProfile }
+  if ($isolated) {
+    $leaf = switch ($Kind) { 'Desktop' { 'Desktop' } 'MyDocuments' { 'Documents' } 'MyVideos' { 'Videos' } 'Downloads' { 'Downloads' } }
+    return Join-Path (Get-SyrinPath $activeProfile) $leaf
+  }
+  if ($Kind -eq 'Downloads') {
+    $known = [Syrin.NativeFiles]::KnownFolder('374DE290-123F-4565-9164-39C4925E467B')
+    if ($known) { return $known }
+    return Join-Path $realProfile 'Downloads'
+  }
+  return [Environment]::GetFolderPath($Kind)
+}
+
 function Get-SyrinCloudRoots {
   $roots = New-Object 'System.Collections.Generic.List[string]'
   foreach ($p in @($env:OneDrive, $env:OneDriveConsumer, $env:OneDriveCommercial)) { if ($p) { $roots.Add((Get-SyrinPath $p)) } }
@@ -94,6 +112,11 @@ namespace Syrin {
   public sealed class TextDocument {
     public string Path, Text, Digest;
   }
+  public sealed class PlannedFile {
+    public string Path, FileId, LastWriteUtc;
+    public long Length;
+    public int Links;
+  }
   public static class NativeFiles {
     static readonly Regex ProtectedSegment = new Regex(@"^(\.git|\.env(?:\..*)?|Cookies|Login Data|History|Bookmarks|Extensions)$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
     static bool Within(string child, string parent) {
@@ -121,6 +144,17 @@ namespace Syrin {
     [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)] static extern uint GetFinalPathNameByHandle(SafeFileHandle handle, StringBuilder buffer, uint count, uint flags);
     [DllImport("kernel32.dll", SetLastError=true)] static extern bool SetFileInformationByHandle(SafeFileHandle handle, int kind, ref byte info, uint size);
     [DllImport("kernel32.dll", SetLastError=true)] static extern bool SetFileInformationByHandle(SafeFileHandle handle, int kind, IntPtr info, uint size);
+    [DllImport("shell32.dll")] static extern int SHGetKnownFolderPath([MarshalAs(UnmanagedType.LPStruct)] Guid rfid, uint dwFlags, IntPtr hToken, out IntPtr ppszPath);
+    public static string KnownFolder(string guidText) {
+      IntPtr ptr = IntPtr.Zero;
+      try {
+        int hr = SHGetKnownFolderPath(new Guid(guidText), 0x00004000, IntPtr.Zero, out ptr);
+        if (hr != 0 || ptr == IntPtr.Zero) return null;
+        return Marshal.PtrToStringUni(ptr);
+      } finally {
+        if (ptr != IntPtr.Zero) Marshal.FreeCoTaskMem(ptr);
+      }
+    }
     static string Id(SafeFileHandle handle) { FileIdInfo info; if (!GetFileInformationByHandleEx(handle, 18, out info, 24)) throw new Win32Exception(Marshal.GetLastWin32Error()); return info.Volume.ToString("X16") + ":" + BitConverter.ToString(info.FileId).Replace("-", ""); }
     public static long Attributes(string path) {
       uint attributes = GetFileAttributes(path);
@@ -169,8 +203,41 @@ namespace Syrin {
         if ((info.Attributes & 0x441410) != 0) throw new IOException("Only local regular files can be transferred.");
         long length = ((long)info.SizeHigh << 32) | info.SizeLow;
         long written = ((long)(uint)info.Written.dwHighDateTime << 32) | (uint)info.Written.dwLowDateTime;
-        return new [] { Id(handle), info.Links.ToString(), length.ToString(System.Globalization.CultureInfo.InvariantCulture), DateTime.FromFileTimeUtc(written).ToString("o") };
+        return new [] { Id(handle), info.Links.ToString(System.Globalization.CultureInfo.InvariantCulture), length.ToString(System.Globalization.CultureInfo.InvariantCulture), DateTime.FromFileTimeUtc(written).ToString("o") };
       }
+    }
+    public static PlannedFile[] CollectPlanFiles(string[] validatedRoots, string profile, string[] protectedPaths, string[] clouds, int maxFiles, int maxSeconds) {
+      var timer = System.Diagnostics.Stopwatch.StartNew();
+      var stack = new Stack<string>();
+      for (int i = validatedRoots.Length - 1; i >= 0; i--) { stack.Push(validatedRoots[i]); }
+      var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+      var files = new List<PlannedFile>();
+      while (stack.Count > 0) {
+        if (timer.Elapsed.TotalSeconds > maxSeconds) throw new IOException("Planning scan timed out; no executable plan was produced.");
+        string current = stack.Pop();
+        CheckSourcePolicy(current, profile, protectedPaths, clouds);
+        long attrs = Attributes(current);
+        if (attrs < 0) throw new FileNotFoundException("Path does not exist: " + current);
+        if ((attrs & 0x441400) != 0) throw new IOException("Reparse, offline or recall path is blocked: " + current);
+        if ((attrs & 0x10) != 0) {
+          foreach (FileSystemInfo child in new DirectoryInfo(current).EnumerateFileSystemInfos()) {
+            if (timer.Elapsed.TotalSeconds > maxSeconds || stack.Count + files.Count >= maxFiles * 2) throw new IOException("Planning entry/time budget exceeded; narrow the selection.");
+            if (child.Name.EndsWith(".", StringComparison.Ordinal) || child.Name.EndsWith(" ", StringComparison.Ordinal)) throw new ArgumentException("Ambiguous path segments are not supported.");
+            stack.Push(Path.Combine(current, child.Name));
+          }
+        } else {
+          string[] id = Identity(current);
+          if (Regex.IsMatch(id[0], ":0+$")) throw new IOException("The filesystem did not provide a stable file identity.");
+          int links = Int32.Parse(id[1], System.Globalization.CultureInfo.InvariantCulture);
+          if (links != 1) throw new IOException("Hard-linked files require manual review: " + current);
+          if (seen.Add(id[0])) {
+            files.Add(new PlannedFile { Path = current, FileId = id[0], Links = links, Length = Int64.Parse(id[2], System.Globalization.CultureInfo.InvariantCulture), LastWriteUtc = id[3] });
+            if (files.Count > maxFiles) throw new IOException("Planning file limit exceeded; narrow the selection.");
+          }
+        }
+      }
+      files.Sort(delegate(PlannedFile a, PlannedFile b) { return StringComparer.OrdinalIgnoreCase.Compare(a.Path, b.Path); });
+      return files.ToArray();
     }
     public static TextDocument[] ReadDocuments(string[] paths, int offset, int count) {
       var documents = new TextDocument[count];
@@ -255,16 +322,20 @@ function Test-SyrinFingerprint([string]$Path, $Expected) {
   return $actual.FileId -eq $Expected.FileId -and $actual.Length -eq $Expected.Length -and $actual.LastWriteUtc -eq $Expected.LastWriteUtc -and $actual.Links -eq $Expected.Links
 }
 
+function ConvertTo-SyrinFileTimeUtc([string]$IsoUtc) {
+  return [DateTime]::Parse($IsoUtc, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::RoundtripKind).ToUniversalTime().ToFileTimeUtc()
+}
+
 function Remove-SyrinCheckedFile([string]$Path,$Expected) {
   $full=Assert-SyrinLocalPath $Path
   Initialize-SyrinNative
-  [Syrin.NativeFiles]::DeleteChecked($full,$Expected.FileId,[long]$Expected.Length,([DateTime]::Parse($Expected.LastWriteUtc).ToUniversalTime().ToFileTimeUtc()),[uint32]$Expected.Links)
+  [Syrin.NativeFiles]::DeleteChecked($full,$Expected.FileId,[long]$Expected.Length,(ConvertTo-SyrinFileTimeUtc ([string]$Expected.LastWriteUtc)),[uint32]$Expected.Links)
 }
 
 function Move-SyrinCheckedFile([string]$Source,[string]$Destination,$Expected) {
   $sourcePath=Assert-SyrinLocalPath $Source;$destinationPath=Assert-SyrinLocalPath $Destination
   Initialize-SyrinNative
-  [Syrin.NativeFiles]::MoveChecked($sourcePath,$destinationPath,$Expected.FileId,[long]$Expected.Length,([DateTime]::Parse($Expected.LastWriteUtc).ToUniversalTime().ToFileTimeUtc()),[uint32]$Expected.Links)
+  [Syrin.NativeFiles]::MoveChecked($sourcePath,$destinationPath,$Expected.FileId,[long]$Expected.Length,(ConvertTo-SyrinFileTimeUtc ([string]$Expected.LastWriteUtc)),[uint32]$Expected.Links)
 }
 
 function Get-SyrinDigest([byte[]]$Bytes) {
@@ -325,29 +396,15 @@ function Write-SyrinAtomicText([string]$Path, [string]$Text, [switch]$CreateOnly
 }
 
 function Get-SyrinFiles([string[]]$Path, [string[]]$CloudRoots, [int]$MaxFiles=10000, [int]$Seconds=120, $Policy=$null) {
-  $timer = [Diagnostics.Stopwatch]::StartNew()
   if($null -eq $Policy){$Policy=New-SyrinSourcePolicy $CloudRoots}
-  $stack = New-Object 'System.Collections.Generic.Stack[string]'
-  foreach ($p in $Path) { $stack.Push((Assert-SyrinSourcePath $p $CloudRoots -Policy $Policy)) }
-  $seen = New-Object 'System.Collections.Generic.HashSet[string]'
-  $files = New-Object 'System.Collections.Generic.List[object]'
-  while ($stack.Count) {
-    if ($timer.Elapsed.TotalSeconds -gt $Seconds) { throw 'Planning scan timed out; no executable plan was produced.' }
-    $p = Assert-SyrinSourcePath $stack.Pop() $CloudRoots -Policy $Policy
-    $entry = Get-Item -LiteralPath $p -Force -ErrorAction Stop
-    if ($entry -is [IO.DirectoryInfo]) {
-      foreach ($child in $entry.EnumerateFileSystemInfos()) {
-        if($timer.Elapsed.TotalSeconds -gt $Seconds -or $stack.Count+$files.Count -ge $MaxFiles*2){throw 'Planning entry/time budget exceeded; narrow the selection.'}
-        $stack.Push($child.FullName)
-      }
-    } else {
-      $fp = Get-SyrinFingerprint $p
-      if ($fp.Links -ne 1) { throw "Hard-linked files require manual review: $p" }
-      if ($seen.Add($fp.FileId)) {
-        $files.Add([PSCustomObject]@{Path=$p;Fingerprint=$fp})
-        if ($files.Count -gt $MaxFiles) { throw 'Planning file limit exceeded; narrow the selection.' }
-      }
-    }
+  Initialize-SyrinNative
+  $validated = New-Object 'System.Collections.Generic.List[string]'
+  foreach ($p in $Path) { $validated.Add((Assert-SyrinSourcePath $p $CloudRoots -Policy $Policy)) }
+  $planned = [Syrin.NativeFiles]::CollectPlanFiles($validated.ToArray(), [string]$Policy.profile, [string[]]$Policy.protected, [string[]]$Policy.cloud, $MaxFiles, $Seconds)
+  $files = New-Object 'System.Collections.Generic.List[object]' ($planned.Length)
+  foreach ($entry in $planned) {
+    $fp = [PSCustomObject]@{ FileId=$entry.FileId; Length=[long]$entry.Length; LastWriteUtc=$entry.LastWriteUtc; Links=[int]$entry.Links }
+    $files.Add([PSCustomObject]@{ Path=$entry.Path; Fingerprint=$fp })
   }
   return $files.ToArray()
 }
@@ -359,4 +416,4 @@ function ConvertTo-SyrinCommandArgument([string]$Value) {
   return '"' + $value + '"'
 }
 
-Export-ModuleMember -Function Get-SyrinOwner,Get-SyrinPath,Test-SyrinWithin,Assert-SyrinLocalPath,Get-SyrinCloudRoots,New-SyrinSourcePolicy,Assert-SyrinSourcePath,Get-SyrinFingerprint,Test-SyrinFingerprint,Remove-SyrinCheckedFile,Move-SyrinCheckedFile,Get-SyrinDigest,Read-SyrinJson,Read-SyrinJsonDocument,Read-SyrinJsonBatch,Write-SyrinAtomicJson,Write-SyrinAtomicText,Get-SyrinFiles,ConvertTo-SyrinCommandArgument
+Export-ModuleMember -Function Get-SyrinOwner,Get-SyrinPath,Test-SyrinWithin,Assert-SyrinLocalPath,Get-SyrinUserFolder,Get-SyrinCloudRoots,New-SyrinSourcePolicy,Assert-SyrinSourcePath,Get-SyrinFingerprint,Test-SyrinFingerprint,Remove-SyrinCheckedFile,Move-SyrinCheckedFile,Get-SyrinDigest,Read-SyrinJson,Read-SyrinJsonDocument,Read-SyrinJsonBatch,Write-SyrinAtomicJson,Write-SyrinAtomicText,Get-SyrinFiles,ConvertTo-SyrinCommandArgument

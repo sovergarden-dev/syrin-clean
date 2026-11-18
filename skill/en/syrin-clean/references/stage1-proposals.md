@@ -1,6 +1,6 @@
 # Phase 1: proposals and approval
 
-Show the plan-local short codes (Q1, R1, P1), filenames, sizes and consequences. Bind them to immutable item IDs in the plan. Keep the full digest in the working record; show a short plan reference so the user can distinguish revisions. Resolve confirmed codes only through that exact plan; never ask the user to type long UUIDs.
+Show the plan-local short codes (`Q1`, `R1`, `P1`) or deterministic directory group IDs (`G1`, `G2`, ... from `plan.groups` when a cache directory expands to dozens of files), filenames, sizes and consequences. Bind them to immutable item IDs in the plan. Keep the full digest in the working record; show a short plan reference so the user can distinguish revisions. Resolve confirmed codes or `G`-groups only through that exact plan; never ask the user to type long UUIDs.
 
 Use plain-language columns: ID, action, evidence, expected benefit, loss/risk, and undo. Group performance advice, cache review, personal-file choices, repair advice and hardware advice separately. Unsupported system-changing operations stay advice, clearly labeled; never imply that a restore point makes irreversible operations reversible.
 
